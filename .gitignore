@@ -14,6 +14,10 @@ dist-ssr
 .env
 .env.*
 !.env.example
+<<<<<<< HEAD
+
+=======
+>>>>>>> 54dd15e2524c3ff6c254031f930757108481aa90
 
 # Editor directories and files
 .vscode/*
