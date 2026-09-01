@@ -1,0 +1,111 @@
+.motivational-card {
+  margin-top: 1.5rem;
+  padding: 1rem 1.1rem;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 12px;
+  position: relative;
+  transition: all 0.25s ease;
+  text-align: left;
+}
+
+.motivational-card:hover {
+  border-color: rgba(99, 102, 241, 0.45);
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.motivational-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.motivational-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #818cf8;
+}
+
+.refresh-quote-btn {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.refresh-quote-btn:hover:not(:disabled) {
+  color: #c7d2fe;
+  background: rgba(99, 102, 241, 0.15);
+}
+
+.refresh-quote-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.motivational-content {
+  min-height: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.quote-text {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #e2e8f0;
+  font-style: italic;
+  margin: 0 0 0.4rem 0;
+}
+
+.quote-author {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 500;
+  text-align: right;
+  margin: 0;
+}
+
+.quote-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.skeleton-line {
+  height: 12px;
+  background: rgba(51, 65, 85, 0.6);
+  border-radius: 4px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-line.short {
+  width: 60%;
+  align-self: flex-end;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.3; }
+}
+
+.spin {
+  animation: spinAnim 0.7s linear infinite;
+}
+
+@keyframes spinAnim {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
