@@ -11,11 +11,13 @@ import {
   ShieldCheck 
 } from 'lucide-react';
 import authService from '../../services/authService';
+import MotivationalQuote from '../../components/MotivationalQuote';
 import './LoginView.css';
 
 /**
  * Vista de Inicio de Sesión
  * Permite a los usuarios ingresar credenciales para autenticarse con NestJS
+ * e incluye una tarjeta motivacional integrada
  */
 export const LoginView = ({ onLoginSuccess }) => {
   const [formData, setFormData] = useState({
@@ -158,6 +160,9 @@ export const LoginView = ({ onLoginSuccess }) => {
             )}
           </button>
         </form>
+
+        {/* Tarjeta de Frase Motivacional Integrada */}
+        <MotivationalQuote />
 
         {/* Pie de seguridad */}
         <div className="login-footer">
