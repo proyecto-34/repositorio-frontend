@@ -1,130 +1,136 @@
-import { useState } from 'react';
-import { Toaster } from 'sonner';
-import LoginView from './views/auth/LoginView';
-import authService from './services/authService';
-import { LogOut, User, Store, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import axiosClient from './api/axiosClient';
+import WeatherWidget from './components/WeatherWidget';
 
 function App() {
-  const [currentUser, setCurrentUser] = useState(() => authService.getStoredUser());
+  const [backendData, setBackendData] = useState(null);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
 
-  const handleLogout = () => {
-    authService.logout();
-    setCurrentUser(null);
+  const probarConexion = () => {
+    setCargando(true);
+    setError(null);
+    setBackendData(null);
+
+    // Consulta el endpoint de verificación del backend NestJS
+    axiosClient.get('/health')
+      .then((res) => {
+        setBackendData(res.data);
+      })
+      .catch((err) => {
+        setError(err.response?.data?.message || err.message || 'No se pudo conectar al backend');
+      })
+      .finally(() => {
+        setCargando(false);
+      });
   };
 
-  const handleLoginSuccess = (result) => {
-    setCurrentUser(result.user);
-  };
+  useEffect(() => {
+    probarConexion();
+  }, []);
 
   return (
-    <>
-      <Toaster richColors position="top-right" />
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#0f172a',
+      color: '#f8fafc',
+      padding: '2rem',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '2rem'
+    }}>
+      <header style={{ textAlign: 'center' }}>
+        <h1 style={{ margin: '0 0 0.5rem 0', fontSize: '2rem', fontWeight: 800, color: '#38bdf8' }}>
+          Sistema ERP / POS & Integraciones
+        </h1>
+        <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.95rem' }}>
+          Demostración de integraciones de APIs: Backend NestJS y Clima Open-Meteo
+        </p>
+      </header>
 
-      {!currentUser ? (
-        <LoginView onLoginSuccess={handleLoginSuccess} />
-      ) : (
-        <div style={{
-          minHeight: '100vh',
-          backgroundColor: '#0f172a',
-          color: '#f8fafc',
-          fontFamily: 'system-ui, -apple-system, sans-serif'
-        }}>
-          {/* Header */}
-          <header style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '1.2rem 2rem',
-            backgroundColor: '#1e293b',
-            borderBottom: '1px solid #334155'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-              <div style={{
-                background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-                padding: '0.6rem',
-                borderRadius: '12px',
-                display: 'flex',
-                color: '#fff'
-              }}>
-                <Store size={22} />
-              </div>
-              <div>
-                <h2 style={{ fontSize: '1.1rem', margin: 0, fontWeight: 700 }}>Tienda Comunitaria</h2>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Sesión Iniciada con Éxito</span>
-              </div>
-            </div>
-
-            <button
-              onClick={handleLogout}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                backgroundColor: '#dc2626',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '0.5rem 1rem',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '0.85rem'
-              }}
-            >
-              <LogOut size={16} />
-              Cerrar Sesión
-            </button>
-          </header>
-
-          {/* Body */}
-          <main style={{ maxWidth: '800px', margin: '2.5rem auto', padding: '0 1.5rem' }}>
-            <div style={{
-              backgroundColor: '#1e293b',
-              border: '1px solid #334155',
-              borderRadius: '16px',
-              padding: '2rem',
-              textAlign: 'left'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '50%',
-                  backgroundColor: '#3b82f6',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#fff'
-                }}>
-                  <User size={24} />
-                </div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#f8fafc' }}>
-                    ¡Bienvenido, {currentUser?.nombre || currentUser?.email || 'Usuario'}!
-                  </h3>
-                  <p style={{ margin: '0.2rem 0 0 0', color: '#94a3b8', fontSize: '0.85rem' }}>
-                    Token JWT y sesión sincronizados con el backend NestJS
-                  </p>
-                </div>
-              </div>
-
-              <div style={{
-                backgroundColor: '#0f172a',
-                padding: '1.2rem',
-                borderRadius: '10px',
-                border: '1px solid #1e293b'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#4ade80', fontSize: '0.9rem', fontWeight: 600 }}>
-                  <ShieldCheck size={18} /> Datos de usuario en sesión:
-                </div>
-                <pre style={{ margin: 0, color: '#a5f3fc', fontSize: '0.85rem', overflowX: 'auto' }}>
-                  {JSON.stringify(currentUser, null, 2)}
-                </pre>
-              </div>
-            </div>
-          </main>
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '2rem',
+        justifyContent: 'center',
+        maxWidth: '900px',
+        width: '100%'
+      }}>
+        {/* Sección: Widget del Clima */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <h2 style={{ fontSize: '1rem', color: '#cbd5e1', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>
+            🌤️ API del Clima
+          </h2>
+          <WeatherWidget />
         </div>
-      )}
-    </>
+
+        {/* Sección: Estado del Backend NestJS */}
+        <div style={{
+          background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+          padding: '1.25rem',
+          borderRadius: '16px',
+          border: '1px solid #334155',
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
+          maxWidth: '380px',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between'
+        }}>
+          <div>
+            <h2 style={{ fontSize: '1rem', color: '#cbd5e1', margin: '0 0 0.5rem 0', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              🔌 API Backend NestJS
+            </h2>
+            <p style={{ color: '#64748b', fontSize: '0.8rem', margin: '0 0 1rem 0' }}>
+              URL: <code style={{ color: '#38bdf8' }}>{axiosClient.defaults.baseURL}/health</code>
+            </p>
+
+            {cargando && (
+              <div style={{ color: '#38bdf8', background: 'rgba(56, 189, 248, 0.1)', padding: '1rem', borderRadius: '10px', fontSize: '0.9rem', textAlign: 'center' }}>
+                🔄 Verificando conexión...
+              </div>
+            )}
+
+            {error && (
+              <div style={{ color: '#f87171', background: 'rgba(239, 68, 68, 0.1)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                <h4 style={{ margin: '0 0 0.25rem 0' }}>❌ Sin conexión con Backend</h4>
+                <p style={{ margin: 0, fontSize: '0.85rem' }}>{error}</p>
+              </div>
+            )}
+
+            {backendData && (
+              <div style={{ color: '#4ade80', background: 'rgba(74, 222, 128, 0.1)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(74, 222, 128, 0.3)' }}>
+                <h4 style={{ margin: '0 0 0.25rem 0' }}>✅ Backend Conectado</h4>
+                <p style={{ margin: '0.25rem 0', fontSize: '0.85rem' }}><strong>Mensaje:</strong> {backendData.mensaje || JSON.stringify(backendData)}</p>
+                {backendData.status && <p style={{ margin: '0.25rem 0', fontSize: '0.85rem' }}><strong>Estado:</strong> {backendData.status}</p>}
+                {backendData.fecha && <p style={{ margin: '0.25rem 0', fontSize: '0.85rem' }}><strong>Hora:</strong> {backendData.fecha}</p>}
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={probarConexion}
+            disabled={cargando}
+            style={{
+              backgroundColor: cargando ? '#475569' : '#38bdf8',
+              color: '#0f172a',
+              padding: '0.65rem 1.2rem',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: cargando ? 'not-allowed' : 'pointer',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              marginTop: '1.25rem',
+              transition: 'background 0.2s'
+            }}
+          >
+            {cargando ? 'Consultando...' : 'Reintentar conexión'}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
