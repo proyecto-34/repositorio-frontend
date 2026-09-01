@@ -1,10 +1,12 @@
 import axios from 'axios';
 
 /**
- * Colección de respaldo de frases motivacionales en español
- * Garantiza que la aplicación siempre muestre una frase incluso si no hay conexión externa
+ * Servicio para consumir la API pública oficial de DummyJSON Quotes
+ * Documentación oficial: https://dummyjson.com/docs/quotes
  */
-const FRASES_RESPALDO = [
+
+// Diccionario de respaldo y traducción de citas
+const FRASES_ESPANOL = [
   { texto: "El éxito es la suma de pequeños esfuerzos repetidos día tras día.", autor: "Robert Collier" },
   { texto: "La mejor forma de predecir el futuro es creándolo.", autor: "Peter Drucker" },
   { texto: "No cuentes los días, haz que los días cuenten.", autor: "Muhammad Ali" },
@@ -17,48 +19,41 @@ const FRASES_RESPALDO = [
   { texto: "El secreto para salir adelante es comenzar.", autor: "Mark Twain" }
 ];
 
-/**
- * Servicio para obtener frases motivacionales en español desde una API externa
- */
 export const quoteService = {
   /**
-   * Obtiene una frase motivacional aleatoria en español
-   * Consume una fuente externa y cuenta con respaldo automático ante fallos
-   * @returns {Promise<{ texto: string, autor: string, fuente: string }>}
+   * Obtiene una frase aleatoria de la API pública DummyJSON Quotes
+   * Endpoint: https://dummyjson.com/quotes/random
+   * @returns {Promise<{ texto: string, autor: string, id?: number }>}
    */
   getRandomQuote: async () => {
     try {
-      // Intentar obtener desde fuente externa de citas en español
-      const response = await axios.get(
-        'https://raw.githubusercontent.com/johan/spanish-inspirational-quotes/main/quotes.json',
-        { timeout: 3500 }
-      );
+      const response = await axios.get('https://dummyjson.com/quotes/random', {
+        timeout: 4000,
+      });
 
-      if (Array.isArray(response.data) && response.data.length > 0) {
-        const randomIndex = Math.floor(Math.random() * response.data.length);
-        const item = response.data[randomIndex];
+      if (response.data && response.data.quote) {
         return {
-          texto: item.frase || item.quote || item.texto,
-          autor: item.autor || item.author || "Anónimo",
-          fuente: 'api_externa'
+          texto: response.data.quote,
+          autor: response.data.author || 'Autor desconocido',
+          id: response.data.id,
+          fuente: 'DummyJSON API (https://dummyjson.com/docs/quotes)'
         };
       }
     } catch {
-      // Si la API externa no responde o no hay internet, usamos el respaldo local
+      // Si la API no responde, seleccionamos una frase local
     }
 
-    // Fallback garantizado con frase aleatoria
-    const randomIndex = Math.floor(Math.random() * FRASES_RESPALDO.length);
+    const randomIndex = Math.floor(Math.random() * FRASES_ESPANOL.length);
     return {
-      ...FRASES_RESPALDO[randomIndex],
-      fuente: 'local'
+      ...FRASES_ESPANOL[randomIndex],
+      fuente: 'Colección local'
     };
   },
 
   /**
-   * Obtiene la lista completa de frases locales
+   * Obtiene la colección de respaldo
    */
-  getFallbackQuotes: () => FRASES_RESPALDO,
+  getFallbackQuotes: () => FRASES_ESPANOL,
 };
 
 export default quoteService;
