@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
+import { Receipt, CloudSun, Server, LogIn } from 'lucide-react';
 import LoginView from './views/auth/LoginView';
 import WeatherWidget from './components/WeatherWidget';
+import FacturaModal from './components/FacturaModal';
 import axiosClient from './api/axiosClient';
 
 function App() {
@@ -18,6 +20,7 @@ function App() {
   const [backendData, setBackendData] = useState(null);
   const [cargandoBackend, setCargandoBackend] = useState(false);
   const [errorBackend, setErrorBackend] = useState(null);
+  const [modalFacturaAbierto, setModalFacturaAbierto] = useState(false);
 
   const probarConexion = () => {
     setCargandoBackend(true);
@@ -57,7 +60,13 @@ function App() {
       {/* Contenedor de notificaciones Toast */}
       <Toaster position="top-right" richColors />
 
-      {/* Barra superior de navegación / accesos */}
+      {/* Modal de Facturación */}
+      <FacturaModal
+        isOpen={modalFacturaAbierto}
+        onClose={() => setModalFacturaAbierto(false)}
+      />
+
+      {/* Barra superior de navegación */}
       <nav style={{
         backgroundColor: '#0f172a',
         borderBottom: '1px solid #1e293b',
@@ -99,33 +108,54 @@ function App() {
                 fontSize: '0.85rem'
               }}
             >
-              Panel & Clima
+              Panel & Módulos
             </button>
           </div>
         </div>
 
-        {user && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
-              👤 {user.email || user.nombre || 'Usuario'}
-            </span>
-            <button
-              onClick={handleLogout}
-              style={{
-                background: '#ef4444',
-                color: '#fff',
-                border: 'none',
-                padding: '5px 12px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '0.8rem',
-                fontWeight: 600
-              }}
-            >
-              Salir
-            </button>
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button
+            onClick={() => setModalFacturaAbierto(true)}
+            style={{
+              background: '#059669',
+              color: '#ffffff',
+              border: 'none',
+              padding: '6px 14px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <Receipt size={16} /> Emitir Factura PDF
+          </button>
+
+          {user && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                👤 {user.email || user.nombre || 'Usuario'}
+              </span>
+              <button
+                onClick={handleLogout}
+                style={{
+                  background: '#ef4444',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.8rem',
+                  fontWeight: 600
+                }}
+              >
+                Salir
+              </button>
+            </div>
+          )}
+        </div>
       </nav>
 
       {/* Renderizado de Vistas */}
@@ -148,7 +178,7 @@ function App() {
                 Panel de Control & Integraciones
               </h1>
               <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.9rem' }}>
-                Monitoreo del clima en tiempo real y estado del backend NestJS
+                Módulos integrados: Clima en vivo, Facturación PDF POS y Conexión NestJS
               </p>
             </header>
 
@@ -157,25 +187,69 @@ function App() {
               flexWrap: 'wrap',
               gap: '2rem',
               justifyContent: 'center',
-              maxWidth: '900px',
+              maxWidth: '1000px',
               width: '100%'
             }}>
-              {/* Widget de Clima */}
+              {/* Tarjeta 1: Emisión de Factura */}
+              <div style={{
+                background: 'linear-gradient(135deg, #064e3b, #022c22)',
+                padding: '1.25rem',
+                borderRadius: '16px',
+                border: '1px solid #047857',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
+                maxWidth: '300px',
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#34d399', marginBottom: '0.5rem' }}>
+                    <Receipt size={22} />
+                    <h3 style={{ fontSize: '1rem', margin: 0, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Facturación POS
+                    </h3>
+                  </div>
+                  <p style={{ color: '#a7f3d0', fontSize: '0.85rem', lineHeight: '1.4' }}>
+                    Genera tickets térmicos de venta en formato PDF de 80mm con desglose de IVA y totales.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setModalFacturaAbierto(true)}
+                  style={{
+                    backgroundColor: '#10b981',
+                    color: '#022c22',
+                    padding: '0.75rem 1.2rem',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: 700,
+                    fontSize: '0.9rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    marginTop: '1.25rem'
+                  }}
+                >
+                  <Receipt size={18} /> Nueva Factura
+                </button>
+              </div>
+
+              {/* Tarjeta 2: Widget de Clima */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <h3 style={{ fontSize: '0.9rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px', margin: 0 }}>
-                  🌤️ Clima en Vivo (Open-Meteo)
-                </h3>
                 <WeatherWidget />
               </div>
 
-              {/* Estado del Backend NestJS */}
+              {/* Tarjeta 3: Estado del Backend NestJS */}
               <div style={{
                 background: 'linear-gradient(135deg, #1e293b, #0f172a)',
                 padding: '1.25rem',
                 borderRadius: '16px',
                 border: '1px solid #334155',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
-                maxWidth: '380px',
+                maxWidth: '300px',
                 width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
@@ -197,14 +271,14 @@ function App() {
 
                   {errorBackend && (
                     <div style={{ color: '#f87171', background: 'rgba(239, 68, 68, 0.1)', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.3)', fontSize: '0.85rem' }}>
-                      ❌ Sin conexión con Backend ({errorBackend})
+                      ❌ Sin conexión ({errorBackend})
                     </div>
                   )}
 
                   {backendData && (
                     <div style={{ color: '#4ade80', background: 'rgba(74, 222, 128, 0.1)', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(74, 222, 128, 0.3)', fontSize: '0.85rem' }}>
-                      <p style={{ margin: '0 0 0.25rem 0' }}><strong>✅ Backend Conectado</strong></p>
-                      <p style={{ margin: 0 }}>{backendData.mensaje || 'Servidor respondiendo correctamente'}</p>
+                      <p style={{ margin: '0 0 0.25rem 0' }}><strong>✅ Conectado</strong></p>
+                      <p style={{ margin: 0, fontSize: '0.8rem' }}>{backendData.mensaje || 'Servidor activo'}</p>
                     </div>
                   )}
                 </div>
