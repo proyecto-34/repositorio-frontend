@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Sun, 
-  CloudSun, 
-  CloudRain, 
-  Cloud, 
-  CloudLightning, 
-  Snowflake, 
-  Wind, 
-  Droplets, 
-  Search, 
-  MapPin, 
-  Loader2 
+import {
+  Sun,
+  CloudSun,
+  CloudRain,
+  Cloud,
+  CloudLightning,
+  Snowflake,
+  Wind,
+  Droplets,
+  Search,
+  MapPin,
+  Loader2
 } from 'lucide-react';
 import { weatherService, interpretarCodigoClima } from '../services/weatherService';
 
@@ -20,7 +20,7 @@ import { weatherService, interpretarCodigoClima } from '../services/weatherServi
  */
 export const WeatherWidget = () => {
   const [climaInfo, setClimaInfo] = useState(null);
-  const [ciudadInput, setCiudadInput] = useState('Bogotá');
+  const [ciudadInput, setCiudadInput] = useState('Mocoa');
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
 
@@ -38,35 +38,9 @@ export const WeatherWidget = () => {
     }
   };
 
-  // Al montar el componente: intenta usar geolocalización o usa la ciudad por defecto
+  // Al montar el componente: consulta Mocoa como ciudad principal
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          try {
-            const data = await weatherService.obtenerPorCoordenadas(
-              pos.coords.latitude,
-              pos.coords.longitude
-            );
-            setClimaInfo({
-              ciudad: 'Mi Ubicación',
-              pais: 'Actual',
-              clima: data.current,
-            });
-          } catch {
-            consultarClimaPorCiudad('Bogotá');
-          } finally {
-            setCargando(false);
-          }
-        },
-        () => {
-          // Si el usuario deniega los permisos de geolocalización
-          consultarClimaPorCiudad('Bogotá');
-        }
-      );
-    } else {
-      consultarClimaPorCiudad('Bogotá');
-    }
+    consultarClimaPorCiudad('Mocoa');
   }, []);
 
   const handleBuscar = (e) => {

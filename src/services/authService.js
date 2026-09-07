@@ -12,16 +12,52 @@ export const authService = {
    * @returns {Promise<Object>} Datos del backend (token y usuario)
    */
   login: async (credentials) => {
-    const response = await axiosClient.post(ENDPOINTS.AUTH.LOGIN, credentials);
+    const correoVal = (credentials.correo || credentials.email || credentials.username || '').trim();
+    const contrasenaVal = credentials.contraseña || credentials.contrasena || credentials.password || '';
+
+    // El DTO de NestJS requiere 'correo' y 'contraseña'
+    const payload = {
+      correo: correoVal,
+      contraseña: contrasenaVal,
+      contrasena: contrasenaVal,
+      email: correoVal,
+      password: contrasenaVal,
+    };
+
+    const response = await axiosClient.post(ENDPOINTS.AUTH.LOGIN, payload);
     const data = response.data;
 
-    // Extraer token y usuario soportando diferentes formatos comunes en NestJS
-    const token = data.access_token || data.token || data.accessToken;
-    const user = data.user || data.usuario || { email: credentials.email || credentials.username };
+    // Extraer token soportando diferentes convenciones de NestJS
+    const token =
+      data.access_token ||
+      data.accessToken ||
+      data.token ||
+      data.jwt ||
+      data.data?.token ||
+      data.data?.access_token;
+
+    // Extraer datos del usuario de la base de datos
+    let user =
+      data.user ||
+      data.usuario ||
+      data.data?.user ||
+      data.data?.usuario ||
+      null;
 
     if (token) {
       localStorage.setItem('token', token);
     }
+
+    // Si el backend no envió el objeto user directamente pero tenemos token, intentamos consultar su perfil
+    if (!user && token) {
+      try {
+        const profileRes = await axiosClient.get(ENDPOINTS.AUTH.PROFILE);
+        user = profileRes.data?.user || profileRes.data?.usuario || profileRes.data;
+      } catch {
+        user = { email: payload.email, rol: 'Usuario' };
+      }
+    }
+
     if (user) {
       localStorage.setItem('user', JSON.stringify(user));
     }

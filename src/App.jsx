@@ -16,7 +16,9 @@ function App() {
     }
   });
 
-  const [vistaActual, setVistaActual] = useState('login'); // 'login' | 'dashboard'
+  const [vistaActual, setVistaActual] = useState(() => {
+    return localStorage.getItem('token') ? 'dashboard' : 'login';
+  });
   const [backendData, setBackendData] = useState(null);
   const [cargandoBackend, setCargandoBackend] = useState(false);
   const [errorBackend, setErrorBackend] = useState(null);
@@ -42,9 +44,9 @@ function App() {
   }, []);
 
   const handleLoginSuccess = (data) => {
-    setUser(data.user || { email: 'usuario@tienda.com' });
+    setUser(data.user);
     setVistaActual('dashboard');
-    toast.success('¡Bienvenido al panel principal!');
+    toast.success(`¡Bienvenido ${data.user?.nombre || data.user?.email || ''}!`);
   };
 
   const handleLogout = () => {

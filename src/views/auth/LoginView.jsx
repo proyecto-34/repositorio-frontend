@@ -58,10 +58,15 @@ export const LoginView = ({ onLoginSuccess }) => {
         onLoginSuccess(result);
       }
     } catch (error) {
-      const errorMsg =
-        error.response?.data?.message ||
-        error.message ||
-        'Error al iniciar sesión. Verifica tus credenciales.';
+      let errorMsg = 'Error al iniciar sesión. Verifica tus credenciales.';
+
+      if (error.code === 'ERR_NETWORK' || error.message?.includes('Network Error')) {
+        errorMsg = 'No se pudo conectar con el servidor backend (http://localhost:3000). Verifica que el servidor NestJS esté iniciado.';
+      } else if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
 
       toast.error(
         Array.isArray(errorMsg) ? errorMsg.join(', ') : errorMsg
