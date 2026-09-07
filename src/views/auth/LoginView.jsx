@@ -10,7 +10,7 @@ import {
   Loader2, 
   ShieldCheck 
 } from 'lucide-react';
-import authService from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
 import MotivationalQuote from '../../components/MotivationalQuote';
 import './LoginView.css';
 
@@ -20,6 +20,7 @@ import './LoginView.css';
  * e incluye una tarjeta motivacional integrada
  */
 export const LoginView = ({ onLoginSuccess }) => {
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -47,7 +48,7 @@ export const LoginView = ({ onLoginSuccess }) => {
     setIsSubmitting(true);
 
     try {
-      const result = await authService.login({
+      const result = await login({
         email: formData.email.trim(),
         password: formData.password,
       });
