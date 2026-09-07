@@ -1,20 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
-import { Receipt, CloudSun, Server, LogIn } from 'lucide-react';
+import { 
+  Receipt, 
+  Shield, 
+  ShoppingCart, 
+  Users, 
+  Package, 
+  BarChart3, 
+  Sparkles,
+  Layers,
+  ArrowRightLeft
+} from 'lucide-react';
 import LoginView from './views/auth/LoginView';
 import WeatherWidget from './components/WeatherWidget';
 import FacturaModal from './components/FacturaModal';
 import axiosClient from './api/axiosClient';
+import { useAuth } from './context/AuthContext';
+import { ROLES, ROLE_BADGES } from './constants/roles';
 
 function App() {
-  const [user, setUser] = useState(() => {
-    try {
-      const savedUser = localStorage.getItem('user');
-      return savedUser ? JSON.parse(savedUser) : null;
-    } catch {
-      return null;
-    }
-  });
+  const { 
+    user, 
+    activeRole, 
+    isAdmin, 
+    isCajero, 
+    cambiarRolActivo, 
+    logout, 
+    isAuthenticated 
+  } = useAuth();
 
   const [vistaActual, setVistaActual] = useState(() => {
     return localStorage.getItem('token') ? 'dashboard' : 'login';
@@ -44,18 +57,17 @@ function App() {
   }, []);
 
   const handleLoginSuccess = (data) => {
-    setUser(data.user);
     setVistaActual('dashboard');
     toast.success(`¡Bienvenido ${data.user?.nombre || data.user?.email || ''}!`);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
+    logout();
     setVistaActual('login');
     toast.info('Sesión cerrada');
   };
+
+  const roleInfo = ROLE_BADGES[activeRole] || ROLE_BADGES[ROLES.ADMIN];
 
   return (
     <>
@@ -77,18 +89,24 @@ function App() {
         justifyContent: 'space-between',
         alignItems: 'center',
         color: '#f8fafc',
-        fontFamily: 'system-ui, sans-serif'
+        fontFamily: 'system-ui, sans-serif',
+        flexWrap: 'wrap',
+        gap: '0.75rem'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <strong style={{ color: '#38bdf8', fontSize: '1.1rem' }}>🏪 Tienda Comunitaria</strong>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+        {/* Marca y selector de vista principal */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <strong style={{ color: '#38bdf8', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            🏪 Tienda Comunitaria
+          </strong>
+
+          <div style={{ display: 'flex', gap: '0.4rem' }}>
             <button
               onClick={() => setVistaActual('login')}
               style={{
                 background: vistaActual === 'login' ? '#38bdf8' : '#1e293b',
                 color: vistaActual === 'login' ? '#0f172a' : '#cbd5e1',
                 border: 'none',
-                padding: '6px 14px',
+                padding: '6px 12px',
                 borderRadius: '6px',
                 cursor: 'pointer',
                 fontWeight: 600,
@@ -103,26 +121,90 @@ function App() {
                 background: vistaActual === 'dashboard' ? '#38bdf8' : '#1e293b',
                 color: vistaActual === 'dashboard' ? '#0f172a' : '#cbd5e1',
                 border: 'none',
-                padding: '6px 14px',
+                padding: '6px 12px',
                 borderRadius: '6px',
                 cursor: 'pointer',
                 fontWeight: 600,
                 fontSize: '0.85rem'
               }}
             >
-              Panel & Módulos
+              Panel Principal
             </button>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        {/* Selector interactivo de Roles (Demo & RBAC) */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          background: 'rgba(30, 41, 59, 0.8)',
+          border: '1px solid #334155',
+          borderRadius: '10px',
+          padding: '3px 6px',
+          gap: '4px'
+        }}>
+          <span style={{ fontSize: '0.75rem', color: '#94a3b8', padding: '0 4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <ArrowRightLeft size={12} /> Rol Activo:
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              cambiarRolActivo(ROLES.ADMIN);
+              toast.info('Vista cambiada a: Administrador');
+            }}
+            style={{
+              background: isAdmin ? '#4338ca' : 'transparent',
+              color: isAdmin ? '#ffffff' : '#94a3b8',
+              border: 'none',
+              padding: '4px 10px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: isAdmin ? 700 : 500,
+              fontSize: '0.8rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              transition: 'all 0.2s ease'
+            }}
+            title="Ver interfaz como Administrador"
+          >
+            👑 Admin
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              cambiarRolActivo(ROLES.CAJERO);
+              toast.info('Vista cambiada a: Cajero POS');
+            }}
+            style={{
+              background: isCajero ? '#065f46' : 'transparent',
+              color: isCajero ? '#ffffff' : '#94a3b8',
+              border: 'none',
+              padding: '4px 10px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: isCajero ? 700 : 500,
+              fontSize: '0.8rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              transition: 'all 0.2s ease'
+            }}
+            title="Ver interfaz como Cajero POS"
+          >
+            🛒 Cajero
+          </button>
+        </div>
+
+        {/* Acciones de usuario y factura */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button
             onClick={() => setModalFacturaAbierto(true)}
             style={{
               background: '#059669',
               color: '#ffffff',
               border: 'none',
-              padding: '6px 14px',
+              padding: '6px 12px',
               borderRadius: '6px',
               cursor: 'pointer',
               fontWeight: 700,
@@ -132,13 +214,27 @@ function App() {
               gap: '6px'
             }}
           >
-            <Receipt size={16} /> Emitir Factura PDF
+            <Receipt size={16} /> Factura PDF
           </button>
 
           {user && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <span style={{
+                background: roleInfo.bg,
+                color: roleInfo.color,
+                border: `1px solid ${roleInfo.border}`,
+                padding: '2px 8px',
+                borderRadius: '12px',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                {roleInfo.icon} {roleInfo.label}
+              </span>
               <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
-                👤 {user.email || user.nombre || 'Usuario'}
+                {user.nombre || user.email || 'Usuario'}
               </span>
               <button
                 onClick={handleLogout}
@@ -146,7 +242,7 @@ function App() {
                   background: '#ef4444',
                   color: '#fff',
                   border: 'none',
-                  padding: '5px 12px',
+                  padding: '4px 10px',
                   borderRadius: '6px',
                   cursor: 'pointer',
                   fontSize: '0.8rem',
@@ -173,26 +269,45 @@ function App() {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '2rem'
+            gap: '1.5rem'
           }}>
-            <header style={{ textAlign: 'center' }}>
-              <h1 style={{ margin: '0 0 0.5rem 0', fontSize: '1.8rem', color: '#38bdf8', fontWeight: 800 }}>
-                Panel de Control & Integraciones
-              </h1>
+            {/* Banner de Estado del Rol Activo */}
+            <header style={{
+              textAlign: 'center',
+              maxWidth: '900px',
+              width: '100%',
+              background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9))',
+              border: `1px solid ${roleInfo.border}40`,
+              borderRadius: '16px',
+              padding: '1.25rem 1.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.5rem' }}>{roleInfo.icon}</span>
+                <h1 style={{ margin: 0, fontSize: '1.6rem', color: '#f8fafc', fontWeight: 800 }}>
+                  Panel de Control — Rol: <span style={{ color: roleInfo.color }}>{roleInfo.label}</span>
+                </h1>
+              </div>
               <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.9rem' }}>
-                Módulos integrados: Clima en vivo, Facturación PDF POS y Conexión NestJS
+                {isAdmin 
+                  ? '👑 Vista Administrativa: Gestión completa de usuarios, inventario, reportes y ventas de la tienda.'
+                  : '🛒 Vista de Cajero (POS): Operaciones de venta rápida, cobro en mostrador, emisión de tickets y facturación.'}
               </p>
             </header>
 
+            {/* Módulos en tarjetas */}
             <div style={{
               display: 'flex',
               flexWrap: 'wrap',
-              gap: '2rem',
+              gap: '1.5rem',
               justifyContent: 'center',
               maxWidth: '1000px',
               width: '100%'
             }}>
-              {/* Tarjeta 1: Emisión de Factura */}
+              {/* Tarjeta 1: Emisión de Factura POS */}
               <div style={{
                 background: 'linear-gradient(135deg, #064e3b, #022c22)',
                 padding: '1.25rem',
