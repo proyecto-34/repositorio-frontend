@@ -1,44 +1,49 @@
 import axiosClient from '../api/axiosClient';
 import { ENDPOINTS } from '../api/endpoints';
 
-const USUARIOS_DEMO = [
-  { id: 1, nombre: 'Jenkner Administrador', correo: 'admin@tienda.com', rol: 'admin', estado: 'Activo', fechaRegistro: '2026-01-15' },
-  { id: 2, nombre: 'David Martínez', correo: 'cajero1@tienda.com', rol: 'cajero', estado: 'Activo', fechaRegistro: '2026-02-10' },
-  { id: 3, nombre: 'Laura Gómez', correo: 'cajero2@tienda.com', rol: 'cajero', estado: 'Activo', fechaRegistro: '2026-03-01' },
-  { id: 4, nombre: 'Carlos Ruiz', correo: 'carlos.r@tienda.com', rol: 'cajero', estado: 'Inactivo', fechaRegistro: '2026-03-05' },
-];
-
 export const usuariosService = {
   /**
-   * Obtiene la lista de usuarios desde NestJS o respaldo local
+   * Obtiene la lista real de usuarios desde la Base de Datos a través de NestJS
    */
   obtenerUsuarios: async () => {
     try {
       const response = await axiosClient.get(ENDPOINTS.USUARIOS.BASE);
-      if (Array.isArray(response.data) && response.data.length > 0) {
-        return response.data;
+      const data = response.data;
+
+      // Extraer lista según el formato de retorno de NestJS (Array directo o wrapper data/usuarios)
+      if (Array.isArray(data)) {
+        return data;
       }
-    } catch {
-      // Usar respaldo si la BD aún no tiene usuarios
+      if (data && typeof data === 'object') {
+        if (Array.isArray(data.data)) return data.data;
+        if (Array.isArray(data.usuarios)) return data.usuarios;
+        if (Array.isArray(data.result)) return data.result;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error al consultar usuarios en NestJS:', error);
+      throw error;
     }
-    return USUARIOS_DEMO;
   },
 
   /**
-   * Registra un nuevo usuario en NestJS
+   * Registra un nuevo usuario en la BD de NestJS
+   * DTO: { nombre, correo, contraseña, id_rol, id_estado }
    */
   crearUsuario: async (nuevoUsuario) => {
-    try {
-      const response = await axiosClient.post(ENDPOINTS.USUARIOS.BASE, nuevoUsuario);
-      return response.data;
-    } catch {
-      return {
-        id: Date.now(),
-        ...nuevoUsuario,
-        estado: 'Activo',
-        fechaRegistro: new Date().toISOString().split('T')[0],
-      };
-    }
+    const payload = {
+      nombre: nuevoUsuario.nombre.trim(),
+      correo: nuevoUsuario.correo.trim(),
+      contraseña: nuevoUsuario.contraseña,
+      contrasena: nuevoUsuario.contraseña,
+      email: nuevoUsuario.correo.trim(),
+      password: nuevoUsuario.contraseña,
+      id_rol: Number(nuevoUsuario.id_rol) || 5, // 1 = Admin, 5 = Cajero
+      id_estado: Number(nuevoUsuario.id_estado) || 1, // 1 = Activo
+    };
+
+    const response = await axiosClient.post(ENDPOINTS.USUARIOS.BASE, payload);
+    return response.data;
   },
 };
 
