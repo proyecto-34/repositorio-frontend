@@ -36,6 +36,24 @@ export const authService = {
       data.data?.token ||
       data.data?.access_token;
 
+    // Decodificar payload de JWT en caso de que el backend guarde el rol/datos ahi
+    let jwtPayload = null;
+    if (token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split('')
+            .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join('')
+        );
+        jwtPayload = JSON.parse(jsonPayload);
+      } catch {
+        jwtPayload = null;
+      }
+    }
+
     // Extraer datos del usuario de la base de datos
     let user =
       data.user ||
@@ -54,8 +72,20 @@ export const authService = {
         const profileRes = await axiosClient.get(ENDPOINTS.AUTH.PROFILE);
         user = profileRes.data?.user || profileRes.data?.usuario || profileRes.data;
       } catch {
-        user = { email: payload.email, rol: 'Usuario' };
+        user = null;
       }
+    }
+
+    // Si aún no tenemos user completo, construimos a partir del token JWT y payload
+    if (!user) {
+      user = {
+        email: payload.email,
+        nombre: jwtPayload?.nombre || jwtPayload?.name || payload.email.split('@')[0],
+        rol: jwtPayload?.rol || jwtPayload?.role || jwtPayload?.roles || 'admin',
+      };
+    } else {
+      // Asegurar que el rol esté explícito en el objeto user
+      user.rol = user.rol || user.role || user.id_rol || jwtPayload?.rol || jwtPayload?.role || 'admin';
     }
 
     if (user) {
