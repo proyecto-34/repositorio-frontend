@@ -5,9 +5,9 @@ import {
   ShoppingCart, 
   Users, 
   Package, 
-  Layers,
-  ArrowRightLeft,
-  Store
+  Layers, 
+  ArrowRightLeft, 
+  Store 
 } from 'lucide-react';
 import LoginView from './views/auth/LoginView';
 import CajeroPosView from './views/dashboard/CajeroPosView';
@@ -15,14 +15,17 @@ import AdminDashboardView from './views/dashboard/AdminDashboardView';
 import FacturaModal from './components/FacturaModal';
 import axiosClient from './api/axiosClient';
 import { useAuth } from './context/AuthContext';
-import { ROLES, ROLE_BADGES } from './constants/roles';
+import { ROLES, ROLES_DB, ROLE_BADGES } from './constants/roles';
 
 function App() {
   const { 
     user, 
     activeRole, 
     isAdmin, 
-    isCajero, 
+    isCajero,
+    isInventario,
+    isContador,
+    isSupervisor,
     cambiarRolActivo, 
     logout, 
     isAuthenticated 
@@ -118,67 +121,45 @@ function App() {
           </div>
         </div>
 
-        {/* Selector interactivo de Roles (Demo / RBAC) */}
+        {/* Selector interactivo de los 5 Roles de la BD */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           background: 'rgba(30, 41, 59, 0.9)',
           border: '1px solid #334155',
           borderRadius: '10px',
-          padding: '3px 6px',
-          gap: '4px'
+          padding: '3px 8px',
+          gap: '6px'
         }}>
-          <span style={{ fontSize: '0.72rem', color: '#94a3b8', padding: '0 4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <ArrowRightLeft size={12} /> Rol Detectado:
+          <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <ArrowRightLeft size={12} /> Rol Activo:
           </span>
-          <button
-            type="button"
-            onClick={() => {
-              cambiarRolActivo(ROLES.ADMIN);
-              toast.info('Vista de Administrador activada');
+          <select
+            value={activeRole}
+            onChange={(e) => {
+              const nuevo = e.target.value;
+              cambiarRolActivo(nuevo);
+              const info = ROLE_BADGES[nuevo];
+              toast.info(`Rol cambiado a: ${info?.icon} ${info?.label}`);
             }}
             style={{
-              background: isAdmin ? '#4338ca' : 'transparent',
-              color: isAdmin ? '#ffffff' : '#94a3b8',
-              border: 'none',
-              padding: '4px 10px',
+              background: '#0f172a',
+              color: '#38bdf8',
+              border: '1px solid #475569',
               borderRadius: '6px',
-              cursor: 'pointer',
-              fontWeight: isAdmin ? 700 : 500,
+              padding: '4px 8px',
               fontSize: '0.78rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              transition: 'all 0.2s ease'
-            }}
-            title="Ver vista como Administrador"
-          >
-            👑 Admin
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              cambiarRolActivo(ROLES.CAJERO);
-              toast.info('Vista de Cajero POS activada');
-            }}
-            style={{
-              background: isCajero ? '#065f46' : 'transparent',
-              color: isCajero ? '#ffffff' : '#94a3b8',
-              border: 'none',
-              padding: '4px 10px',
-              borderRadius: '6px',
+              fontWeight: 700,
               cursor: 'pointer',
-              fontWeight: isCajero ? 700 : 500,
-              fontSize: '0.78rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              transition: 'all 0.2s ease'
+              outline: 'none'
             }}
-            title="Ver vista como Cajero POS"
           >
-            🛒 Cajero POS
-          </button>
+            {ROLES_DB.map((r) => (
+              <option key={r.id} value={r.key}>
+                {r.icon} #{r.id} {r.nombre} ({r.label})
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Perfil del usuario y factura */}
@@ -251,15 +232,15 @@ function App() {
         {vistaActual === 'login' ? (
           <LoginView onLoginSuccess={handleLoginSuccess} />
         ) : (
-          /* Renderizado Condicional por Rol de la Base de Datos */
-          isAdmin ? (
+          /* Renderizado según Rol */
+          isCajero ? (
+            <CajeroPosView user={user} />
+          ) : (
             <AdminDashboardView
               user={user}
               onOpenFactura={() => setModalFacturaAbierto(true)}
               onAbrirPos={() => cambiarRolActivo(ROLES.CAJERO)}
             />
-          ) : (
-            <CajeroPosView user={user} />
           )
         )}
       </main>

@@ -21,15 +21,24 @@ import {
   DollarSign,
   Layers,
   ArrowUpRight,
-  Filter
+  Filter,
+  BarChart3,
+  Calendar,
+  CreditCard,
+  Banknote,
+  Smartphone,
+  FileText,
+  Download
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { usuariosService } from '../../services/usuariosService';
 import { productosService } from '../../services/productosService';
-import { normalizarRol, ROLES } from '../../constants/roles';
+import { facturacionService } from '../../services/facturacionService';
+import { normalizarRol, ROLES, ROLES_DB, ROLE_BADGES, obtenerInfoRol } from '../../constants/roles';
+import { useAuth } from '../../context/AuthContext';
 import WeatherWidget from '../../components/WeatherWidget';
 
-// Catálogo por defecto en caso de BD inicial vacía
+// Catálogo por defecto
 const PRODUCTOS_DEFAULT = [
   { id: 1, nombre: 'Leche Entera 1L', categoria: 'Lácteos', precio: 4200, stock: 24, stock_minimo: 10, codigo_barras: '7701001', emoji: '🥛' },
   { id: 2, nombre: 'Arroz Diana 1kg', categoria: 'Granos', precio: 4800, stock: 40, stock_minimo: 15, codigo_barras: '7701002', emoji: '🍚' },
@@ -43,9 +52,23 @@ const PRODUCTOS_DEFAULT = [
   { id: 10, nombre: 'Lentejas 500g', categoria: 'Granos', precio: 3800, stock: 35, stock_minimo: 12, codigo_barras: '7701010', emoji: '🍲' },
 ];
 
+// Ventas contables de ejemplo inicial
+const VENTAS_DEFAULT = [
+  { id: '1001', fecha: '2026-09-13T10:30:00', cliente: 'Carlos Ramírez', documento: '1098765432', cajero: 'Cajero POS', total: 45000, metodo: 'Efectivo', items: [{ nombre: 'Leche Entera 1L', cantidad: 3, precio: 4200, total: 12600 }, { nombre: 'Arroz Diana 1kg', cantidad: 4, precio: 4800, total: 19200 }, { nombre: 'Aceite Vegetal 900ml', cantidad: 1, precio: 9500, total: 9500 }] },
+  { id: '1002', fecha: '2026-09-13T11:15:00', cliente: 'Consumidor Final', documento: '222222222', cajero: 'Cajero POS', total: 28600, metodo: 'Nequi', items: [{ nombre: 'Pan Tajado Bimbo', cantidad: 2, precio: 6500, total: 13000 }, { nombre: 'Café Sello Rojo 250g', cantidad: 2, precio: 7800, total: 15600 }] },
+  { id: '1003', fecha: '2026-09-13T12:05:00', cliente: 'María Rodríguez', documento: '52345678', cajero: 'Cajero POS', total: 64200, metodo: 'Tarjeta', items: [{ nombre: 'Huevos AA x Unidad', cantidad: 30, precio: 600, total: 18000 }, { nombre: 'Aceite Vegetal 900ml', cantidad: 2, precio: 9500, total: 19000 }, { nombre: 'Azúcar Morena 1kg', cantidad: 3, precio: 4300, total: 12900 }, { nombre: 'Gaseosa Coca-Cola 1.5L', cantidad: 2, precio: 5500, total: 11000 }] },
+  { id: '1004', fecha: '2026-09-13T13:40:00', cliente: 'Juan Arteaga', documento: '1004567890', cajero: 'Cajero POS', total: 19800, metodo: 'Efectivo', items: [{ nombre: 'Lentejas 500g', cantidad: 2, precio: 3800, total: 7600 }, { nombre: 'Jabón Rey x Unidad', cantidad: 3, precio: 2500, total: 7500 }, { nombre: 'Leche Entera 1L', cantidad: 1, precio: 4200, total: 4200 }] },
+];
+
 export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
-  // Pestaña Activa: 'usuarios' o 'inventario'
-  const [tabActiva, setTabActiva] = useState('inventario');
+  const { activeRole, canManageUsers, canManageInventory, canViewReports, isAdmin, isContador, isInventario, isSupervisor } = useAuth();
+
+  // Pestaña inicial según rol
+  const [tabActiva, setTabActiva] = useState(() => {
+    if (isContador) return 'reportes';
+    if (isInventario) return 'inventario';
+    return 'inventario';
+  });
 
   // --- ESTADO DE USUARIOS ---
   const [usuarios, setUsuarios] = useState([]);
@@ -68,7 +91,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
   const [errorCargaProductos, setErrorCargaProductos] = useState(null);
   const [busquedaProductos, setBusquedaProductos] = useState('');
   const [filtroCategoria, setFiltroCategoria] = useState('Todas');
-  const [filtroStock, setFiltroStock] = useState('todos'); // 'todos', 'bajo', 'agotado'
+  const [filtroStock, setFiltroStock] = useState('todos');
   const [modalNuevoProducto, setModalNuevoProducto] = useState(false);
   const [modalEditarProducto, setModalEditarProducto] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
@@ -84,11 +107,23 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     emoji: '📦',
   });
 
+  // --- ESTADO DE REPORTES Y FACTURAS ---
+  const [ventas, setVentas] = useState(VENTAS_DEFAULT);
+  const [cargandoVentas, setCargandoVentas] = useState(false);
+  const [busquedaFactura, setBusquedaFactura] = useState('');
+
   // Carga inicial
   useEffect(() => {
-    cargarUsuarios();
-    cargarProductos();
-  }, []);
+    if (canManageUsers) cargarUsuarios();
+    if (canManageInventory) cargarProductos();
+    if (canViewReports) cargarVentas();
+  }, [activeRole]);
+
+  // Sincronizar pestaña si el rol cambia
+  useEffect(() => {
+    if (isContador) setTabActiva('reportes');
+    else if (isInventario) setTabActiva('inventario');
+  }, [activeRole, isContador, isInventario]);
 
   // --- MÉTODOS DE USUARIOS ---
   const cargarUsuarios = async () => {
@@ -137,7 +172,6 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
       if (Array.isArray(data) && data.length > 0) {
         setProductos(data);
       } else {
-        // Si la tabla aún no tiene datos, cargar catálogo por defecto para permitir operar
         setProductos(PRODUCTOS_DEFAULT);
       }
     } catch (err) {
@@ -174,11 +208,9 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
         await productosService.crearProducto(formularioProducto);
         toast.success(`Producto "${formularioProducto.nombre}" guardado en la base de datos`);
       } catch (apiErr) {
-        console.warn('API error, guardando en estado local:', apiErr.message);
-        toast.info(`Producto "${formularioProducto.nombre}" agregado al inventario local`);
+        toast.info(`Producto "${formularioProducto.nombre}" agregado localmente`);
       }
 
-      // Actualizar vista
       const nuevoProd = {
         id: productos.length > 0 ? Math.max(...productos.map(p => Number(p.id) || 0)) + 1 : 1,
         ...formularioProducto,
@@ -189,7 +221,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
       setProductos([nuevoProd, ...productos]);
       setModalNuevoProducto(false);
     } catch (err) {
-      toast.error('Ocurrió un error al guardar el producto');
+      toast.error('Error al guardar el producto');
     } finally {
       setGuardandoProducto(false);
     }
@@ -219,7 +251,6 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
         await productosService.actualizarProducto(productoSeleccionado.id, formularioProducto);
         toast.success(`Producto "${formularioProducto.nombre}" actualizado en la BD`);
       } catch (apiErr) {
-        console.warn('API error al actualizar, aplicando localmente:', apiErr.message);
         toast.info(`Producto "${formularioProducto.nombre}" actualizado`);
       }
 
@@ -248,9 +279,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     try {
       try {
         await productosService.actualizarProducto(prod.id, { stock: nuevoStock });
-      } catch (err) {
-        // Continúa con estado local
-      }
+      } catch (err) {}
       setProductos(productos.map(p => p.id === prod.id ? { ...p, stock: nuevoStock } : p));
       toast.success(`Stock de ${prod.nombre}: ${nuevoStock} unidades`);
     } catch (err) {
@@ -263,13 +292,42 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     try {
       try {
         await productosService.eliminarProducto(id);
-      } catch (err) {
-        // Fallback local
-      }
+      } catch (err) {}
       setProductos(productos.filter(p => p.id !== id));
       toast.success(`Producto "${nombre}" eliminado`);
     } catch (err) {
       toast.error('Error al eliminar producto');
+    }
+  };
+
+  // --- MÉTODOS DE FACTURACIÓN Y REPORTES ---
+  const cargarVentas = async () => {
+    setCargandoVentas(true);
+    try {
+      const data = await facturacionService.obtenerVentas();
+      if (Array.isArray(data) && data.length > 0) {
+        setVentas(data);
+      }
+    } catch (err) {
+      // Mantiene ventas iniciales
+    } finally {
+      setCargandoVentas(false);
+    }
+  };
+
+  const handleDescargarFacturaPDF = (v) => {
+    try {
+      facturacionService.generarTicketPDF({
+        numeroFactura: `FAC-${v.id}`,
+        cajero: v.cajero || 'Cajero de Turno',
+        cliente: { nombre: v.cliente || 'Consumidor Final', documento: v.documento || '222222222' },
+        productos: v.items || [],
+        total: v.total,
+        metodoPago: v.metodo || 'Efectivo',
+      });
+      toast.success(`Factura #${v.id} descargada en PDF`);
+    } catch (err) {
+      toast.error('Error al generar PDF de la factura');
     }
   };
 
@@ -309,12 +367,33 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     return coincideTexto && coincideCat && coincideStock;
   });
 
-  // Métricas calculadas
-  const totalAdmins = usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.ADMIN).length;
-  const totalCajeros = usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.CAJERO).length;
+  const ventasFiltradas = ventas.filter((v) => {
+    const q = busquedaFactura.toLowerCase();
+    return (
+      String(v.id).toLowerCase().includes(q) ||
+      (v.cliente && v.cliente.toLowerCase().includes(q)) ||
+      (v.metodo && v.metodo.toLowerCase().includes(q))
+    );
+  });
+
+  // Métricas financieras calculadas
+  const totalVentasBrutas = ventas.reduce((acc, v) => acc + Number(v.total || 0), 0);
+  const totalIvaRecaudado = Math.round(totalVentasBrutas * 0.19);
+  const totalVentasNetas = totalVentasBrutas - totalIvaRecaudado;
+  const ventasEfectivo = ventas.filter(v => v.metodo === 'Efectivo').reduce((acc, v) => acc + Number(v.total || 0), 0);
+  const ventasNequi = ventas.filter(v => v.metodo === 'Nequi').reduce((acc, v) => acc + Number(v.total || 0), 0);
+  const ventasTarjeta = ventas.filter(v => v.metodo === 'Tarjeta').reduce((acc, v) => acc + Number(v.total || 0), 0);
+
+  // Métricas inventario y usuarios
   const totalProductos = productos.length;
   const productosBajoStock = productos.filter(p => (Number(p.stock) || 0) <= (Number(p.stock_minimo) || 5)).length;
   const valorTotalInventario = productos.reduce((acc, p) => acc + ((Number(p.precio) || 0) * (Number(p.stock) || 0)), 0);
+
+  const totalAdmins = usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.ADMIN).length;
+  const totalContadores = usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.CONTADOR).length;
+  const totalInventarios = usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.INVENTARIO).length;
+  const totalSupervisores = usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.SUPERVISOR).length;
+  const totalCajeros = usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.CAJERO).length;
 
   return (
     <div style={{
@@ -325,174 +404,432 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
       flexDirection: 'column',
       gap: '1.5rem'
     }}>
-      {/* Tarjetas de Métricas Globales */}
+      {/* Tarjetas de Métricas Globales según permisos */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
         gap: '1rem'
       }}>
-        {/* KPI 1: Usuarios en BD */}
-        <div 
-          onClick={() => setTabActiva('usuarios')}
-          style={{
-            background: tabActiva === 'usuarios' ? 'linear-gradient(135deg, #312e81, #1e1b4b)' : 'linear-gradient(135deg, #1e293b, #0f172a)',
-            border: tabActiva === 'usuarios' ? '1px solid #6366f1' : '1px solid #334155',
-            borderRadius: '14px',
-            padding: '1.25rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <div>
-            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Usuarios Registrados</span>
-            <h3 style={{ margin: '4px 0 0 0', fontSize: '1.6rem', color: '#818cf8', fontWeight: 800 }}>
-              {cargandoUsuarios ? '...' : usuarios.length}
-            </h3>
-            <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>
-              {totalAdmins} Admin &middot; {totalCajeros} Cajeros
-            </span>
+        {/* KPI 1: Finanzas / Ventas (visible para Admin, Contador, Supervisor) */}
+        {canViewReports && (
+          <div 
+            onClick={() => setTabActiva('reportes')}
+            style={{
+              background: tabActiva === 'reportes' ? 'linear-gradient(135deg, #064e3b, #022c22)' : 'linear-gradient(135deg, #1e293b, #0f172a)',
+              border: tabActiva === 'reportes' ? '1px solid #10b981' : '1px solid #334155',
+              borderRadius: '14px',
+              padding: '1.25rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <div>
+              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Ingresos Totales (Ventas)</span>
+              <h3 style={{ margin: '4px 0 0 0', fontSize: '1.5rem', color: '#34d399', fontWeight: 800 }}>
+                ${totalVentasBrutas.toLocaleString('es-CO')}
+              </h3>
+              <span style={{ fontSize: '0.75rem', color: '#6ee7b7' }}>
+                {ventas.length} facturas emitidas
+              </span>
+            </div>
+            <div style={{ background: 'rgba(52, 211, 153, 0.1)', padding: '10px', borderRadius: '10px', color: '#34d399' }}>
+              <TrendingUp size={24} />
+            </div>
           </div>
-          <div style={{ background: 'rgba(129, 140, 248, 0.1)', padding: '10px', borderRadius: '10px', color: '#818cf8' }}>
-            <Users size={24} />
-          </div>
-        </div>
+        )}
 
-        {/* KPI 2: Catálogo de Productos */}
-        <div 
-          onClick={() => setTabActiva('inventario')}
-          style={{
-            background: tabActiva === 'inventario' ? 'linear-gradient(135deg, #0c4a6e, #082f49)' : 'linear-gradient(135deg, #1e293b, #0f172a)',
-            border: tabActiva === 'inventario' ? '1px solid #38bdf8' : '1px solid #334155',
-            borderRadius: '14px',
-            padding: '1.25rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <div>
-            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Productos en Catálogo</span>
-            <h3 style={{ margin: '4px 0 0 0', fontSize: '1.6rem', color: '#38bdf8', fontWeight: 800 }}>
-              {cargandoProductos ? '...' : totalProductos}
-            </h3>
-            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-              {categoriasUnicas.length - 1} categorías activas
-            </span>
+        {/* KPI 2: Inventario (visible para Admin, Inventario, Supervisor) */}
+        {canManageInventory && (
+          <div 
+            onClick={() => setTabActiva('inventario')}
+            style={{
+              background: tabActiva === 'inventario' ? 'linear-gradient(135deg, #0c4a6e, #082f49)' : 'linear-gradient(135deg, #1e293b, #0f172a)',
+              border: tabActiva === 'inventario' ? '1px solid #38bdf8' : '1px solid #334155',
+              borderRadius: '14px',
+              padding: '1.25rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <div>
+              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Catálogo de Productos</span>
+              <h3 style={{ margin: '4px 0 0 0', fontSize: '1.5rem', color: '#38bdf8', fontWeight: 800 }}>
+                {cargandoProductos ? '...' : totalProductos}
+              </h3>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                Valor: ${valorTotalInventario.toLocaleString('es-CO')}
+              </span>
+            </div>
+            <div style={{ background: 'rgba(56, 189, 248, 0.1)', padding: '10px', borderRadius: '10px', color: '#38bdf8' }}>
+              <Package size={24} />
+            </div>
           </div>
-          <div style={{ background: 'rgba(56, 189, 248, 0.1)', padding: '10px', borderRadius: '10px', color: '#38bdf8' }}>
-            <Package size={24} />
-          </div>
-        </div>
+        )}
 
-        {/* KPI 3: Alertas de Stock Bajo */}
-        <div 
-          onClick={() => { setTabActiva('inventario'); setFiltroStock('bajo'); }}
-          style={{
-            background: 'linear-gradient(135deg, #1e293b, #0f172a)',
-            border: productosBajoStock > 0 ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid #334155',
-            borderRadius: '14px',
-            padding: '1.25rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            cursor: 'pointer'
-          }}
-        >
-          <div>
-            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Alertas de Stock</span>
-            <h3 style={{ margin: '4px 0 0 0', fontSize: '1.6rem', color: productosBajoStock > 0 ? '#f59e0b' : '#34d399', fontWeight: 800 }}>
-              {productosBajoStock}
-            </h3>
-            <span style={{ fontSize: '0.75rem', color: productosBajoStock > 0 ? '#f87171' : '#34d399' }}>
-              {productosBajoStock > 0 ? 'Requieren reposición' : 'Stock óptimo'}
-            </span>
+        {/* KPI 3: Alertas de Stock */}
+        {canManageInventory && (
+          <div 
+            onClick={() => { setTabActiva('inventario'); setFiltroStock('bajo'); }}
+            style={{
+              background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+              border: productosBajoStock > 0 ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid #334155',
+              borderRadius: '14px',
+              padding: '1.25rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              cursor: 'pointer'
+            }}
+          >
+            <div>
+              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Alertas de Stock</span>
+              <h3 style={{ margin: '4px 0 0 0', fontSize: '1.5rem', color: productosBajoStock > 0 ? '#f59e0b' : '#34d399', fontWeight: 800 }}>
+                {productosBajoStock}
+              </h3>
+              <span style={{ fontSize: '0.75rem', color: productosBajoStock > 0 ? '#f87171' : '#34d399' }}>
+                {productosBajoStock > 0 ? 'Requieren reposición' : 'Stock en nivel óptimo'}
+              </span>
+            </div>
+            <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '10px', borderRadius: '10px', color: '#f59e0b' }}>
+              <AlertTriangle size={24} />
+            </div>
           </div>
-          <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '10px', borderRadius: '10px', color: '#f59e0b' }}>
-            <AlertTriangle size={24} />
-          </div>
-        </div>
+        )}
 
-        {/* KPI 4: Valor de Inventario */}
-        <div style={{
-          background: 'linear-gradient(135deg, #1e293b, #0f172a)',
-          border: '1px solid #334155',
-          borderRadius: '14px',
-          padding: '1.25rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <div>
-            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Valor Estimado Inventario</span>
-            <h3 style={{ margin: '4px 0 0 0', fontSize: '1.45rem', color: '#34d399', fontWeight: 800 }}>
-              ${valorTotalInventario.toLocaleString('es-CO')}
-            </h3>
-            <span style={{ fontSize: '0.75rem', color: '#34d399' }}>Activos en bodega</span>
+        {/* KPI 4: Usuarios (solo visible para Admin y Supervisor) */}
+        {canManageUsers && (
+          <div 
+            onClick={() => setTabActiva('usuarios')}
+            style={{
+              background: tabActiva === 'usuarios' ? 'linear-gradient(135deg, #312e81, #1e1b4b)' : 'linear-gradient(135deg, #1e293b, #0f172a)',
+              border: tabActiva === 'usuarios' ? '1px solid #6366f1' : '1px solid #334155',
+              borderRadius: '14px',
+              padding: '1.25rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <div>
+              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Usuarios en BD</span>
+              <h3 style={{ margin: '4px 0 0 0', fontSize: '1.5rem', color: '#818cf8', fontWeight: 800 }}>
+                {cargandoUsuarios ? '...' : usuarios.length}
+              </h3>
+              <span style={{ fontSize: '0.72rem', color: '#38bdf8' }}>
+                👑 {totalAdmins} &middot; 📊 {totalContadores} &middot; 📦 {totalInventarios} &middot; 🛡️ {totalSupervisores} &middot; 🛒 {totalCajeros}
+              </span>
+            </div>
+            <div style={{ background: 'rgba(129, 140, 248, 0.1)', padding: '10px', borderRadius: '10px', color: '#818cf8' }}>
+              <Users size={24} />
+            </div>
           </div>
-          <div style={{ background: 'rgba(52, 211, 153, 0.1)', padding: '10px', borderRadius: '10px', color: '#34d399' }}>
-            <DollarSign size={24} />
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Selector de Pestañas Principales */}
+      {/* Selector de Pestañas Filtradas por Rol Estricto */}
       <div style={{
         display: 'flex',
         gap: '0.5rem',
         borderBottom: '1px solid #334155',
-        paddingBottom: '0.5rem'
+        paddingBottom: '0.5rem',
+        flexWrap: 'wrap'
       }}>
-        <button
-          type="button"
-          onClick={() => setTabActiva('inventario')}
-          style={{
-            background: tabActiva === 'inventario' ? '#0284c7' : '#1e293b',
-            color: tabActiva === 'inventario' ? '#ffffff' : '#94a3b8',
-            border: 'none',
-            padding: '8px 18px',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontWeight: 700,
-            fontSize: '0.9rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <Boxes size={18} /> Gestión de Inventario & Productos
-        </button>
+        {canManageInventory && (
+          <button
+            type="button"
+            onClick={() => setTabActiva('inventario')}
+            style={{
+              background: tabActiva === 'inventario' ? '#0284c7' : '#1e293b',
+              color: tabActiva === 'inventario' ? '#ffffff' : '#94a3b8',
+              border: 'none',
+              padding: '8px 18px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '0.88rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <Boxes size={18} /> Inventario & Productos
+          </button>
+        )}
 
-        <button
-          type="button"
-          onClick={() => setTabActiva('usuarios')}
-          style={{
-            background: tabActiva === 'usuarios' ? '#4f46e5' : '#1e293b',
-            color: tabActiva === 'usuarios' ? '#ffffff' : '#94a3b8',
-            border: 'none',
-            padding: '8px 18px',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontWeight: 700,
-            fontSize: '0.9rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <Users size={18} /> Usuarios y Roles en Base de Datos
-        </button>
+        {canViewReports && (
+          <button
+            type="button"
+            onClick={() => setTabActiva('reportes')}
+            style={{
+              background: tabActiva === 'reportes' ? '#059669' : '#1e293b',
+              color: tabActiva === 'reportes' ? '#ffffff' : '#94a3b8',
+              border: 'none',
+              padding: '8px 18px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '0.88rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <BarChart3 size={18} /> Reportes Financieros & Balance
+          </button>
+        )}
+
+        {canManageUsers && (
+          <button
+            type="button"
+            onClick={() => setTabActiva('usuarios')}
+            style={{
+              background: tabActiva === 'usuarios' ? '#4f46e5' : '#1e293b',
+              color: tabActiva === 'usuarios' ? '#ffffff' : '#94a3b8',
+              border: 'none',
+              padding: '8px 18px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '0.88rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <Users size={18} /> Usuarios y Roles (BD)
+          </button>
+        )}
       </div>
 
-      {/* Contenido según pestaña */}
-      {tabActiva === 'inventario' ? (
-        /* ================= SECCIÓN DE INVENTARIO ================= */
+      {/* ================= CONTENIDO DE LAS PESTAÑAS ================= */}
+
+      {/* 1. SECCIÓN DE REPORTES FINANCIEROS (CONTADOR Y ADMIN) */}
+      {tabActiva === 'reportes' && canViewReports && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 2.3fr) minmax(300px, 1fr)',
+          gap: '1.5rem',
+          alignItems: 'start'
+        }}>
+          {/* Columna Izquierda: Historial de Facturas y Desglose */}
+          <div style={{
+            background: '#1e293b',
+            border: '1px solid #334155',
+            borderRadius: '16px',
+            padding: '1.25rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.2rem'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#f8fafc', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <BarChart3 size={20} color="#34d399" /> Registro Contable y Facturación
+                </h3>
+                <p style={{ margin: '2px 0 0 0', color: '#94a3b8', fontSize: '0.8rem' }}>
+                  Detalle de ingresos brutos, IVA recaudado y comprobantes emitidos
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={cargarVentas}
+                style={{
+                  background: '#334155',
+                  color: '#cbd5e1',
+                  border: 'none',
+                  padding: '7px 12px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: '0.8rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                <RefreshCw size={14} className={cargandoVentas ? 'spin' : ''} />
+                Actualizar
+              </button>
+            </div>
+
+            {/* Tarjetas de Métricas Contables */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+              <div style={{ background: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #334155' }}>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>Ventas Netas (Sin IVA)</span>
+                <strong style={{ color: '#38bdf8', fontSize: '1.1rem' }}>${totalVentasNetas.toLocaleString('es-CO')}</strong>
+              </div>
+              <div style={{ background: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #334155' }}>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>IVA Recaudado (19%)</span>
+                <strong style={{ color: '#f59e0b', fontSize: '1.1rem' }}>${totalIvaRecaudado.toLocaleString('es-CO')}</strong>
+              </div>
+              <div style={{ background: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #334155' }}>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>Total Facturado</span>
+                <strong style={{ color: '#34d399', fontSize: '1.1rem' }}>${totalVentasBrutas.toLocaleString('es-CO')}</strong>
+              </div>
+            </div>
+
+            {/* Buscador de Facturas */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: '#0f172a',
+              border: '1px solid #475569',
+              borderRadius: '8px',
+              padding: '0 12px',
+              gap: '8px'
+            }}>
+              <Search size={16} color="#94a3b8" />
+              <input
+                type="text"
+                placeholder="Buscar factura por Nro, Cliente o Método de Pago..."
+                value={busquedaFactura}
+                onChange={(e) => setBusquedaFactura(e.target.value)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#fff',
+                  padding: '8px 0',
+                  width: '100%',
+                  outline: 'none',
+                  fontSize: '0.85rem'
+                }}
+              />
+            </div>
+
+            {/* Tabla de Facturas */}
+            <div style={{ border: '1px solid #334155', borderRadius: '10px', overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ background: '#0f172a', color: '#94a3b8', textAlign: 'left' }}>
+                    <th style={{ padding: '10px 12px' }}>Nro. Factura</th>
+                    <th style={{ padding: '10px 12px' }}>Fecha</th>
+                    <th style={{ padding: '10px 12px' }}>Cliente</th>
+                    <th style={{ padding: '10px 12px' }}>Método</th>
+                    <th style={{ padding: '10px 12px' }}>Total</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>Comprobante</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ventasFiltradas.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
+                        No hay facturas registradas.
+                      </td>
+                    </tr>
+                  ) : (
+                    ventasFiltradas.map((v) => (
+                      <tr key={v.id} style={{ borderTop: '1px solid #334155' }}>
+                        <td style={{ padding: '10px 12px', fontWeight: 700, color: '#38bdf8' }}>
+                          FAC-{v.id}
+                        </td>
+                        <td style={{ padding: '10px 12px', color: '#94a3b8', fontSize: '0.8rem' }}>
+                          {new Date(v.fecha).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}
+                        </td>
+                        <td style={{ padding: '10px 12px', color: '#f8fafc', fontWeight: 600 }}>
+                          {v.cliente || 'Consumidor Final'}
+                        </td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{
+                            background: v.metodo === 'Efectivo' ? 'rgba(52, 211, 153, 0.15)' : v.metodo === 'Nequi' ? 'rgba(192, 132, 252, 0.15)' : 'rgba(56, 189, 248, 0.15)',
+                            color: v.metodo === 'Efectivo' ? '#34d399' : v.metodo === 'Nequi' ? '#c084fc' : '#38bdf8',
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            fontSize: '0.75rem',
+                            fontWeight: 700
+                          }}>
+                            {v.metodo || 'Efectivo'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 12px', fontWeight: 800, color: '#34d399' }}>
+                          ${Number(v.total).toLocaleString('es-CO')}
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleDescargarFacturaPDF(v)}
+                            style={{
+                              background: '#334155',
+                              color: '#38bdf8',
+                              border: '1px solid #475569',
+                              padding: '5px 10px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontSize: '0.75rem',
+                              fontWeight: 700
+                            }}
+                          >
+                            <Download size={13} /> PDF
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Columna Derecha: Métodos de Pago & Resumen */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div style={{
+              background: '#1e293b',
+              border: '1px solid #334155',
+              borderRadius: '16px',
+              padding: '1.25rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem'
+            }}>
+              <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#f8fafc', fontWeight: 700 }}>
+                💳 Desglose por Método de Pago
+              </h4>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0f172a', padding: '10px 12px', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#34d399' }}>
+                    <Banknote size={16} /> <strong>Efectivo</strong>
+                  </div>
+                  <span style={{ fontWeight: 700, color: '#f8fafc' }}>${ventasEfectivo.toLocaleString('es-CO')}</span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0f172a', padding: '10px 12px', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#c084fc' }}>
+                    <Smartphone size={16} /> <strong>Nequi / Transferencia</strong>
+                  </div>
+                  <span style={{ fontWeight: 700, color: '#f8fafc' }}>${ventasNequi.toLocaleString('es-CO')}</span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0f172a', padding: '10px 12px', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#38bdf8' }}>
+                    <CreditCard size={16} /> <strong>Tarjeta Débito/Crédito</strong>
+                  </div>
+                  <span style={{ fontWeight: 700, color: '#f8fafc' }}>${ventasTarjeta.toLocaleString('es-CO')}</span>
+                </div>
+              </div>
+            </div>
+
+            <WeatherWidget />
+          </div>
+        </div>
+      )}
+
+      {/* 2. SECCIÓN DE INVENTARIO */}
+      {tabActiva === 'inventario' && canManageInventory && (
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 2.5fr) minmax(300px, 1fr)',
@@ -521,7 +858,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                   <Boxes size={20} color="#38bdf8" /> Catálogo de Productos y Existencias
                 </h3>
                 <p style={{ margin: '2px 0 0 0', color: '#94a3b8', fontSize: '0.8rem' }}>
-                  Gestión de precios, existencias y alertas de reposición ({productos.length} productos)
+                  Control de stock, precios y reposición ({productos.length} productos)
                 </p>
               </div>
 
@@ -543,7 +880,6 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                     alignItems: 'center',
                     gap: '4px'
                   }}
-                  title="Recargar inventario"
                 >
                   <RefreshCw size={14} className={cargandoProductos ? 'spin' : ''} />
                   {cargandoProductos ? 'Cargando...' : 'Recargar'}
@@ -571,13 +907,8 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
               </div>
             </div>
 
-            {/* Barra de Filtros y Búsqueda */}
-            <div style={{
-              display: 'flex',
-              gap: '8px',
-              flexWrap: 'wrap',
-              alignItems: 'center'
-            }}>
+            {/* Filtros */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
               <div style={{
                 flex: 1,
                 minWidth: '220px',
@@ -595,58 +926,32 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                   placeholder="Buscar producto por nombre o código..."
                   value={busquedaProductos}
                   onChange={(e) => setBusquedaProductos(e.target.value)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#fff',
-                    padding: '8px 0',
-                    width: '100%',
-                    outline: 'none',
-                    fontSize: '0.85rem'
-                  }}
+                  style={{ background: 'transparent', border: 'none', color: '#fff', padding: '8px 0', width: '100%', outline: 'none', fontSize: '0.85rem' }}
                 />
               </div>
 
-              {/* Filtro Categoría */}
               <select
                 value={filtroCategoria}
                 onChange={(e) => setFiltroCategoria(e.target.value)}
-                style={{
-                  background: '#0f172a',
-                  border: '1px solid #475569',
-                  color: '#cbd5e1',
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  fontSize: '0.85rem',
-                  outline: 'none'
-                }}
+                style={{ background: '#0f172a', border: '1px solid #475569', color: '#cbd5e1', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
               >
                 {categoriasUnicas.map(cat => (
                   <option key={cat} value={cat}>{cat === 'Todas' ? 'Todas las categorías' : cat}</option>
                 ))}
               </select>
 
-              {/* Filtro Stock */}
               <select
                 value={filtroStock}
                 onChange={(e) => setFiltroStock(e.target.value)}
-                style={{
-                  background: '#0f172a',
-                  border: '1px solid #475569',
-                  color: '#cbd5e1',
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  fontSize: '0.85rem',
-                  outline: 'none'
-                }}
+                style={{ background: '#0f172a', border: '1px solid #475569', color: '#cbd5e1', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
               >
-                <option value="todos">Todos los niveles de Stock</option>
-                <option value="bajo">⚠️ Bajo Stock (Reposición)</option>
-                <option value="agotado">🔴 Agotados (0 unidades)</option>
+                <option value="todos">Todos los niveles</option>
+                <option value="bajo">⚠️ Bajo Stock</option>
+                <option value="agotado">🔴 Agotados</option>
               </select>
             </div>
 
-            {/* Tabla de Productos */}
+            {/* Tabla */}
             <div style={{ border: '1px solid #334155', borderRadius: '10px', overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
@@ -654,7 +959,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                     <th style={{ padding: '10px 12px', width: '50px' }}>Item</th>
                     <th style={{ padding: '10px 12px' }}>Producto</th>
                     <th style={{ padding: '10px 12px' }}>Categoría</th>
-                    <th style={{ padding: '10px 12px' }}>Precio Venta</th>
+                    <th style={{ padding: '10px 12px' }}>Precio</th>
                     <th style={{ padding: '10px 12px' }}>Stock</th>
                     <th style={{ padding: '10px 12px', textAlign: 'right' }}>Acciones</th>
                   </tr>
@@ -663,13 +968,13 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                   {cargandoProductos ? (
                     <tr>
                       <td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: '#38bdf8' }}>
-                        🔄 Consultando catálogo de productos en la base de datos...
+                        🔄 Consultando catálogo en la BD...
                       </td>
                     </tr>
                   ) : productosFiltrados.length === 0 ? (
                     <tr>
                       <td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
-                        No se encontraron productos con los filtros seleccionados.
+                        No se encontraron productos.
                       </td>
                     </tr>
                   ) : (
@@ -680,7 +985,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                       const esBajo = stockNum <= stockMin && stockNum > 0;
 
                       return (
-                        <tr key={prod.id} style={{ borderTop: '1px solid #334155', transition: 'background 0.15s' }}>
+                        <tr key={prod.id} style={{ borderTop: '1px solid #334155' }}>
                           <td style={{ padding: '10px 12px', fontSize: '1.2rem', textAlign: 'center' }}>
                             {prod.emoji || '📦'}
                           </td>
@@ -691,15 +996,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                             </span>
                           </td>
                           <td style={{ padding: '10px 12px' }}>
-                            <span style={{
-                              background: 'rgba(56, 189, 248, 0.1)',
-                              color: '#38bdf8',
-                              border: '1px solid rgba(56, 189, 248, 0.3)',
-                              padding: '2px 8px',
-                              borderRadius: '8px',
-                              fontSize: '0.75rem',
-                              fontWeight: 600
-                            }}>
+                            <span style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)', padding: '2px 8px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600 }}>
                               {prod.categoria || prod.categoria_nombre || 'General'}
                             </span>
                           </td>
@@ -715,28 +1012,22 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                                 padding: '2px 8px',
                                 borderRadius: '12px',
                                 fontSize: '0.78rem',
-                                fontWeight: 700,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px'
+                                fontWeight: 700
                               }}>
                                 {esAgotado ? '🔴 Agotado' : esBajo ? `⚠️ ${stockNum} un.` : `🟢 ${stockNum} un.`}
                               </span>
 
-                              {/* Ajuste Rápido de Stock (+ / -) */}
                               <button
                                 type="button"
                                 onClick={() => handleAjusteRapidoStock(prod, 1)}
-                                style={{ background: '#334155', color: '#fff', border: 'none', width: '22px', height: '22px', borderRadius: '4px', cursor: 'pointer', fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                                title="Sumar 1 unidad"
+                                style={{ background: '#334155', color: '#fff', border: 'none', width: '22px', height: '22px', borderRadius: '4px', cursor: 'pointer', fontWeight: 700 }}
                               >
                                 +
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleAjusteRapidoStock(prod, -1)}
-                                style={{ background: '#334155', color: '#fff', border: 'none', width: '22px', height: '22px', borderRadius: '4px', cursor: 'pointer', fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                                title="Restar 1 unidad"
+                                style={{ background: '#334155', color: '#fff', border: 'none', width: '22px', height: '22px', borderRadius: '4px', cursor: 'pointer', fontWeight: 700 }}
                               >
                                 -
                               </button>
@@ -747,38 +1038,14 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                               <button
                                 type="button"
                                 onClick={() => handleAbrirEditarProducto(prod)}
-                                style={{
-                                  background: '#334155',
-                                  color: '#38bdf8',
-                                  border: '1px solid #475569',
-                                  padding: '5px 8px',
-                                  borderRadius: '6px',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  fontSize: '0.78rem',
-                                  fontWeight: 600
-                                }}
-                                title="Editar datos del producto"
+                                style={{ background: '#334155', color: '#38bdf8', border: '1px solid #475569', padding: '5px 8px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
                               >
                                 <Edit2 size={13} /> Editar
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleEliminarProducto(prod.id, prod.nombre)}
-                                style={{
-                                  background: 'rgba(239, 68, 68, 0.1)',
-                                  color: '#f87171',
-                                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                                  padding: '5px 8px',
-                                  borderRadius: '6px',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  fontSize: '0.78rem'
-                                }}
-                                title="Eliminar producto"
+                                style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '5px 8px', borderRadius: '6px', cursor: 'pointer' }}
                               >
                                 <Trash2 size={13} />
                               </button>
@@ -793,70 +1060,46 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
             </div>
           </div>
 
-          {/* Columna Derecha: Alertas & Accesos */}
+          {/* Columna Derecha */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <WeatherWidget />
 
-            <div style={{
-              background: '#1e293b',
-              border: '1px solid #334155',
-              borderRadius: '16px',
-              padding: '1.25rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem'
-            }}>
-              <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#f8fafc', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                🛒 Acciones Rápidas
-              </h4>
-              <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.8rem' }}>
-                Operar en la terminal de venta o emitir tickets de prueba.
-              </p>
-
-              <button
-                onClick={onAbrirPos}
-                style={{
-                  background: '#059669',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '9px 12px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px'
-                }}
-              >
-                Abrir Terminal Cajero POS
-              </button>
-
-              <button
-                onClick={onOpenFactura}
-                style={{
-                  background: '#334155',
-                  color: '#38bdf8',
-                  border: '1px solid #475569',
-                  padding: '9px 12px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px'
-                }}
-              >
-                <Receipt size={16} /> Emitir Factura PDF
-              </button>
-            </div>
+            {(isAdmin || isSupervisor) && (
+              <div style={{
+                background: '#1e293b',
+                border: '1px solid #334155',
+                borderRadius: '16px',
+                padding: '1.25rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem'
+              }}>
+                <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#f8fafc', fontWeight: 700 }}>
+                  ⚡ Acceso Rápido POS
+                </h4>
+                <button
+                  onClick={onAbrirPos}
+                  style={{
+                    background: '#059669',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: 700,
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  Abrir Terminal Cajero POS
+                </button>
+              </div>
+            )}
           </div>
         </div>
-      ) : (
-        /* ================= SECCIÓN DE USUARIOS ================= */
+      )}
+
+      {/* 3. SECCIÓN DE USUARIOS (SOLO ADMIN Y SUPERVISOR) */}
+      {tabActiva === 'usuarios' && canManageUsers && (
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 2fr) minmax(300px, 1fr)',
@@ -873,19 +1116,13 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
             flexDirection: 'column',
             gap: '1rem'
           }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '10px'
-            }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#f8fafc', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Database size={20} color="#38bdf8" /> Usuarios Registrados en la Base de Datos
                 </h3>
                 <p style={{ margin: '2px 0 0 0', color: '#94a3b8', fontSize: '0.8rem' }}>
-                  Tabla <code>p_tienda_comunitaria.usuarios</code> ({usuarios.length} registros cargados)
+                  Tabla <code>tienda_comunitaria.usuarios</code> ({usuarios.length} registros cargados)
                 </p>
               </div>
 
@@ -894,41 +1131,16 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                   type="button"
                   onClick={cargarUsuarios}
                   disabled={cargandoUsuarios}
-                  style={{
-                    background: '#334155',
-                    color: '#cbd5e1',
-                    border: 'none',
-                    padding: '7px 12px',
-                    borderRadius: '8px',
-                    cursor: cargandoUsuarios ? 'not-allowed' : 'pointer',
-                    fontWeight: 600,
-                    fontSize: '0.8rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                  title="Recargar datos de la BD"
+                  style={{ background: '#334155', color: '#cbd5e1', border: 'none', padding: '7px 12px', borderRadius: '8px', cursor: cargandoUsuarios ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: '0.8rem' }}
                 >
                   <RefreshCw size={14} className={cargandoUsuarios ? 'spin' : ''} />
-                  {cargandoUsuarios ? 'Cargando...' : 'Recargar'}
+                  Recargar
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setModalNuevoUsuario(true)}
-                  style={{
-                    background: '#4f46e5',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '7px 14px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
+                  style={{ background: '#4f46e5', color: '#fff', border: 'none', padding: '7px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                   <UserPlus size={16} /> Nuevo Usuario
                 </button>
@@ -936,41 +1148,18 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
             </div>
 
             {/* Buscador */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: '#0f172a',
-              border: '1px solid #475569',
-              borderRadius: '8px',
-              padding: '0 12px',
-              gap: '8px'
-            }}>
+            <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', padding: '0 12px', gap: '8px' }}>
               <Search size={16} color="#94a3b8" />
               <input
                 type="text"
                 placeholder="Buscar usuario por nombre o correo..."
                 value={busquedaUsuarios}
                 onChange={(e) => setBusquedaUsuarios(e.target.value)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#fff',
-                  padding: '8px 0',
-                  width: '100%',
-                  outline: 'none',
-                  fontSize: '0.85rem'
-                }}
+                style={{ background: 'transparent', border: 'none', color: '#fff', padding: '8px 0', width: '100%', outline: 'none', fontSize: '0.85rem' }}
               />
             </div>
 
-            {/* Estado de error */}
-            {errorCargaUsuarios && (
-              <div style={{ color: '#f87171', background: 'rgba(239, 68, 68, 0.1)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.3)', fontSize: '0.85rem' }}>
-                ⚠️ {errorCargaUsuarios}
-              </div>
-            )}
-
-            {/* Tabla de Usuarios */}
+            {/* Tabla de Usuarios con los 5 roles */}
             <div style={{ border: '1px solid #334155', borderRadius: '10px', overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
@@ -978,38 +1167,33 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                     <th style={{ padding: '10px 12px', width: '45px' }}>#</th>
                     <th style={{ padding: '10px 12px' }}>Nombre</th>
                     <th style={{ padding: '10px 12px' }}>Correo Electrónico</th>
-                    <th style={{ padding: '10px 12px' }}>Rol (id_rol)</th>
-                    <th style={{ padding: '10px 12px' }}>Estado (id_estado)</th>
+                    <th style={{ padding: '10px 12px' }}>Rol Asignado</th>
+                    <th style={{ padding: '10px 12px' }}>Estado</th>
                   </tr>
                 </thead>
                 <tbody>
                   {cargandoUsuarios ? (
                     <tr>
                       <td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: '#38bdf8' }}>
-                        🔄 Consultando usuarios en la base de datos de NestJS...
+                        🔄 Consultando usuarios en la base de datos...
                       </td>
                     </tr>
                   ) : usuariosFiltrados.length === 0 ? (
                     <tr>
                       <td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
-                        No se encontraron usuarios que coincidan con la búsqueda.
+                        No se encontraron usuarios.
                       </td>
                     </tr>
                   ) : (
                     usuariosFiltrados.map((u) => {
-                      const rolNorm = normalizarRol(u.id_rol ?? u.rol ?? u.role);
-                      const isAdminRol = rolNorm === ROLES.ADMIN;
-                      const idRolNum = u.id_rol ?? (isAdminRol ? 1 : 5);
+                      const infoRol = obtenerInfoRol(u.id_rol ?? u.rol ?? u.role);
+                      const idRolNum = u.id_rol ?? infoRol.id_rol;
                       const idEstadoNum = u.id_estado ?? 1;
 
                       return (
                         <tr key={u.id || u.correo} style={{ borderTop: '1px solid #334155' }}>
-                          <td style={{ padding: '10px 12px', color: '#64748b', fontWeight: 600 }}>
-                            {u.id}
-                          </td>
-                          <td style={{ padding: '10px 12px', fontWeight: 600, color: '#f8fafc' }}>
-                            {u.nombre || u.email || 'Sin nombre'}
-                          </td>
+                          <td style={{ padding: '10px 12px', color: '#64748b', fontWeight: 600 }}>{u.id}</td>
+                          <td style={{ padding: '10px 12px', fontWeight: 600, color: '#f8fafc' }}>{u.nombre || u.email || 'Sin nombre'}</td>
                           <td style={{ padding: '10px 12px', color: '#94a3b8' }}>
                             <code style={{ color: '#38bdf8', background: 'rgba(56, 189, 248, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
                               {u.correo || u.email}
@@ -1017,28 +1201,24 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                           </td>
                           <td style={{ padding: '10px 12px' }}>
                             <span style={{
-                              background: isAdminRol ? 'rgba(99, 102, 241, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-                              color: isAdminRol ? '#a5b4fc' : '#6ee7b7',
-                              border: `1px solid ${isAdminRol ? 'rgba(99, 102, 241, 0.4)' : 'rgba(16, 185, 129, 0.4)'}`,
-                              padding: '2px 8px',
+                              background: infoRol.bg,
+                              color: infoRol.color,
+                              border: `1px solid ${infoRol.border}`,
+                              padding: '3px 9px',
                               borderRadius: '12px',
                               fontSize: '0.75rem',
-                              fontWeight: 700
+                              fontWeight: 700,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
                             }}>
-                              {isAdminRol ? '👑 Administrador' : '🛒 Cajero POS'} (id_rol: {idRolNum})
+                              {infoRol.icon} {infoRol.label} (#{idRolNum})
                             </span>
                           </td>
                           <td style={{ padding: '10px 12px' }}>
-                            <span style={{
-                              color: Number(idEstadoNum) === 1 ? '#4ade80' : '#f87171',
-                              fontSize: '0.8rem',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              fontWeight: 600
-                            }}>
+                            <span style={{ color: Number(idEstadoNum) === 1 ? '#4ade80' : '#f87171', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
                               {Number(idEstadoNum) === 1 ? <CheckCircle size={14} /> : <XCircle size={14} />}
-                              {Number(idEstadoNum) === 1 ? 'Activo' : 'Inactivo'} (id_estado: {idEstadoNum})
+                              {Number(idEstadoNum) === 1 ? 'Activo' : 'Inactivo'}
                             </span>
                           </td>
                         </tr>
@@ -1050,7 +1230,6 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
             </div>
           </div>
 
-          {/* Columna Derecha */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <WeatherWidget />
           </div>
@@ -1068,56 +1247,24 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 50,
-          padding: '1rem',
-          fontFamily: 'system-ui, sans-serif'
+          padding: '1rem'
         }}>
-          <div style={{
-            backgroundColor: '#1e293b',
-            border: '1px solid #334155',
-            borderRadius: '16px',
-            padding: '1.5rem',
-            width: '100%',
-            maxWidth: '480px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
-            color: '#f8fafc'
-          }}>
+          <div style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '16px', padding: '1.5rem', width: '100%', maxWidth: '480px', color: '#f8fafc' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Plus size={18} color="#38bdf8" /> Registrar Nuevo Producto
               </h3>
-              <button
-                onClick={() => setModalNuevoProducto(false)}
-                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
-              >
-                <X size={20} />
-              </button>
+              <button onClick={() => setModalNuevoProducto(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-
             <form onSubmit={handleGuardarNuevoProducto} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                  Nombre del Producto *
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej: Harina Pan 1kg, Queso Campesino..."
-                  value={formularioProducto.nombre}
-                  onChange={(e) => setFormularioProducto({ ...formularioProducto, nombre: e.target.value })}
-                  required
-                  style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
-                />
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Nombre del Producto *</label>
+                <input type="text" value={formularioProducto.nombre} onChange={(e) => setFormularioProducto({ ...formularioProducto, nombre: e.target.value })} required style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }} />
               </div>
-
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                    Categoría *
-                  </label>
-                  <select
-                    value={formularioProducto.categoria}
-                    onChange={(e) => setFormularioProducto({ ...formularioProducto, categoria: e.target.value })}
-                    style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
-                  >
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Categoría *</label>
+                  <select value={formularioProducto.categoria} onChange={(e) => setFormularioProducto({ ...formularioProducto, categoria: e.target.value })} style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}>
                     <option value="Abarrotes">Abarrotes</option>
                     <option value="Lácteos">Lácteos</option>
                     <option value="Granos">Granos</option>
@@ -1125,108 +1272,26 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                     <option value="Huevos">Huevos</option>
                     <option value="Panadería">Panadería</option>
                     <option value="Aseo">Aseo</option>
-                    <option value="Snacks">Snacks / Golosinas</option>
                   </select>
                 </div>
-
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                    Emoji Identificador
-                  </label>
-                  <input
-                    type="text"
-                    value={formularioProducto.emoji}
-                    onChange={(e) => setFormularioProducto({ ...formularioProducto, emoji: e.target.value })}
-                    placeholder="📦"
-                    style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem', textAlign: 'center' }}
-                  />
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Emoji</label>
+                  <input type="text" value={formularioProducto.emoji} onChange={(e) => setFormularioProducto({ ...formularioProducto, emoji: e.target.value })} style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem', textAlign: 'center' }} />
                 </div>
               </div>
-
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                    Precio Venta (COP) *
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="Ej: 4500"
-                    value={formularioProducto.precio}
-                    onChange={(e) => setFormularioProducto({ ...formularioProducto, precio: e.target.value })}
-                    required
-                    min="1"
-                    style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
-                  />
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Precio (COP) *</label>
+                  <input type="number" value={formularioProducto.precio} onChange={(e) => setFormularioProducto({ ...formularioProducto, precio: e.target.value })} required min="1" style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }} />
                 </div>
-
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                    Stock Inicial *
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="Ej: 20"
-                    value={formularioProducto.stock}
-                    onChange={(e) => setFormularioProducto({ ...formularioProducto, stock: e.target.value })}
-                    required
-                    min="0"
-                    style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
-                  />
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Stock *</label>
+                  <input type="number" value={formularioProducto.stock} onChange={(e) => setFormularioProducto({ ...formularioProducto, stock: e.target.value })} required min="0" style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }} />
                 </div>
               </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                    Stock Mínimo Alerta
-                  </label>
-                  <input
-                    type="number"
-                    value={formularioProducto.stock_minimo}
-                    onChange={(e) => setFormularioProducto({ ...formularioProducto, stock_minimo: e.target.value })}
-                    min="1"
-                    style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                    Código de Barras
-                  </label>
-                  <input
-                    type="text"
-                    value={formularioProducto.codigo_barras}
-                    onChange={(e) => setFormularioProducto({ ...formularioProducto, codigo_barras: e.target.value })}
-                    placeholder="77012345"
-                    style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
-                  />
-                </div>
-              </div>
-
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px', justifyContent: 'flex-end' }}>
-                <button
-                  type="button"
-                  onClick={() => setModalNuevoProducto(false)}
-                  style={{ background: '#334155', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={guardandoProducto}
-                  style={{
-                    background: '#0284c7',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    cursor: guardandoProducto ? 'not-allowed' : 'pointer',
-                    fontWeight: 700,
-                    fontSize: '0.85rem'
-                  }}
-                >
-                  {guardandoProducto ? 'Guardando...' : 'Crear Producto'}
-                </button>
+                <button type="button" onClick={() => setModalNuevoProducto(false)} style={{ background: '#334155', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>Cancelar</button>
+                <button type="submit" disabled={guardandoProducto} style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}>Crear Producto</button>
               </div>
             </form>
           </div>
@@ -1244,133 +1309,33 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 50,
-          padding: '1rem',
-          fontFamily: 'system-ui, sans-serif'
+          padding: '1rem'
         }}>
-          <div style={{
-            backgroundColor: '#1e293b',
-            border: '1px solid #334155',
-            borderRadius: '16px',
-            padding: '1.5rem',
-            width: '100%',
-            maxWidth: '480px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
-            color: '#f8fafc'
-          }}>
+          <div style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '16px', padding: '1.5rem', width: '100%', maxWidth: '480px', color: '#f8fafc' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Edit2 size={18} color="#38bdf8" /> Editar Producto
               </h3>
-              <button
-                onClick={() => setModalEditarProducto(false)}
-                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
-              >
-                <X size={20} />
-              </button>
+              <button onClick={() => setModalEditarProducto(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-
             <form onSubmit={handleGuardarEdicionProducto} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                  Nombre del Producto *
-                </label>
-                <input
-                  type="text"
-                  value={formularioProducto.nombre}
-                  onChange={(e) => setFormularioProducto({ ...formularioProducto, nombre: e.target.value })}
-                  required
-                  style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
-                />
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Nombre *</label>
+                <input type="text" value={formularioProducto.nombre} onChange={(e) => setFormularioProducto({ ...formularioProducto, nombre: e.target.value })} required style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }} />
               </div>
-
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                    Categoría *
-                  </label>
-                  <select
-                    value={formularioProducto.categoria}
-                    onChange={(e) => setFormularioProducto({ ...formularioProducto, categoria: e.target.value })}
-                    style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
-                  >
-                    <option value="Abarrotes">Abarrotes</option>
-                    <option value="Lácteos">Lácteos</option>
-                    <option value="Granos">Granos</option>
-                    <option value="Bebidas">Bebidas</option>
-                    <option value="Huevos">Huevos</option>
-                    <option value="Panadería">Panadería</option>
-                    <option value="Aseo">Aseo</option>
-                    <option value="Snacks">Snacks / Golosinas</option>
-                  </select>
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Precio (COP) *</label>
+                  <input type="number" value={formularioProducto.precio} onChange={(e) => setFormularioProducto({ ...formularioProducto, precio: e.target.value })} required min="1" style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }} />
                 </div>
-
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                    Emoji
-                  </label>
-                  <input
-                    type="text"
-                    value={formularioProducto.emoji}
-                    onChange={(e) => setFormularioProducto({ ...formularioProducto, emoji: e.target.value })}
-                    style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem', textAlign: 'center' }}
-                  />
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Stock *</label>
+                  <input type="number" value={formularioProducto.stock} onChange={(e) => setFormularioProducto({ ...formularioProducto, stock: e.target.value })} required min="0" style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }} />
                 </div>
               </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                    Precio Venta (COP) *
-                  </label>
-                  <input
-                    type="number"
-                    value={formularioProducto.precio}
-                    onChange={(e) => setFormularioProducto({ ...formularioProducto, precio: e.target.value })}
-                    required
-                    min="1"
-                    style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                    Stock Actual *
-                  </label>
-                  <input
-                    type="number"
-                    value={formularioProducto.stock}
-                    onChange={(e) => setFormularioProducto({ ...formularioProducto, stock: e.target.value })}
-                    required
-                    min="0"
-                    style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
-                  />
-                </div>
-              </div>
-
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px', justifyContent: 'flex-end' }}>
-                <button
-                  type="button"
-                  onClick={() => setModalEditarProducto(false)}
-                  style={{ background: '#334155', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={guardandoProducto}
-                  style={{
-                    background: '#38bdf8',
-                    color: '#0f172a',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    cursor: guardandoProducto ? 'not-allowed' : 'pointer',
-                    fontWeight: 700,
-                    fontSize: '0.85rem'
-                  }}
-                >
-                  {guardandoProducto ? 'Guardando...' : 'Guardar Cambios'}
-                </button>
+                <button type="button" onClick={() => setModalEditarProducto(false)} style={{ background: '#334155', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>Cancelar</button>
+                <button type="submit" disabled={guardandoProducto} style={{ background: '#38bdf8', color: '#0f172a', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}>Guardar Cambios</button>
               </div>
             </form>
           </div>
@@ -1388,112 +1353,39 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 50,
-          padding: '1rem',
-          fontFamily: 'system-ui, sans-serif'
+          padding: '1rem'
         }}>
-          <div style={{
-            backgroundColor: '#1e293b',
-            border: '1px solid #334155',
-            borderRadius: '16px',
-            padding: '1.5rem',
-            width: '100%',
-            maxWidth: '440px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
-            color: '#f8fafc'
-          }}>
+          <div style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '16px', padding: '1.5rem', width: '100%', maxWidth: '440px', color: '#f8fafc' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <UserPlus size={18} color="#818cf8" /> Crear Usuario en Base de Datos
+                <UserPlus size={18} color="#818cf8" /> Crear Usuario en BD
               </h3>
-              <button
-                onClick={() => setModalNuevoUsuario(false)}
-                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
-              >
-                <X size={20} />
-              </button>
+              <button onClick={() => setModalNuevoUsuario(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-
             <form onSubmit={handleCrearUsuario} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                  Nombre Completo
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej: Laura Gómez"
-                  value={nuevoUsuario.nombre}
-                  onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, nombre: e.target.value })}
-                  required
-                  style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
-                />
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Nombre</label>
+                <input type="text" value={nuevoUsuario.nombre} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, nombre: e.target.value })} required style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }} />
               </div>
-
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                  Correo Electrónico
-                </label>
-                <input
-                  type="email"
-                  placeholder="cajero@tienda.com"
-                  value={nuevoUsuario.correo}
-                  onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, correo: e.target.value })}
-                  required
-                  style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
-                />
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Correo</label>
+                <input type="email" value={nuevoUsuario.correo} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, correo: e.target.value })} required style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }} />
               </div>
-
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                  Contraseña
-                </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={nuevoUsuario.contraseña}
-                  onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, contraseña: e.target.value })}
-                  required
-                  style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
-                />
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Contraseña</label>
+                <input type="password" value={nuevoUsuario.contraseña} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, contraseña: e.target.value })} required style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }} />
               </div>
-
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                  Rol a Asignar (id_rol)
-                </label>
-                <select
-                  value={nuevoUsuario.id_rol}
-                  onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, id_rol: Number(e.target.value) })}
-                  style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
-                >
-                  <option value={5}>🛒 Cajero POS (id_rol: 5)</option>
-                  <option value={1}>👑 Administrador (id_rol: 1)</option>
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Rol (id_rol)</label>
+                <select value={nuevoUsuario.id_rol} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, id_rol: Number(e.target.value) })} style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}>
+                  {ROLES_DB.map((r) => (
+                    <option key={r.id} value={r.id}>{r.icon} {r.nombre} - {r.label} (id: {r.id})</option>
+                  ))}
                 </select>
               </div>
-
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px', justifyContent: 'flex-end' }}>
-                <button
-                  type="button"
-                  onClick={() => setModalNuevoUsuario(false)}
-                  style={{ background: '#334155', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={creandoUsuario}
-                  style={{
-                    background: '#4f46e5',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    cursor: creandoUsuario ? 'not-allowed' : 'pointer',
-                    fontWeight: 700,
-                    fontSize: '0.85rem'
-                  }}
-                >
-                  {creandoUsuario ? 'Guardando en BD...' : 'Guardar en Base de Datos'}
-                </button>
+                <button type="button" onClick={() => setModalNuevoUsuario(false)} style={{ background: '#334155', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>Cancelar</button>
+                <button type="submit" disabled={creandoUsuario} style={{ background: '#4f46e5', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}>Guardar en BD</button>
               </div>
             </form>
           </div>

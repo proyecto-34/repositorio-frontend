@@ -11,12 +11,12 @@ export const AuthProvider = ({ children }) => {
     const storedUser = authService.getStoredUser();
     const storedSimulatedRole = localStorage.getItem('simulated_role');
     if (storedSimulatedRole) return storedSimulatedRole;
-    return storedUser ? normalizarRol(storedUser.rol || storedUser.role) : ROLES.ADMIN;
+    return storedUser ? normalizarRol(storedUser.id_rol || storedUser.rol || storedUser.role) : ROLES.ADMIN;
   });
 
   useEffect(() => {
     if (user) {
-      const detectedRole = normalizarRol(user.rol || user.role);
+      const detectedRole = normalizarRol(user.id_rol || user.rol || user.role);
       const simulated = localStorage.getItem('simulated_role');
       setActiveRole(simulated || detectedRole);
     }
@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
     const result = await authService.login(credentials);
     setUser(result.user);
     setToken(result.token);
-    const role = normalizarRol(result.user?.rol || result.user?.role);
+    const role = normalizarRol(result.user?.id_rol || result.user?.rol || result.user?.role);
     setActiveRole(role);
     localStorage.removeItem('simulated_role');
     return result;
@@ -41,20 +41,40 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Permite alternar rápidamente entre modo Administrador y Cajero para pruebas/demos
+   * Permite alternar dinámicamente entre cualquiera de los 5 roles
    */
   const cambiarRolActivo = (nuevoRol) => {
     setActiveRole(nuevoRol);
     localStorage.setItem('simulated_role', nuevoRol);
   };
 
+  // Permisos según el rol activo
+  const isAdmin = activeRole === ROLES.ADMIN;
+  const isContador = activeRole === ROLES.CONTADOR;
+  const isInventario = activeRole === ROLES.INVENTARIO;
+  const isSupervisor = activeRole === ROLES.SUPERVISOR;
+  const isCajero = activeRole === ROLES.CAJERO;
+
+  // Matrices de permisos
+  const canManageUsers = isAdmin || isSupervisor;
+  const canManageInventory = isAdmin || isInventario || isSupervisor;
+  const canSell = isAdmin || isCajero || isSupervisor;
+  const canViewReports = isAdmin || isContador || isSupervisor;
+
   const value = {
     user,
     token,
     activeRole,
     isAuthenticated: Boolean(token),
-    isAdmin: activeRole === ROLES.ADMIN,
-    isCajero: activeRole === ROLES.CAJERO,
+    isAdmin,
+    isContador,
+    isInventario,
+    isSupervisor,
+    isCajero,
+    canManageUsers,
+    canManageInventory,
+    canSell,
+    canViewReports,
     login,
     logout,
     cambiarRolActivo,
