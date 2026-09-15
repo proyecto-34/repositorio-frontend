@@ -60,109 +60,36 @@ function App() {
         onClose={() => setModalFacturaAbierto(false)}
       />
 
-      {/* Barra superior de navegación */}
-      <nav style={{
-        backgroundColor: '#0f172a',
-        borderBottom: '1px solid #1e293b',
-        padding: '0.75rem 1.5rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        color: '#f8fafc',
-        fontFamily: 'system-ui, sans-serif',
-        flexWrap: 'wrap',
-        gap: '0.75rem',
-        position: 'sticky',
-        top: 0,
-        zIndex: 40
-      }}>
-        {/* Marca y selector de vista */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ background: '#38bdf8', color: '#0f172a', padding: '6px', borderRadius: '8px', display: 'flex' }}>
-              <Store size={18} />
-            </div>
-            <strong style={{ color: '#f8fafc', fontSize: '1.05rem', fontWeight: 800 }}>
-              Tienda Comunitaria
-            </strong>
-          </div>
-
-          <div style={{ display: 'flex', gap: '0.4rem' }}>
-            <button
-              onClick={() => setVistaActual('login')}
-              style={{
-                background: vistaActual === 'login' ? '#38bdf8' : '#1e293b',
-                color: vistaActual === 'login' ? '#0f172a' : '#cbd5e1',
-                border: 'none',
-                padding: '5px 12px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '0.8rem'
-              }}
-            >
-              Iniciar Sesión
-            </button>
-            <button
-              onClick={() => setVistaActual('dashboard')}
-              style={{
-                background: vistaActual === 'dashboard' ? '#38bdf8' : '#1e293b',
-                color: vistaActual === 'dashboard' ? '#0f172a' : '#cbd5e1',
-                border: 'none',
-                padding: '5px 12px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '0.8rem'
-              }}
-            >
-              Panel ({roleInfo.label})
-            </button>
-          </div>
-        </div>
-
-        {/* Selector interactivo de los 5 Roles de la BD */}
-        <div style={{
+      {/* Barra superior de navegación (Oculta en el login) */}
+      {vistaActual !== 'login' && (
+        <nav style={{
+          backgroundColor: '#0f172a',
+          borderBottom: '1px solid #1e293b',
+          padding: '0.75rem 1.5rem',
           display: 'flex',
+          justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'rgba(30, 41, 59, 0.9)',
-          border: '1px solid #334155',
-          borderRadius: '10px',
-          padding: '3px 8px',
-          gap: '6px'
+          color: '#f8fafc',
+          fontFamily: 'system-ui, sans-serif',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          position: 'sticky',
+          top: 0,
+          zIndex: 40
         }}>
-          <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <ArrowRightLeft size={12} /> Rol Activo:
-          </span>
-          <select
-            value={activeRole}
-            onChange={(e) => {
-              const nuevo = e.target.value;
-              cambiarRolActivo(nuevo);
-              const info = ROLE_BADGES[nuevo];
-              toast.info(`Rol cambiado a: ${info?.icon} ${info?.label}`);
-            }}
-            style={{
-              background: '#0f172a',
-              color: '#38bdf8',
-              border: '1px solid #475569',
-              borderRadius: '6px',
-              padding: '4px 8px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              outline: 'none'
-            }}
-          >
-            {ROLES_DB.map((r) => (
-              <option key={r.id} value={r.key}>
-                {r.icon} #{r.id} {r.nombre} ({r.label})
-              </option>
-            ))}
-          </select>
-        </div>
+          {/* Marca */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ background: '#38bdf8', color: '#0f172a', padding: '6px', borderRadius: '8px', display: 'flex' }}>
+                <Store size={18} />
+              </div>
+              <strong style={{ color: '#f8fafc', fontSize: '1.05rem', fontWeight: 800 }}>
+                Tienda Comunitaria
+              </strong>
+            </div>
+          </div>
 
-        {/* Perfil del usuario y factura */}
+          {/* Perfil del usuario y factura */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button
             onClick={() => setModalFacturaAbierto(true)}
@@ -220,7 +147,8 @@ function App() {
             </div>
           )}
         </div>
-      </nav>
+        </nav>
+      )}
 
       {/* Cuerpo principal de la aplicación */}
       <main style={{
