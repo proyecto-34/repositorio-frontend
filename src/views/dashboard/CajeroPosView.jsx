@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShoppingCart, 
   Search, 
@@ -13,13 +13,15 @@ import {
   Sparkles,
   Package,
   UserCheck,
-  Clock
+  Clock,
+  RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { facturacionService } from '../../services/facturacionService';
+import { productosService } from '../../services/productosService';
 import WeatherWidget from '../../components/WeatherWidget';
 
-// Catálogo de productos común en Tienda Comunitaria
+// Catálogo de respaldo inicial
 const PRODUCTOS_INICIALES = [
   { id: 1, nombre: 'Leche Entera 1L', categoria: 'Lácteos', precio: 4200, stock: 24, emoji: '🥛' },
   { id: 2, nombre: 'Arroz Diana 1kg', categoria: 'Granos', precio: 4800, stock: 40, emoji: '🍚' },
@@ -35,6 +37,7 @@ const PRODUCTOS_INICIALES = [
 
 export const CajeroPosView = ({ user }) => {
   const [catalogo, setCatalogo] = useState(PRODUCTOS_INICIALES);
+  const [cargandoCatalogo, setCargandoCatalogo] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
   const [carrito, setCarrito] = useState([]);
@@ -44,20 +47,59 @@ export const CajeroPosView = ({ user }) => {
   const [montoRecibido, setMontoRecibido] = useState('');
   const [ventasTurno, setVentasTurno] = useState({ total: 0, transacciones: 0 });
 
-  const categorias = ['Todas', ...new Set(PRODUCTOS_INICIALES.map((p) => p.categoria))];
+  // Cargar catálogo desde la base de datos
+  useEffect(() => {
+    cargarCatalogo();
+  }, []);
+
+  const cargarCatalogo = async () => {
+    setCargandoCatalogo(true);
+    try {
+      const data = await productosService.obtenerProductos();
+      if (Array.isArray(data) && data.length > 0) {
+        // Normalizar estructura de productos
+        const normalizados = data.map((p) => ({
+          id: p.id,
+          nombre: p.nombre,
+          categoria: p.categoria || p.categoria_nombre || 'Abarrotes',
+          precio: Number(p.precio) || Number(p.precio_venta) || 0,
+          stock: Number(p.stock) !== undefined ? Number(p.stock) : 10,
+          emoji: p.emoji || '📦',
+          codigo_barras: p.codigo_barras || p.codigo || '',
+        }));
+        setCatalogo(normalizados);
+      }
+    } catch (err) {
+      console.warn('Usando catálogo inicial por respaldo:', err.message);
+    } finally {
+      setCargandoCatalogo(false);
+    }
+  };
+
+  const categorias = ['Todas', ...new Set(catalogo.map((p) => p.categoria || 'General'))];
 
   const productosFiltrados = catalogo.filter((prod) => {
-    const coincideNombre = prod.nombre.toLowerCase().includes(busqueda.toLowerCase());
-    const coincideCat = categoriaSeleccionada === 'Todas' || prod.categoria === categoriaSeleccionada;
+    const q = busqueda.toLowerCase();
+    const coincideNombre = (
+      (prod.nombre && prod.nombre.toLowerCase().includes(q)) ||
+      (prod.codigo_barras && prod.codigo_barras.toLowerCase().includes(q))
+    );
+    const cat = prod.categoria || 'General';
+    const coincideCat = categoriaSeleccionada === 'Todas' || cat === categoriaSeleccionada;
     return coincideNombre && coincideCat;
   });
 
   // Agregar producto al carrito
   const agregarAlCarrito = (producto) => {
+    if (producto.stock <= 0) {
+      toast.error(`"${producto.nombre}" está agotado`);
+      return;
+    }
+
     const itemExistente = carrito.find((item) => item.id === producto.id);
     if (itemExistente) {
       if (itemExistente.cantidad >= producto.stock) {
-        toast.warning(`No hay más stock disponible de ${producto.nombre}`);
+        toast.warning(`No hay más stock disponible de ${producto.nombre} (${producto.stock} disponibles)`);
         return;
       }
       setCarrito(
@@ -80,7 +122,7 @@ export const CajeroPosView = ({ user }) => {
         },
       ]);
     }
-    toast.success(`${producto.nombre} añadido`);
+    toast.success(`${producto.nombre} añadido al ticket`);
   };
 
   // Modificar cantidad en carrito
@@ -89,7 +131,14 @@ export const CajeroPosView = ({ user }) => {
       carrito
         .map((item) => {
           if (item.id === id) {
+            const prodCatalogo = catalogo.find(p => p.id === id);
             const nuevaCantidad = item.cantidad + delta;
+            
+            if (prodCatalogo && nuevaCantidad > prodCatalogo.stock) {
+              toast.warning(`Stock máximo disponible: ${prodCatalogo.stock} unidades`);
+              return item;
+            }
+
             return nuevaCantidad > 0
               ? { ...item, cantidad: nuevaCantidad, total: nuevaCantidad * item.precio }
               : null;
@@ -106,7 +155,7 @@ export const CajeroPosView = ({ user }) => {
 
   const vaciarCarrito = () => {
     setCarrito([]);
-    toast.info('Carrito vaciado');
+    toast.info('Ticket de venta vaciado');
   };
 
   // Totales
@@ -116,14 +165,14 @@ export const CajeroPosView = ({ user }) => {
   const cambio = Math.max(0, (Number(montoRecibido) || 0) - totalPagar);
 
   // Completar Venta y Generar Factura PDF
-  const handleFinalizarVenta = () => {
+  const handleFinalizarVenta = async () => {
     if (carrito.length === 0) {
-      toast.error('El carrito de compras está vacío');
+      toast.error('El ticket de venta está vacío');
       return;
     }
 
     if (metodoPago === 'Efectivo' && Number(montoRecibido) < totalPagar) {
-      toast.error(`El monto recibido ($${Number(montoRecibido).toLocaleString('es-CO')}) es menor al total`);
+      toast.error(`El monto recibido ($${Number(montoRecibido).toLocaleString('es-CO')}) es menor al total ($${totalPagar.toLocaleString('es-CO')})`);
       return;
     }
 
@@ -150,7 +199,10 @@ export const CajeroPosView = ({ user }) => {
         prevCatalogo.map((prod) => {
           const itemVendido = carrito.find((c) => c.id === prod.id);
           if (itemVendido) {
-            return { ...prod, stock: Math.max(0, prod.stock - itemVendido.cantidad) };
+            const nuevoStock = Math.max(0, prod.stock - itemVendido.cantidad);
+            // Intentar actualizar stock en backend
+            productosService.actualizarProducto(prod.id, { stock: nuevoStock }).catch(() => {});
+            return { ...prod, stock: nuevoStock };
           }
           return prod;
         })
@@ -159,7 +211,7 @@ export const CajeroPosView = ({ user }) => {
       // Limpiar formulario
       setCarrito([]);
       setMontoRecibido('');
-      toast.success(`¡Venta #${numFactura} completada y ticket PDF generado!`);
+      toast.success(`¡Venta #${numFactura} registrada y ticket PDF descargado!`);
     } catch {
       toast.error('Error al generar comprobante de venta');
     }
@@ -245,7 +297,7 @@ export const CajeroPosView = ({ user }) => {
               <Search size={18} color="#94a3b8" />
               <input
                 type="text"
-                placeholder="Buscar por nombre (ej: Leche, Arroz, Café)..."
+                placeholder="Buscar por nombre o código de barras (ej: Leche, Arroz, Café)..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 style={{
@@ -259,9 +311,32 @@ export const CajeroPosView = ({ user }) => {
                 }}
               />
             </div>
+
+            <button
+              type="button"
+              onClick={cargarCatalogo}
+              disabled={cargandoCatalogo}
+              style={{
+                background: '#334155',
+                color: '#cbd5e1',
+                border: '1px solid #475569',
+                padding: '0 12px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '0.8rem',
+                fontWeight: 600
+              }}
+              title="Refrescar catálogo"
+            >
+              <RefreshCw size={14} className={cargandoCatalogo ? 'spin' : ''} />
+              {cargandoCatalogo ? '...' : 'Actualizar'}
+            </button>
           </div>
 
-          {/* Filtros de Categorías */}
+          {/* Categorías en chips */}
           <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
             {categorias.map((cat) => (
               <button
@@ -269,16 +344,17 @@ export const CajeroPosView = ({ user }) => {
                 type="button"
                 onClick={() => setCategoriaSeleccionada(cat)}
                 style={{
-                  background: categoriaSeleccionada === cat ? '#10b981' : '#0f172a',
-                  color: categoriaSeleccionada === cat ? '#022c22' : '#cbd5e1',
+                  background: categoriaSeleccionada === cat ? '#059669' : '#0f172a',
+                  color: categoriaSeleccionada === cat ? '#ffffff' : '#94a3b8',
                   border: '1px solid',
-                  borderColor: categoriaSeleccionada === cat ? '#10b981' : '#334155',
-                  padding: '5px 12px',
+                  borderColor: categoriaSeleccionada === cat ? '#059669' : '#334155',
+                  padding: '6px 14px',
                   borderRadius: '20px',
-                  cursor: 'pointer',
                   fontSize: '0.8rem',
                   fontWeight: 600,
-                  whiteSpace: 'nowrap'
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s ease'
                 }}
               >
                 {cat}
@@ -290,76 +366,79 @@ export const CajeroPosView = ({ user }) => {
         {/* Cuadrícula de Productos */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-          gap: '12px'
+          gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
+          gap: '0.85rem'
         }}>
-          {productosFiltrados.map((prod) => (
-            <div
-              key={prod.id}
-              onClick={() => agregarAlCarrito(prod)}
-              style={{
-                background: '#1e293b',
-                border: '1px solid #334155',
-                borderRadius: '12px',
-                padding: '1rem',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                position: 'relative',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#38bdf8')}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#334155')}
-            >
-              <div>
-                <span style={{ fontSize: '2rem', display: 'block', marginBottom: '6px' }}>
-                  {prod.emoji}
-                </span>
-                <h4 style={{ margin: '0 0 4px 0', fontSize: '0.95rem', color: '#f8fafc', fontWeight: 600 }}>
-                  {prod.nombre}
-                </h4>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block' }}>
-                  {prod.categoria} &middot; Stock: {prod.stock}
-                </span>
-              </div>
+          {productosFiltrados.map((prod) => {
+            const agotado = prod.stock <= 0;
+            return (
+              <div
+                key={prod.id}
+                onClick={() => !agotado && agregarAlCarrito(prod)}
+                style={{
+                  background: agotado ? 'rgba(30, 41, 59, 0.4)' : '#1e293b',
+                  border: '1px solid',
+                  borderColor: agotado ? '#334155' : '#334155',
+                  borderRadius: '12px',
+                  padding: '0.85rem',
+                  cursor: agotado ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px',
+                  position: 'relative',
+                  opacity: agotado ? 0.6 : 1,
+                  transition: 'transform 0.1s ease, border-color 0.1s ease'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '1.6rem' }}>{prod.emoji || '📦'}</span>
+                  <span style={{
+                    fontSize: '0.7rem',
+                    padding: '2px 6px',
+                    borderRadius: '10px',
+                    background: agotado ? 'rgba(239, 68, 68, 0.2)' : prod.stock < 10 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                    color: agotado ? '#f87171' : prod.stock < 10 ? '#fbbf24' : '#6ee7b7',
+                    fontWeight: 700
+                  }}>
+                    {agotado ? 'Agotado' : `${prod.stock} un.`}
+                  </span>
+                </div>
 
-              <div style={{
-                marginTop: '12px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                borderTop: '1px solid #334155',
-                paddingTop: '8px'
-              }}>
-                <strong style={{ color: '#34d399', fontSize: '1rem' }}>
-                  ${prod.precio.toLocaleString('es-CO')}
-                </strong>
-                <button
-                  type="button"
-                  style={{
-                    background: '#059669',
-                    border: 'none',
+                <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '0.9rem', lineHeight: '1.2' }}>
+                  {prod.nombre}
+                </div>
+
+                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                  {prod.categoria}
+                </div>
+
+                <div style={{
+                  marginTop: 'auto',
+                  paddingTop: '6px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <strong style={{ color: '#34d399', fontSize: '1rem' }}>
+                    ${prod.precio.toLocaleString('es-CO')}
+                  </strong>
+                  <div style={{
+                    background: agotado ? '#475569' : '#059669',
                     color: '#fff',
                     borderRadius: '6px',
-                    width: '26px',
-                    height: '26px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer'
-                  }}
-                  title="Añadir a la venta"
-                >
-                  <Plus size={16} />
-                </button>
+                    padding: '4px',
+                    display: 'flex'
+                  }}>
+                    <Plus size={14} />
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
-      {/* Columna Derecha: Carrito de Venta y Cobro */}
+      {/* Columna Derecha: Ticket de Venta y Cobro */}
       <section style={{
         background: '#1e293b',
         border: '1px solid #334155',
@@ -369,50 +448,36 @@ export const CajeroPosView = ({ user }) => {
         flexDirection: 'column',
         gap: '1rem',
         position: 'sticky',
-        top: '1rem'
+        top: '80px'
       }}>
-        {/* Cabecera del Carrito */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          borderBottom: '1px solid #334155',
-          paddingBottom: '0.75rem'
-        }}>
+        {/* Encabezado del Ticket */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #334155', paddingBottom: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Receipt size={20} color="#38bdf8" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc', fontWeight: 700 }}>
-              Ticket de Venta ({carrito.reduce((acc, c) => acc + c.cantidad, 0)})
+            <Receipt size={18} color="#38bdf8" />
+            <h3 style={{ margin: 0, fontSize: '1.05rem', color: '#f8fafc', fontWeight: 700 }}>
+              Ticket de Venta Actual
             </h3>
           </div>
           {carrito.length > 0 && (
             <button
+              type="button"
               onClick={vaciarCarrito}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#f87171',
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
+              style={{ background: 'transparent', border: 'none', color: '#f87171', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
             >
-              <Trash2 size={14} /> Vaciar
+              <Trash2 size={13} /> Limpiar
             </button>
           )}
         </div>
 
-        {/* Datos Rápidos del Cliente */}
+        {/* Datos del Cliente */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1.2fr 1fr',
-          gap: '8px',
           background: '#0f172a',
-          padding: '10px',
+          padding: '10px 12px',
           borderRadius: '10px',
-          border: '1px solid #334155'
+          border: '1px solid #334155',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '8px'
         }}>
           <div>
             <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block' }}>Cliente</label>
@@ -420,32 +485,32 @@ export const CajeroPosView = ({ user }) => {
               type="text"
               value={clienteNombre}
               onChange={(e) => setClienteNombre(e.target.value)}
-              style={{ background: '#1e293b', border: '1px solid #475569', color: '#fff', padding: '4px 8px', borderRadius: '6px', width: '100%', fontSize: '0.8rem' }}
+              style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '0.82rem', width: '100%', outline: 'none', fontWeight: 600 }}
             />
           </div>
           <div>
-            <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block' }}>Documento</label>
+            <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block' }}>C.C. / NIT</label>
             <input
               type="text"
               value={clienteDoc}
               onChange={(e) => setClienteDoc(e.target.value)}
-              style={{ background: '#1e293b', border: '1px solid #475569', color: '#fff', padding: '4px 8px', borderRadius: '6px', width: '100%', fontSize: '0.8rem' }}
+              style={{ background: 'transparent', border: 'none', color: '#38bdf8', fontSize: '0.82rem', width: '100%', outline: 'none', fontWeight: 600 }}
             />
           </div>
         </div>
 
-        {/* Lista de Ítems en Carrito */}
+        {/* Lista de Items del Carrito */}
         <div style={{
-          maxHeight: '260px',
-          overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
           gap: '8px',
+          maxHeight: '260px',
+          overflowY: 'auto',
           paddingRight: '4px'
         }}>
           {carrito.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#64748b' }}>
-              <ShoppingCart size={36} style={{ margin: '0 auto 8px auto', opacity: 0.4 }} />
+              <ShoppingCart size={32} style={{ margin: '0 auto 8px auto', opacity: 0.4 }} />
               <p style={{ margin: 0, fontSize: '0.85rem' }}>Selecciona productos del catálogo para agregarlos al ticket de venta.</p>
             </div>
           ) : (
@@ -462,36 +527,51 @@ export const CajeroPosView = ({ user }) => {
                   border: '1px solid #334155'
                 }}
               >
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#f8fafc', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {item.emoji} {item.nombre}
-                  </p>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                    ${item.precio.toLocaleString('es-CO')} c/u
-                  </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '1.2rem' }}>{item.emoji}</span>
+                  <div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f8fafc' }}>
+                      {item.nombre}
+                    </div>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                      ${item.precio.toLocaleString('es-CO')} c/u
+                    </span>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#1e293b', borderRadius: '6px', padding: '2px' }}>
+                    <button
+                      type="button"
+                      onClick={() => actualizarCantidad(item.id, -1)}
+                      style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px 5px', fontSize: '0.8rem' }}
+                    >
+                      -
+                    </button>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fff', minWidth: '16px', textAlign: 'center' }}>
+                      {item.cantidad}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => actualizarCantidad(item.id, 1)}
+                      style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px 5px', fontSize: '0.8rem' }}
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <strong style={{ color: '#34d399', fontSize: '0.85rem', minWidth: '60px', textAlign: 'right' }}>
+                    ${item.total.toLocaleString('es-CO')}
+                  </strong>
+
                   <button
-                    onClick={() => actualizarCantidad(item.id, -1)}
-                    style={{ background: '#334155', border: 'none', color: '#fff', width: '22px', height: '22px', borderRadius: '4px', cursor: 'pointer' }}
+                    type="button"
+                    onClick={() => eliminarDelCarrito(item.id)}
+                    style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer', padding: '4px' }}
                   >
-                    <Minus size={12} />
-                  </button>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, minWidth: '18px', textAlign: 'center' }}>
-                    {item.cantidad}
-                  </span>
-                  <button
-                    onClick={() => actualizarCantidad(item.id, 1)}
-                    style={{ background: '#334155', border: 'none', color: '#fff', width: '22px', height: '22px', borderRadius: '4px', cursor: 'pointer' }}
-                  >
-                    <Plus size={12} />
+                    <Trash2 size={13} />
                   </button>
                 </div>
-
-                <strong style={{ color: '#38bdf8', fontSize: '0.85rem', marginLeft: '12px', minWidth: '60px', textAlign: 'right' }}>
-                  ${item.total.toLocaleString('es-CO')}
-                </strong>
               </div>
             ))
           )}
