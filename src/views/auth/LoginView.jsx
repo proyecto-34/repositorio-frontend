@@ -1,14 +1,9 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { 
-  Store, 
-  Mail, 
-  Lock, 
   Eye, 
   EyeOff, 
-  ArrowRight, 
-  Loader2, 
-  ShieldCheck 
+  Loader2 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -18,8 +13,7 @@ import './LoginView.css';
 
 /**
  * Vista de Inicio de Sesión
- * Permite a los usuarios ingresar credenciales para autenticarse con NestJS
- * e incluye una tarjeta motivacional integrada
+ * Minimalista, sin bordes, paleta Deep Indigo & Violeta
  */
 export const LoginView = () => {
   const { login } = useAuth();
@@ -87,13 +81,11 @@ export const LoginView = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        {/* Cabecera con Icono y Marca */}
+        {/* Cabecera limpia y tipográfica */}
         <div className="login-header">
-          <div className="brand-icon">
-            <Store size={26} />
-          </div>
+          <span className="login-header-badge">Acceso al Sistema</span>
           <h1>Tienda Comunitaria</h1>
-          <p>Ingresa tus credenciales para acceder</p>
+          <p>Ingresa tus credenciales para continuar</p>
         </div>
 
         {/* Formulario de Autenticación */}
@@ -101,7 +93,6 @@ export const LoginView = () => {
           <div className="form-group">
             <label htmlFor="email">Correo Electrónico / Usuario</label>
             <div className="input-wrapper">
-              <Mail className="input-icon" size={18} />
               <input
                 id="email"
                 type="text"
@@ -119,7 +110,6 @@ export const LoginView = () => {
           <div className="form-group">
             <label htmlFor="password">Contraseña</label>
             <div className="input-wrapper">
-              <Lock className="input-icon" size={18} />
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
@@ -166,22 +156,17 @@ export const LoginView = () => {
                 <span>Iniciando sesión...</span>
               </>
             ) : (
-              <>
-                <span>Ingresar al Sistema</span>
-                <ArrowRight size={18} />
-              </>
+              <span>Ingresar al Sistema</span>
             )}
           </button>
         </form>
 
-        {/* Tarjeta de Frase Motivacional Integrada */}
+        {/* Frase Motivacional Integrada */}
         <MotivationalQuote />
 
-        {/* Pie de seguridad */}
+        {/* Pie informativo */}
         <div className="login-footer">
-          <p>
-            <ShieldCheck size={16} /> Autenticación segura con JWT & NestJS
-          </p>
+          <p>Autenticación segura con JWT & NestJS</p>
         </div>
       </div>
     </div>

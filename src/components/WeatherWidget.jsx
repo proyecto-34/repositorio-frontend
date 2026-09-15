@@ -6,17 +6,13 @@ import {
   Cloud,
   CloudLightning,
   Snowflake,
-  Wind,
-  Droplets,
-  Search,
-  MapPin,
   Loader2
 } from 'lucide-react';
 import { weatherService, interpretarCodigoClima } from '../services/weatherService';
 
 /**
  * Componente WeatherWidget
- * Muestra el clima en tiempo real con soporte de geolocalización y búsqueda por ciudad
+ * Muestra el clima en tiempo real sin bordes feos y adaptado al tema Deep Indigo
  */
 export const WeatherWidget = () => {
   const [climaInfo, setClimaInfo] = useState(null);
@@ -24,7 +20,6 @@ export const WeatherWidget = () => {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
 
-  // Consulta el clima por nombre de ciudad
   const consultarClimaPorCiudad = async (ciudad) => {
     setCargando(true);
     setError(null);
@@ -38,7 +33,6 @@ export const WeatherWidget = () => {
     }
   };
 
-  // Al montar el componente: consulta Mocoa como ciudad principal
   useEffect(() => {
     consultarClimaPorCiudad('Mocoa');
   }, []);
@@ -50,7 +44,6 @@ export const WeatherWidget = () => {
     }
   };
 
-  // Renderizado dinámico del icono según el clima
   const renderIcono = (codigo) => {
     const { icono } = interpretarCodigoClima(codigo);
     const props = { size: 38 };
@@ -66,28 +59,29 @@ export const WeatherWidget = () => {
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+      background: '#151c2c',
       color: '#ffffff',
-      padding: '1.25rem',
-      borderRadius: '16px',
-      maxWidth: '360px',
+      padding: '1.4rem',
+      borderRadius: '18px',
+      maxWidth: '100%',
       width: '100%',
-      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
+      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      border: 'none'
     }}>
       {/* Buscador de Ciudad */}
-      <form onSubmit={handleBuscar} style={{ display: 'flex', gap: '8px', marginBottom: '1rem' }}>
+      <form onSubmit={handleBuscar} style={{ display: 'flex', gap: '8px', marginBottom: '1.1rem' }}>
         <input
           type="text"
-          placeholder="Buscar ciudad (ej: Medellín, Lima)..."
+          placeholder="Buscar ciudad..."
           value={ciudadInput}
           onChange={(e) => setCiudadInput(e.target.value)}
           style={{
             flex: 1,
-            padding: '8px 12px',
-            borderRadius: '8px',
-            border: '1px solid #334155',
-            background: '#0f172a',
+            padding: '9px 12px',
+            borderRadius: '10px',
+            border: 'none',
+            background: '#0b0f19',
             color: '#fff',
             fontSize: '0.85rem',
             outline: 'none',
@@ -97,32 +91,31 @@ export const WeatherWidget = () => {
           type="submit"
           disabled={cargando}
           style={{
-            background: '#38bdf8',
+            background: '#8b5cf6',
             border: 'none',
-            borderRadius: '8px',
-            padding: '8px 12px',
+            borderRadius: '10px',
+            padding: '9px 14px',
             cursor: 'pointer',
-            color: '#0f172a',
-            display: 'flex',
-            alignItems: 'center',
-            fontWeight: 600,
+            color: '#fff',
+            fontSize: '0.82rem',
+            fontWeight: 700,
           }}
         >
-          <Search size={18} />
+          Buscar
         </button>
       </form>
 
       {/* Estado de Carga */}
       {cargando && (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1.5rem 0', gap: '8px', color: '#38bdf8' }}>
-          <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: '0.9rem' }}>Consultando clima...</span>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1.5rem 0', gap: '8px', color: '#c4b5fd' }}>
+          <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+          <span style={{ fontSize: '0.85rem' }}>Consultando clima...</span>
         </div>
       )}
 
       {/* Mensaje de Error */}
       {error && !cargando && (
-        <div style={{ color: '#f87171', background: 'rgba(239, 68, 68, 0.1)', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '0.5rem', textAlign: 'center' }}>
+        <div style={{ color: '#f87171', background: 'rgba(239, 68, 68, 0.15)', padding: '8px 12px', borderRadius: '8px', fontSize: '0.82rem', marginBottom: '0.5rem', textAlign: 'center' }}>
           {error}
         </div>
       )}
@@ -130,17 +123,16 @@ export const WeatherWidget = () => {
       {/* Datos del Clima */}
       {!cargando && climaInfo && climaInfo.clima && (
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '0.9rem' }}>
-            <MapPin size={16} />
-            <span>{climaInfo.ciudad}{climaInfo.pais ? `, ${climaInfo.pais}` : ''}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '0.88rem' }}>
+            <span>Clima en <strong style={{ color: '#f8fafc' }}>{climaInfo.ciudad}{climaInfo.pais ? `, ${climaInfo.pais}` : ''}</strong></span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '1rem 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0.8rem 0' }}>
             <div>
               <span style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-1px' }}>
                 {Math.round(climaInfo.clima.temperature_2m)}°C
               </span>
-              <p style={{ margin: 0, color: '#38bdf8', fontSize: '0.9rem', fontWeight: 500 }}>
+              <p style={{ margin: 0, color: '#c4b5fd', fontSize: '0.88rem', fontWeight: 600 }}>
                 {interpretarCodigoClima(climaInfo.clima.weather_code).texto}
               </p>
             </div>
@@ -153,19 +145,18 @@ export const WeatherWidget = () => {
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
-            background: 'rgba(51, 65, 85, 0.5)',
+            background: '#0b0f19',
             padding: '10px 14px',
             borderRadius: '10px',
-            fontSize: '0.85rem',
-            border: '1px solid #334155'
+            fontSize: '0.82rem',
+            border: 'none',
+            color: '#94a3b8'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Droplets size={16} color="#60a5fa" />
-              <span>Humedad: {climaInfo.clima.relative_humidity_2m}%</span>
+            <div>
+              <span>Humedad: <strong style={{ color: '#f8fafc' }}>{climaInfo.clima.relative_humidity_2m}%</strong></span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Wind size={16} color="#94a3b8" />
-              <span>Viento: {climaInfo.clima.wind_speed_10m} km/h</span>
+            <div>
+              <span>Viento: <strong style={{ color: '#f8fafc' }}>{climaInfo.clima.wind_speed_10m} km/h</strong></span>
             </div>
           </div>
         </div>
