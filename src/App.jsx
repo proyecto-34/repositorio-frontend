@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Toaster, toast } from 'sonner';
 import { 
   Receipt, 
@@ -16,6 +17,7 @@ import FacturaModal from './components/FacturaModal';
 import axiosClient from './api/axiosClient';
 import { useAuth } from './context/AuthContext';
 import { ROLES, ROLES_DB, ROLE_BADGES } from './constants/roles';
+import ProtectedRoute from './routes/ProtectedRoute';
 
 function App() {
   const { 
@@ -31,20 +33,15 @@ function App() {
     isAuthenticated 
   } = useAuth();
 
-  const [vistaActual, setVistaActual] = useState(() => {
-    return localStorage.getItem('token') ? 'dashboard' : 'login';
-  });
-  const [modalFacturaAbierto, setModalFacturaAbierto] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleLoginSuccess = (data) => {
-    setVistaActual('dashboard');
-    toast.success(`¡Bienvenido ${data.user?.nombre || data.user?.email || ''}!`);
-  };
+  const [modalFacturaAbierto, setModalFacturaAbierto] = useState(false);
 
   const handleLogout = () => {
     logout();
-    setVistaActual('login');
     toast.info('Sesión cerrada');
+    navigate('/login');
   };
 
   const roleInfo = ROLE_BADGES[activeRole] || ROLE_BADGES[ROLES.ADMIN];
@@ -61,7 +58,7 @@ function App() {
       />
 
       {/* Barra superior de navegación (Oculta en el login) */}
-      {vistaActual !== 'login' && (
+      {location.pathname !== '/login' && (
         <nav style={{
           backgroundColor: '#0f172a',
           borderBottom: '1px solid #1e293b',
@@ -154,23 +151,32 @@ function App() {
       <main style={{
         minHeight: 'calc(100vh - 60px)',
         backgroundColor: '#0f172a',
-        padding: vistaActual === 'login' ? 0 : '1.5rem',
+        padding: location.pathname === '/login' ? 0 : '1.5rem',
         fontFamily: 'system-ui, -apple-system, sans-serif'
       }}>
-        {vistaActual === 'login' ? (
-          <LoginView onLoginSuccess={handleLoginSuccess} />
-        ) : (
-          /* Renderizado según Rol */
-          isCajero ? (
-            <CajeroPosView user={user} />
-          ) : (
-            <AdminDashboardView
-              user={user}
-              onOpenFactura={() => setModalFacturaAbierto(true)}
-              onAbrirPos={() => cambiarRolActivo(ROLES.CAJERO)}
-            />
-          )
-        )}
+        <Routes>
+          <Route path="/login" element={<LoginView />} />
+          
+          <Route path="/cajero" element={
+            <ProtectedRoute allowedRoles={[ROLES.CAJERO, ROLES.SUPERVISOR, ROLES.ADMIN]}>
+              <CajeroPosView user={user} />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin" element={
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.INVENTARIO, ROLES.CONTADOR]}>
+              <AdminDashboardView
+                user={user}
+                onOpenFactura={() => setModalFacturaAbierto(true)}
+                onAbrirPos={() => navigate('/cajero')}
+              />
+            </ProtectedRoute>
+          } />
+
+          <Route path="*" element={
+            <Navigate to={isAuthenticated ? (isCajero ? '/cajero' : '/admin') : '/login'} replace />
+          } />
+        </Routes>
       </main>
     </>
   );

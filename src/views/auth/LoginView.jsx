@@ -10,7 +10,9 @@ import {
   Loader2, 
   ShieldCheck 
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { ROLES, normalizarRol } from '../../constants/roles';
 import MotivationalQuote from '../../components/MotivationalQuote';
 import './LoginView.css';
 
@@ -19,8 +21,9 @@ import './LoginView.css';
  * Permite a los usuarios ingresar credenciales para autenticarse con NestJS
  * e incluye una tarjeta motivacional integrada
  */
-export const LoginView = ({ onLoginSuccess }) => {
+export const LoginView = () => {
   const { login } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -55,8 +58,12 @@ export const LoginView = ({ onLoginSuccess }) => {
 
       toast.success('¡Inicio de sesión exitoso!');
       
-      if (onLoginSuccess) {
-        onLoginSuccess(result);
+      const userRole = normalizarRol(result.user?.id_rol || result.user?.rol || result.user?.role);
+      
+      if (userRole === ROLES.CAJERO) {
+        navigate('/cajero');
+      } else {
+        navigate('/admin');
       }
     } catch (error) {
       let errorMsg = 'Error al iniciar sesión. Verifica tus credenciales.';
