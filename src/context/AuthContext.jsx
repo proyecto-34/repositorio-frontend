@@ -60,6 +60,8 @@ export const AuthProvider = ({ children }) => {
   const canManageInventory = isAdmin || isInventario || isSupervisor;
   const canSell = isAdmin || isCajero || isSupervisor;
   const canViewReports = isAdmin || isContador || isSupervisor;
+  const canManageSuppliers = isAdmin || isInventario || isSupervisor;
+  const canManagePurchases = isAdmin || isInventario || isSupervisor || isContador;
 
   const value = {
     user,
@@ -75,6 +77,8 @@ export const AuthProvider = ({ children }) => {
     canManageInventory,
     canSell,
     canViewReports,
+    canManageSuppliers,
+    canManagePurchases,
     login,
     logout,
     cambiarRolActivo,

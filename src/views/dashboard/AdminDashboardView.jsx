@@ -3,6 +3,10 @@ import { toast } from 'sonner';
 import { usuariosService } from '../../services/usuariosService';
 import { productosService } from '../../services/productosService';
 import { facturacionService } from '../../services/facturacionService';
+import proveedoresService, { PROVEEDORES_DEFAULT } from '../../services/proveedoresService';
+import comprasService, { COMPRAS_DEFAULT } from '../../services/comprasService';
+import ProveedoresTab from './admin/ProveedoresTab';
+import ComprasTab from './admin/ComprasTab';
 import { normalizarRol, ROLES, ROLES_DB, ROLE_BADGES, obtenerInfoRol } from '../../constants/roles';
 import { useAuth } from '../../context/AuthContext';
 import WeatherWidget from '../../components/WeatherWidget';
@@ -30,7 +34,18 @@ const VENTAS_DEFAULT = [
 ];
 
 export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
-  const { activeRole, canManageUsers, canManageInventory, canViewReports, isAdmin, isContador, isInventario, isSupervisor } = useAuth();
+  const { 
+    activeRole, 
+    canManageUsers, 
+    canManageInventory, 
+    canViewReports, 
+    canManageSuppliers, 
+    canManagePurchases, 
+    isAdmin, 
+    isContador, 
+    isInventario, 
+    isSupervisor 
+  } = useAuth();
 
   // Pestaña inicial según rol
   const [tabActiva, setTabActiva] = useState(() => {
@@ -38,6 +53,15 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     if (isInventario) return 'inventario';
     return 'inventario';
   });
+
+  // --- ESTADO DE PROVEEDORES ---
+  const [proveedores, setProveedores] = useState(PROVEEDORES_DEFAULT);
+  const [cargandoProveedores, setCargandoProveedores] = useState(false);
+
+  // --- ESTADO DE COMPRAS / ENTRADAS ---
+  const [compras, setCompras] = useState(COMPRAS_DEFAULT);
+  const [cargandoCompras, setCargandoCompras] = useState(false);
+  const [proveedorParaNuevaCompra, setProveedorParaNuevaCompra] = useState(null);
 
   // --- ESTADO DE USUARIOS ---
   const [usuarios, setUsuarios] = useState([]);
@@ -83,6 +107,8 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     if (canManageUsers) cargarUsuarios();
     if (canManageInventory) cargarProductos();
     if (canViewReports) cargarVentas();
+    if (canManageSuppliers) cargarProveedores();
+    if (canManagePurchases) cargarCompras();
   }, [activeRole]);
 
   // Sincronizar pestaña si el rol cambia
@@ -90,6 +116,55 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     if (isContador) setTabActiva('reportes');
     else if (isInventario) setTabActiva('inventario');
   }, [activeRole, isContador, isInventario]);
+
+  // --- MÉTODOS DE PROVEEDORES ---
+  const cargarProveedores = async () => {
+    setCargandoProveedores(true);
+    try {
+      const data = await proveedoresService.obtenerProveedores();
+      if (Array.isArray(data) && data.length > 0) {
+        setProveedores(data);
+      }
+    } catch (err) {
+      console.warn('Error al cargar proveedores, usando lista local:', err.message);
+    } finally {
+      setCargandoProveedores(false);
+    }
+  };
+
+  // --- MÉTODOS DE COMPRAS ---
+  const cargarCompras = async () => {
+    setCargandoCompras(true);
+    try {
+      const data = await comprasService.obtenerCompras();
+      if (Array.isArray(data) && data.length > 0) {
+        setCompras(data);
+      }
+    } catch (err) {
+      console.warn('Error al cargar compras, usando lista local:', err.message);
+    } finally {
+      setCargandoCompras(false);
+    }
+  };
+
+  const handleActualizarStockDesdeCompra = (itemsComprados) => {
+    // Sincronizar el catálogo local para reflejar de inmediato el incremento de stock
+    setProductos((prevProductos) =>
+      prevProductos.map((prod) => {
+        const itemComprado = itemsComprados.find((it) => it.id_producto === prod.id);
+        if (itemComprado) {
+          const nuevoStock = (Number(prod.stock) || 0) + Number(itemComprado.cantidad || 0);
+          return { ...prod, stock: nuevoStock };
+        }
+        return prod;
+      })
+    );
+  };
+
+  const handleAbrirCompraConProveedor = (proveedor) => {
+    setProveedorParaNuevaCompra(proveedor);
+    setTabActiva('compras');
+  };
 
   // --- MÉTODOS DE USUARIOS ---
   const cargarUsuarios = async () => {
@@ -458,7 +533,36 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
           </div>
         )}
 
-        {/* KPI 4: Usuarios */}
+        {/* KPI 4: Proveedores */}
+        {canManageSuppliers && (
+          <div 
+            onClick={() => setTabActiva('proveedores')}
+            style={{
+              background: tabActiva === 'proveedores' ? '#1e273d' : '#151c2c',
+              borderRadius: '16px',
+              padding: '1.4rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
+              border: 'none'
+            }}
+          >
+            <span style={{ fontSize: '0.78rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
+              Proveedores
+            </span>
+            <h3 style={{ margin: 0, fontSize: '1.65rem', color: '#38bdf8', fontWeight: 800 }}>
+              {cargandoProveedores ? '...' : proveedores.length}
+            </h3>
+            <span style={{ fontSize: '0.75rem', color: '#7dd3fc' }}>
+              {proveedores.filter(p => p.activo !== false).length} aliados activos
+            </span>
+          </div>
+        )}
+
+        {/* KPI 5: Usuarios */}
         {canManageUsers && (
           <div 
             onClick={() => setTabActiva('usuarios')}
@@ -513,6 +617,48 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
             }}
           >
             Inventario & Productos
+          </button>
+        )}
+
+        {canManagePurchases && (
+          <button
+            type="button"
+            onClick={() => setTabActiva('compras')}
+            style={{
+              background: tabActiva === 'compras' ? '#22c55e' : '#151c2c',
+              color: tabActiva === 'compras' ? '#0b0f19' : '#94a3b8',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              transition: 'all 0.2s ease',
+              boxShadow: tabActiva === 'compras' ? '0 4px 14px rgba(34, 197, 94, 0.4)' : 'none'
+            }}
+          >
+            Entradas & Compras
+          </button>
+        )}
+
+        {canManageSuppliers && (
+          <button
+            type="button"
+            onClick={() => setTabActiva('proveedores')}
+            style={{
+              background: tabActiva === 'proveedores' ? '#38bdf8' : '#151c2c',
+              color: tabActiva === 'proveedores' ? '#0b0f19' : '#94a3b8',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              transition: 'all 0.2s ease',
+              boxShadow: tabActiva === 'proveedores' ? '0 4px 14px rgba(56, 189, 248, 0.4)' : 'none'
+            }}
+          >
+            Proveedores
           </button>
         )}
 
@@ -1151,6 +1297,31 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
             <WeatherWidget />
           </div>
         </div>
+      )}
+
+      {/* 4. SECCIÓN DE ENTRADAS Y COMPRAS A PROVEEDORES */}
+      {tabActiva === 'compras' && canManagePurchases && (
+        <ComprasTab
+          compras={compras}
+          proveedores={proveedores}
+          productos={productos}
+          cargando={cargandoCompras}
+          onRecargar={cargarCompras}
+          onActualizarStock={handleActualizarStockDesdeCompra}
+          canManage={canManagePurchases}
+          proveedorInicial={proveedorParaNuevaCompra}
+        />
+      )}
+
+      {/* 5. SECCIÓN DE PROVEEDORES */}
+      {tabActiva === 'proveedores' && canManageSuppliers && (
+        <ProveedoresTab
+          proveedores={proveedores}
+          cargando={cargandoProveedores}
+          onRecargar={cargarProveedores}
+          onAbrirNuevaCompraConProveedor={handleAbrirCompraConProveedor}
+          canManage={canManageSuppliers}
+        />
       )}
 
       {/* MODAL: Crear Nuevo Producto */}
