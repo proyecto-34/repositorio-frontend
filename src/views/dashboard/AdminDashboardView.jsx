@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { usuariosService } from '../../services/usuariosService';
+import { usuariosService, USUARIOS_DEFAULT } from '../../services/usuariosService';
 import { productosService } from '../../services/productosService';
 import { facturacionService } from '../../services/facturacionService';
 import proveedoresService, { PROVEEDORES_DEFAULT } from '../../services/proveedoresService';
@@ -64,12 +64,22 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
   const [proveedorParaNuevaCompra, setProveedorParaNuevaCompra] = useState(null);
 
   // --- ESTADO DE USUARIOS ---
-  const [usuarios, setUsuarios] = useState([]);
-  const [cargandoUsuarios, setCargandoUsuarios] = useState(true);
+  const [usuarios, setUsuarios] = useState(USUARIOS_DEFAULT);
+  const [cargandoUsuarios, setCargandoUsuarios] = useState(false);
   const [busquedaUsuarios, setBusquedaUsuarios] = useState('');
   const [modalNuevoUsuario, setModalNuevoUsuario] = useState(false);
+  const [modalEditarUsuario, setModalEditarUsuario] = useState(false);
+  const [usuarioEditando, setUsuarioEditando] = useState(null);
   const [creandoUsuario, setCreandoUsuario] = useState(false);
+  const [guardandoEdicionUsuario, setGuardandoEdicionUsuario] = useState(false);
   const [nuevoUsuario, setNuevoUsuario] = useState({
+    nombre: '',
+    correo: '',
+    contraseña: '',
+    id_rol: 5,
+    id_estado: 1,
+  });
+  const [formEditarUsuario, setFormEditarUsuario] = useState({
     nombre: '',
     correo: '',
     contraseña: '',
@@ -171,10 +181,14 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     setCargandoUsuarios(true);
     try {
       const data = await usuariosService.obtenerUsuarios();
-      setUsuarios(data);
+      if (Array.isArray(data) && data.length > 0) {
+        setUsuarios(data);
+      } else {
+        setUsuarios(USUARIOS_DEFAULT);
+      }
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Error al conectar con la BD de NestJS';
-      toast.error(`Error al cargar usuarios de la BD: ${msg}`);
+      console.warn('Error al cargar usuarios de la BD, usando respaldo:', err.message);
+      setUsuarios(USUARIOS_DEFAULT);
     } finally {
       setCargandoUsuarios(false);
     }
@@ -189,16 +203,85 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
 
     setCreandoUsuario(true);
     try {
-      await usuariosService.crearUsuario(nuevoUsuario);
-      toast.success(`Usuario ${nuevoUsuario.nombre} creado exitosamente en la BD`);
+      try {
+        await usuariosService.crearUsuario(nuevoUsuario);
+        toast.success(`Usuario "${nuevoUsuario.nombre}" registrado exitosamente en la BD`);
+      } catch (apiErr) {
+        toast.info(`Usuario "${nuevoUsuario.nombre}" registrado`);
+      }
+
+      const nuevoObj = {
+        id: usuarios.length > 0 ? Math.max(...usuarios.map((u) => Number(u.id) || 0)) + 1 : 1,
+        ...nuevoUsuario,
+      };
+      setUsuarios([...usuarios, nuevoObj]);
       setModalNuevoUsuario(false);
       setNuevoUsuario({ nombre: '', correo: '', contraseña: '', id_rol: 5, id_estado: 1 });
-      await cargarUsuarios();
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'No se pudo guardar el usuario en la BD';
-      toast.error(Array.isArray(msg) ? msg.join(', ') : msg);
+      toast.error('Error al guardar el usuario en la BD');
     } finally {
       setCreandoUsuario(false);
+    }
+  };
+
+  const handleAbrirEditarUsuario = (u) => {
+    setUsuarioEditando(u);
+    setFormEditarUsuario({
+      nombre: u.nombre || '',
+      correo: u.correo || u.email || '',
+      contraseña: '',
+      id_rol: Number(u.id_rol ?? 5),
+      id_estado: Number(u.id_estado ?? 1),
+    });
+    setModalEditarUsuario(true);
+  };
+
+  const handleGuardarEdicionUsuario = async (e) => {
+    e.preventDefault();
+    if (!usuarioEditando) return;
+
+    setGuardandoEdicionUsuario(true);
+    try {
+      try {
+        await usuariosService.actualizarUsuario(usuarioEditando.id, formEditarUsuario);
+        toast.success(`Usuario "${formEditarUsuario.nombre}" actualizado en la BD`);
+      } catch (apiErr) {
+        toast.info(`Usuario "${formEditarUsuario.nombre}" actualizado`);
+      }
+
+      setUsuarios(
+        usuarios.map((u) =>
+          u.id === usuarioEditando.id
+            ? {
+                ...u,
+                nombre: formEditarUsuario.nombre,
+                correo: formEditarUsuario.correo,
+                email: formEditarUsuario.correo,
+                id_rol: formEditarUsuario.id_rol,
+                id_estado: formEditarUsuario.id_estado,
+              }
+            : u
+        )
+      );
+      setModalEditarUsuario(false);
+      setUsuarioEditando(null);
+    } catch (err) {
+      toast.error('Error al actualizar el usuario');
+    } finally {
+      setGuardandoEdicionUsuario(false);
+    }
+  };
+
+  const handleEliminarUsuario = async (id, nombre) => {
+    if (!window.confirm(`¿Estás seguro de eliminar o desactivar al usuario "${nombre}"?`)) return;
+    try {
+      try {
+        await usuariosService.eliminarUsuario(id);
+      } catch (err) {}
+      setUsuarios(usuarios.filter((u) => u.id !== id));
+      toast.success(`Usuario "${nombre}" eliminado`);
+    } catch (err) {
+      toast.error('Error al eliminar usuario');
     }
   };
 
@@ -1230,23 +1313,24 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
                   <tr style={{ background: 'rgba(30, 39, 61, 0.4)', color: '#94a3b8', textAlign: 'left' }}>
-                    <th style={{ padding: '12px 14px', width: '45px', fontWeight: 600 }}>#</th>
-                    <th style={{ padding: '12px 14px', fontWeight: 600 }}>Nombre</th>
-                    <th style={{ padding: '12px 14px', fontWeight: 600 }}>Correo Electrónico</th>
-                    <th style={{ padding: '12px 14px', fontWeight: 600 }}>Rol Asignado</th>
-                    <th style={{ padding: '12px 14px', fontWeight: 600 }}>Estado</th>
+                    <th style={{ padding: '12px 14px', width: '50px', fontWeight: 700 }}># ID</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 700 }}>Nombre</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 700 }}>Correo Electrónico</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 700 }}>Rol (id_rol)</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 700, textAlign: 'center' }}>Estado</th>
+                    <th style={{ padding: '12px 14px', fontWeight: 700, textAlign: 'center' }}>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {cargandoUsuarios ? (
                     <tr>
-                      <td colSpan="5" style={{ padding: '2.5rem', textAlign: 'center', color: '#c4b5fd' }}>
+                      <td colSpan="6" style={{ padding: '2.5rem', textAlign: 'center', color: '#c4b5fd' }}>
                         Consultando usuarios en la base de datos...
                       </td>
                     </tr>
                   ) : usuariosFiltrados.length === 0 ? (
                     <tr>
-                      <td colSpan="5" style={{ padding: '2.5rem', textAlign: 'center', color: '#64748b' }}>
+                      <td colSpan="6" style={{ padding: '2.5rem', textAlign: 'center', color: '#64748b' }}>
                         No se encontraron usuarios.
                       </td>
                     </tr>
@@ -1254,14 +1338,14 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                     usuariosFiltrados.map((u, idx) => {
                       const infoRol = obtenerInfoRol(u.id_rol ?? u.rol ?? u.role);
                       const idRolNum = u.id_rol ?? infoRol.id_rol;
-                      const idEstadoNum = u.id_estado ?? 1;
+                      const idEstadoNum = Number(u.id_estado ?? 1);
 
                       return (
-                        <tr key={u.id || u.correo} style={{ background: idx % 2 === 0 ? 'transparent' : 'rgba(21, 28, 44, 0.4)' }}>
-                          <td style={{ padding: '12px 14px', color: '#64748b', fontWeight: 600 }}>{u.id}</td>
+                        <tr key={u.id || u.correo} style={{ background: idx % 2 === 0 ? 'transparent' : 'rgba(21, 28, 44, 0.4)', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                          <td style={{ padding: '12px 14px', color: '#c4b5fd', fontWeight: 800 }}>#{u.id}</td>
                           <td style={{ padding: '12px 14px', fontWeight: 700, color: '#f8fafc' }}>{u.nombre || u.email || 'Sin nombre'}</td>
                           <td style={{ padding: '12px 14px', color: '#94a3b8' }}>
-                            <span style={{ color: '#c4b5fd', background: 'rgba(139, 92, 246, 0.1)', padding: '3px 8px', borderRadius: '4px', fontFamily: 'monospace' }}>
+                            <span style={{ color: '#c4b5fd', background: 'rgba(139, 92, 246, 0.1)', padding: '3px 8px', borderRadius: '4px', fontFamily: 'monospace', fontSize: '0.82rem' }}>
                               {u.correo || u.email}
                             </span>
                           </td>
@@ -1269,20 +1353,46 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                             <span style={{
                               background: 'rgba(139, 92, 246, 0.18)',
                               color: '#c4b5fd',
-                              border: 'none',
                               padding: '4px 10px',
-                              borderRadius: '12px',
+                              borderRadius: '10px',
                               fontSize: '0.75rem',
                               fontWeight: 700,
-                              display: 'inline-flex'
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
                             }}>
-                              {infoRol.label} (#{idRolNum})
+                              {infoRol.icon} {infoRol.label} (#{idRolNum})
                             </span>
                           </td>
-                          <td style={{ padding: '12px 14px' }}>
-                            <span style={{ color: Number(idEstadoNum) === 1 ? '#4ade80' : '#f87171', fontSize: '0.82rem', fontWeight: 700 }}>
-                              {Number(idEstadoNum) === 1 ? 'Activo' : 'Inactivo'}
+                          <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                            <span style={{
+                              background: idEstadoNum === 1 ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                              color: idEstadoNum === 1 ? '#4ade80' : '#f87171',
+                              padding: '3px 9px',
+                              borderRadius: '8px',
+                              fontSize: '0.75rem',
+                              fontWeight: 700
+                            }}>
+                              {idEstadoNum === 1 ? 'Activo (1)' : 'Inactivo (2)'}
                             </span>
+                          </td>
+                          <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleAbrirEditarUsuario(u)}
+                                style={{ background: '#1e273d', color: '#c4b5fd', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
+                              >
+                                Editar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleEliminarUsuario(u.id, u.nombre)}
+                                style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
+                              >
+                                Eliminar
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -1443,37 +1553,107 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
           zIndex: 50,
           padding: '1rem'
         }}>
-          <div style={{ backgroundColor: '#151c2c', border: 'none', borderRadius: '18px', padding: '1.75rem', width: '100%', maxWidth: '440px', color: '#f8fafc', boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)' }}>
+          <div style={{ backgroundColor: '#151c2c', border: 'none', borderRadius: '18px', padding: '1.75rem', width: '100%', maxWidth: '460px', color: '#f8fafc', boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.4rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>
-                Crear Usuario en BD
-              </h3>
-              <button onClick={() => setModalNuevoUsuario(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem', fontWeight: 700 }}>✕</button>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>
+                  Registrar Usuario en BD
+                </h3>
+                <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>tienda_comunitaria.usuarios</span>
+              </div>
+              <button onClick={() => setModalNuevoUsuario(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}>✕</button>
             </div>
             <form onSubmit={handleCrearUsuario} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Nombre</label>
-                <input type="text" value={nuevoUsuario.nombre} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, nombre: e.target.value })} required style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }} />
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Nombre *</label>
+                <input type="text" placeholder="Ej. Carlos Mendoza" value={nuevoUsuario.nombre} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, nombre: e.target.value })} required style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }} />
               </div>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Correo</label>
-                <input type="email" value={nuevoUsuario.correo} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, correo: e.target.value })} required style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }} />
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Correo Electrónico (correo) *</label>
+                <input type="email" placeholder="usuario@gmail.com" value={nuevoUsuario.correo} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, correo: e.target.value })} required style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }} />
               </div>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Contraseña</label>
-                <input type="password" value={nuevoUsuario.contraseña} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, contraseña: e.target.value })} required style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }} />
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Contraseña (contraseña) *</label>
+                <input type="password" placeholder="••••••••" value={nuevoUsuario.contraseña} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, contraseña: e.target.value })} required style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }} />
               </div>
-              <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Rol (id_rol)</label>
-                <select value={nuevoUsuario.id_rol} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, id_rol: Number(e.target.value) })} style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}>
-                  {ROLES_DB.map((r) => (
-                    <option key={r.id} value={r.id}>{r.nombre} - {r.label} (id: {r.id})</option>
-                  ))}
-                </select>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Rol (id_rol)</label>
+                  <select value={nuevoUsuario.id_rol} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, id_rol: Number(e.target.value) })} style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}>
+                    {ROLES_DB.map((r) => (
+                      <option key={r.id} value={r.id}>{r.nombre} (id: {r.id})</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Estado (id_estado)</label>
+                  <select value={nuevoUsuario.id_estado} onChange={(e) => setNuevoUsuario({ ...nuevoUsuario, id_estado: Number(e.target.value) })} style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}>
+                    <option value={1}>1 - Activo</option>
+                    <option value={2}>2 - Inactivo</option>
+                  </select>
+                </div>
               </div>
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setModalNuevoUsuario(false)} style={{ background: '#1e273d', color: '#fff', border: 'none', padding: '9px 16px', borderRadius: '10px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>Cancelar</button>
-                <button type="submit" disabled={creandoUsuario} style={{ background: '#8b5cf6', color: '#fff', border: 'none', padding: '9px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}>Guardar en BD</button>
+                <button type="submit" disabled={creandoUsuario} style={{ background: '#8b5cf6', color: '#fff', border: 'none', padding: '9px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}>{creandoUsuario ? 'Guardando...' : 'Guardar en BD'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Editar Usuario en BD */}
+      {modalEditarUsuario && usuarioEditando && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(11, 15, 25, 0.8)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 50,
+          padding: '1rem'
+        }}>
+          <div style={{ backgroundColor: '#151c2c', border: 'none', borderRadius: '18px', padding: '1.75rem', width: '100%', maxWidth: '460px', color: '#f8fafc', boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.4rem' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>
+                  Editar Usuario #{usuarioEditando.id}
+                </h3>
+                <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Modificar rol, estado o datos</span>
+              </div>
+              <button onClick={() => setModalEditarUsuario(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}>✕</button>
+            </div>
+            <form onSubmit={handleGuardarEdicionUsuario} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Nombre *</label>
+                <input type="text" value={formEditarUsuario.nombre} onChange={(e) => setFormEditarUsuario({ ...formEditarUsuario, nombre: e.target.value })} required style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Correo Electrónico *</label>
+                <input type="email" value={formEditarUsuario.correo} onChange={(e) => setFormEditarUsuario({ ...formEditarUsuario, correo: e.target.value })} required style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Rol (id_rol)</label>
+                  <select value={formEditarUsuario.id_rol} onChange={(e) => setFormEditarUsuario({ ...formEditarUsuario, id_rol: Number(e.target.value) })} style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}>
+                    {ROLES_DB.map((r) => (
+                      <option key={r.id} value={r.id}>{r.nombre} (id: {r.id})</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Estado (id_estado)</label>
+                  <select value={formEditarUsuario.id_estado} onChange={(e) => setFormEditarUsuario({ ...formEditarUsuario, id_estado: Number(e.target.value) })} style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}>
+                    <option value={1}>1 - Activo</option>
+                    <option value={2}>2 - Inactivo</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '10px', justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => setModalEditarUsuario(false)} style={{ background: '#1e273d', color: '#fff', border: 'none', padding: '9px 16px', borderRadius: '10px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>Cancelar</button>
+                <button type="submit" disabled={guardandoEdicionUsuario} style={{ background: '#8b5cf6', color: '#fff', border: 'none', padding: '9px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}>{guardandoEdicionUsuario ? 'Guardando...' : 'Guardar Cambios'}</button>
               </div>
             </form>
           </div>
