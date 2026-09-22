@@ -203,14 +203,10 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
 
     setCreandoUsuario(true);
     try {
-      try {
-        await usuariosService.crearUsuario(nuevoUsuario);
-        toast.success(`Usuario "${nuevoUsuario.nombre}" registrado exitosamente en la BD`);
-      } catch (apiErr) {
-        toast.info(`Usuario "${nuevoUsuario.nombre}" registrado`);
-      }
+      const creado = await usuariosService.crearUsuario(nuevoUsuario);
+      toast.success(`Usuario "${nuevoUsuario.nombre}" registrado exitosamente en la BD`);
 
-      const nuevoObj = {
+      const nuevoObj = creado?.data || creado || {
         id: usuarios.length > 0 ? Math.max(...usuarios.map((u) => Number(u.id) || 0)) + 1 : 1,
         ...nuevoUsuario,
       };
@@ -218,7 +214,8 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
       setModalNuevoUsuario(false);
       setNuevoUsuario({ nombre: '', correo: '', contraseña: '', id_rol: 5, id_estado: 1 });
     } catch (err) {
-      toast.error('Error al guardar el usuario en la BD');
+      const msg = err.response?.data?.message || err.message || 'Error al guardar el usuario en la BD';
+      toast.error(`Error al crear usuario en BD: ${Array.isArray(msg) ? msg.join(', ') : msg}`);
     } finally {
       setCreandoUsuario(false);
     }
@@ -230,8 +227,8 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
       nombre: u.nombre || '',
       correo: u.correo || u.email || '',
       contraseña: '',
-      id_rol: Number(u.id_rol ?? 5),
-      id_estado: Number(u.id_estado ?? 1),
+      id_rol: Number(u.id_rol ?? u.rol?.id ?? 5),
+      id_estado: Number(u.id_estado ?? u.estado?.id ?? 1),
     });
     setModalEditarUsuario(true);
   };
@@ -242,31 +239,16 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
 
     setGuardandoEdicionUsuario(true);
     try {
-      try {
-        await usuariosService.actualizarUsuario(usuarioEditando.id, formEditarUsuario);
-        toast.success(`Usuario "${formEditarUsuario.nombre}" actualizado en la BD`);
-      } catch (apiErr) {
-        toast.info(`Usuario "${formEditarUsuario.nombre}" actualizado`);
-      }
+      await usuariosService.actualizarUsuario(usuarioEditando.id, formEditarUsuario);
+      toast.success(`Usuario "${formEditarUsuario.nombre}" actualizado correctamente en la BD`);
 
-      setUsuarios(
-        usuarios.map((u) =>
-          u.id === usuarioEditando.id
-            ? {
-                ...u,
-                nombre: formEditarUsuario.nombre,
-                correo: formEditarUsuario.correo,
-                email: formEditarUsuario.correo,
-                id_rol: formEditarUsuario.id_rol,
-                id_estado: formEditarUsuario.id_estado,
-              }
-            : u
-        )
-      );
+      // Recargar la lista fresca directamente desde la BD
+      await cargarUsuarios();
       setModalEditarUsuario(false);
       setUsuarioEditando(null);
     } catch (err) {
-      toast.error('Error al actualizar el usuario');
+      const msg = err.response?.data?.message || err.message || 'Error al actualizar el usuario en la BD';
+      toast.error(`No se pudo actualizar en BD: ${Array.isArray(msg) ? msg.join(', ') : msg}`);
     } finally {
       setGuardandoEdicionUsuario(false);
     }
@@ -1336,9 +1318,9 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                     </tr>
                   ) : (
                     usuariosFiltrados.map((u, idx) => {
-                      const infoRol = obtenerInfoRol(u.id_rol ?? u.rol ?? u.role);
-                      const idRolNum = u.id_rol ?? infoRol.id_rol;
-                      const idEstadoNum = Number(u.id_estado ?? 1);
+                      const idRolNum = Number(u.id_rol ?? u.rol?.id ?? (typeof u.rol === 'number' ? u.rol : 5));
+                      const idEstadoNum = Number(u.id_estado ?? u.estado?.id ?? (typeof u.estado === 'number' ? u.estado : 1));
+                      const infoRol = obtenerInfoRol(idRolNum);
 
                       return (
                         <tr key={u.id || u.correo} style={{ background: idx % 2 === 0 ? 'transparent' : 'rgba(21, 28, 44, 0.4)', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
