@@ -15,16 +15,30 @@ export const authService = {
     const correoVal = (credentials.correo || credentials.email || credentials.username || '').trim();
     const contrasenaVal = credentials.contraseña || credentials.contrasena || credentials.password || '';
 
-    // El DTO de NestJS requiere 'correo' y 'contraseña'
-    const payload = {
-      correo: correoVal,
-      contraseña: contrasenaVal,
-      contrasena: contrasenaVal,
-      email: correoVal,
-      password: contrasenaVal,
-    };
-
-    const response = await axiosClient.post(ENDPOINTS.AUTH.LOGIN, payload);
+    // El DTO de NestJS requiere 'correo' y 'contraseña' (o 'contrasena' / 'email')
+    let response;
+    try {
+      response = await axiosClient.post(ENDPOINTS.AUTH.LOGIN, {
+        correo: correoVal,
+        contraseña: contrasenaVal,
+      });
+    } catch (err) {
+      if (err.response && err.response.status === 400) {
+        try {
+          response = await axiosClient.post(ENDPOINTS.AUTH.LOGIN, {
+            correo: correoVal,
+            contrasena: contrasenaVal,
+          });
+        } catch (retryErr1) {
+          response = await axiosClient.post(ENDPOINTS.AUTH.LOGIN, {
+            email: correoVal,
+            password: contrasenaVal,
+          });
+        }
+      } else {
+        throw err;
+      }
+    }
     const data = response.data;
 
     // Extraer token soportando diferentes convenciones de NestJS
