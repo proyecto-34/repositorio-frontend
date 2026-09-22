@@ -26,7 +26,9 @@ export const proveedoresService = {
    */
   obtenerProveedores: async () => {
     try {
-      const response = await axiosClient.get(ENDPOINTS.PROVEEDORES.BASE);
+      const response = await axiosClient.get(ENDPOINTS.PROVEEDORES.BASE, {
+        params: { limit: 100, page: 1 },
+      });
       const data = response.data;
       if (Array.isArray(data)) return data;
       if (data && typeof data === 'object') {
@@ -74,21 +76,24 @@ export const proveedoresService = {
   },
 
   /**
-   * Actualiza los datos de un proveedor en la BD
+   * Actualiza los datos de un proveedor en la BD (soporta PATCH y PUT)
    */
   actualizarProveedor: async (id, datos) => {
-    const payload = {
-      nombre: (datos.nombre || '').trim(),
-      contacto: (datos.contacto || '').trim(),
-      direccion: (datos.direccion || '').trim(),
-    };
+    const payload = {};
+    if (datos.nombre) payload.nombre = (datos.nombre || '').trim();
+    if (datos.contacto !== undefined) payload.contacto = (datos.contacto || '').trim();
+    if (datos.direccion !== undefined) payload.direccion = (datos.direccion || '').trim();
 
     try {
-      const response = await axiosClient.put(ENDPOINTS.PROVEEDORES.BY_ID(id), payload);
+      const response = await axiosClient.patch(ENDPOINTS.PROVEEDORES.BY_ID(id), payload);
       return response.data;
-    } catch (error) {
-      console.error(`Error al actualizar proveedor ${id}:`, error);
-      throw error;
+    } catch (patchError) {
+      if (patchError.response && (patchError.response.status === 404 || patchError.response.status === 405)) {
+        const putResponse = await axiosClient.put(ENDPOINTS.PROVEEDORES.BY_ID(id), payload);
+        return putResponse.data;
+      }
+      console.error(`Error al actualizar proveedor ${id}:`, patchError);
+      throw patchError;
     }
   },
 

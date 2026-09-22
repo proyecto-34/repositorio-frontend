@@ -160,44 +160,37 @@ export const ComprasTab = ({
     setGuardando(true);
     try {
       const payload = {
-        id_proveedor: idProveedor,
+        id_proveedor: Number(idProveedor),
         proveedor_obj: proveedorObj,
         nro_factura: nroFactura.trim() || `COMPRA-${Date.now()}`,
         fecha: new Date().toISOString(),
         metodo_pago: metodoPago,
         total: totalCompraActual,
         observaciones,
+        detalles: itemsCompra.map((it) => ({
+          id_producto: Number(it.id_producto),
+          cantidad: Number(it.cantidad),
+          subtotal: Number(it.total || it.subtotal || (it.cantidad * it.costo_unitario)),
+        })),
         items: itemsCompra,
       };
 
       await comprasService.crearCompra(payload);
-
-      // Actualizar el stock de cada producto en la base de datos y en memoria
-      for (const it of itemsCompra) {
-        const prod = productos.find((p) => p.id === it.id_producto);
-        const stockPrevio = prod ? Number(prod.stock) || 0 : 0;
-        const nuevoStock = stockPrevio + it.cantidad;
-
-        try {
-          await productosService.actualizarProducto(it.id_producto, { stock: nuevoStock });
-        } catch (err) {
-          console.warn(`No se pudo actualizar stock en BD para producto ${it.id_producto}:`, err.message);
-        }
-      }
 
       if (onActualizarStock) {
         onActualizarStock(itemsCompra);
       }
 
       toast.success(
-        `¡Compra #${payload.nro_factura} registrada con éxito! El inventario ha sido incrementado.`,
+        `¡Compra registrada con éxito en la BD! El stock de los productos ha sido incrementado automáticamente.`,
         { duration: 5000 }
       );
 
       setModalNuevaCompra(false);
       if (onRecargar) onRecargar();
     } catch (err) {
-      toast.error('Error al registrar la orden de compra');
+      const msg = err.response?.data?.message || err.message || 'Error al registrar la orden de compra en la BD';
+      toast.error(`Error al registrar compra: ${Array.isArray(msg) ? msg.join(', ') : msg}`);
     } finally {
       setGuardando(false);
     }
