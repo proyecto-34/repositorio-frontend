@@ -8,6 +8,8 @@ import FacturaModal from './components/FacturaModal';
 import { useAuth } from './context/AuthContext';
 import { ROLES, ROLE_BADGES } from './constants/roles';
 import ProtectedRoute from './routes/ProtectedRoute';
+import ForbiddenView from './views/errors/ForbiddenView';
+import NotFoundView from './views/errors/NotFoundView';
 
 function App() {
   const { 
@@ -171,9 +173,19 @@ function App() {
             </ProtectedRoute>
           } />
 
-          <Route path="*" element={
+          {/* Ruta de Acceso Denegado (403) */}
+          <Route path="/forbidden" element={<ForbiddenView />} />
+          
+          {/* Ruta pública 404 explícita */}
+          <Route path="/not-found" element={<NotFoundView />} />
+
+          {/* Redirección raíz */}
+          <Route path="/" element={
             <Navigate to={isAuthenticated ? (isCajero ? '/cajero' : '/admin') : '/login'} replace />
           } />
+
+          {/* Cualquier otra ruta no coincidente muestra Error 404 */}
+          <Route path="*" element={<NotFoundView />} />
         </Routes>
       </main>
     </>
