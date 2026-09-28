@@ -10,6 +10,7 @@ import ComprasTab from './admin/ComprasTab';
 import { normalizarRol, ROLES, ROLES_DB, ROLE_BADGES, obtenerInfoRol } from '../../constants/roles';
 import { useAuth } from '../../context/AuthContext';
 import WeatherWidget from '../../components/WeatherWidget';
+import Can from '../../components/Can';
 
 // Catálogo por defecto sin emojis
 const PRODUCTOS_DEFAULT = [
@@ -1008,23 +1009,25 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                   {cargandoProductos ? 'Cargando...' : 'Recargar'}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={handleAbrirCrearProducto}
-                  style={{
-                    background: '#8b5cf6',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '10px',
-                    cursor: 'pointer',
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    boxShadow: '0 4px 14px rgba(139, 92, 246, 0.35)'
-                  }}
-                >
-                  + Nuevo Producto
-                </button>
+                <Can do="create" on="inventario">
+                  <button
+                    type="button"
+                    onClick={handleAbrirCrearProducto}
+                    style={{
+                      background: '#8b5cf6',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      fontWeight: 700,
+                      fontSize: '0.85rem',
+                      boxShadow: '0 4px 14px rgba(139, 92, 246, 0.35)'
+                    }}
+                  >
+                    + Nuevo Producto
+                  </button>
+                </Can>
               </div>
             </div>
 
@@ -1129,38 +1132,44 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                                 {esAgotado ? 'Agotado' : esBajo ? `${stockNum} un. (Bajo)` : `${stockNum} un.`}
                               </span>
 
-                              <button
-                                type="button"
-                                onClick={() => handleAjusteRapidoStock(prod, 1)}
-                                style={{ background: '#1e273d', color: '#fff', border: 'none', width: '24px', height: '24px', borderRadius: '6px', cursor: 'pointer', fontWeight: 800 }}
-                              >
-                                +
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleAjusteRapidoStock(prod, -1)}
-                                style={{ background: '#1e273d', color: '#fff', border: 'none', width: '24px', height: '24px', borderRadius: '6px', cursor: 'pointer', fontWeight: 800 }}
-                              >
-                                -
-                              </button>
+                              <Can do="edit" on="inventario">
+                                <button
+                                  type="button"
+                                  onClick={() => handleAjusteRapidoStock(prod, 1)}
+                                  style={{ background: '#1e273d', color: '#fff', border: 'none', width: '24px', height: '24px', borderRadius: '6px', cursor: 'pointer', fontWeight: 800 }}
+                                >
+                                  +
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleAjusteRapidoStock(prod, -1)}
+                                  style={{ background: '#1e273d', color: '#fff', border: 'none', width: '24px', height: '24px', borderRadius: '6px', cursor: 'pointer', fontWeight: 800 }}
+                                >
+                                  -
+                                </button>
+                              </Can>
                             </div>
                           </td>
                           <td style={{ padding: '12px 14px', textAlign: 'right' }}>
                             <div style={{ display: 'inline-flex', gap: '6px' }}>
-                              <button
-                                type="button"
-                                onClick={() => handleAbrirEditarProducto(prod)}
-                                style={{ background: '#1e273d', color: '#c4b5fd', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
-                              >
-                                Editar
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleEliminarProducto(prod.id, prod.nombre)}
-                                style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
-                              >
-                                Eliminar
-                              </button>
+                              <Can do="edit" on="inventario">
+                                <button
+                                  type="button"
+                                  onClick={() => handleAbrirEditarProducto(prod)}
+                                  style={{ background: '#1e273d', color: '#c4b5fd', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
+                                >
+                                  Editar
+                                </button>
+                              </Can>
+                              <Can do="delete" on="inventario">
+                                <button
+                                  type="button"
+                                  onClick={() => handleEliminarProducto(prod.id, prod.nombre)}
+                                  style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}
+                                >
+                                  Eliminar
+                                </button>
+                              </Can>
                             </div>
                           </td>
                         </tr>
@@ -1251,13 +1260,15 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                   {cargandoUsuarios ? 'Cargando...' : 'Recargar'}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => setModalNuevoUsuario(true)}
-                  style={{ background: '#8b5cf6', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', boxShadow: '0 4px 14px rgba(139, 92, 246, 0.35)' }}
-                >
-                  + Nuevo Usuario
-                </button>
+                <Can roles={['admin', 'supervisor']}>
+                  <button
+                    type="button"
+                    onClick={() => setModalNuevoUsuario(true)}
+                    style={{ background: '#8b5cf6', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', boxShadow: '0 4px 14px rgba(139, 92, 246, 0.35)' }}
+                  >
+                    + Nuevo Usuario
+                  </button>
+                </Can>
               </div>
             </div>
 
@@ -1342,20 +1353,24 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
                           </td>
                           <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                             <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                              <button
-                                type="button"
-                                onClick={() => handleAbrirEditarUsuario(u)}
-                                style={{ background: '#1e273d', color: '#c4b5fd', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
-                              >
-                                Editar
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleEliminarUsuario(u.id, u.nombre)}
-                                style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
-                              >
-                                Eliminar
-                              </button>
+                              <Can do="edit" on="usuarios">
+                                <button
+                                  type="button"
+                                  onClick={() => handleAbrirEditarUsuario(u)}
+                                  style={{ background: '#1e273d', color: '#c4b5fd', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
+                                >
+                                  Editar
+                                </button>
+                              </Can>
+                              <Can do="delete" on="usuarios">
+                                <button
+                                  type="button"
+                                  onClick={() => handleEliminarUsuario(u.id, u.nombre)}
+                                  style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
+                                >
+                                  Eliminar
+                                </button>
+                              </Can>
                             </div>
                           </td>
                         </tr>

@@ -1,27 +1,26 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ROLES } from '../constants/roles';
 
 /**
- * Guardián de rutas que verifica autenticación y permisos de rol.
+ * Guardián de rutas (Capa 2 de Seguridad):
+ * - Si no está autenticado -> Redirige a /login.
+ * - Si está autenticado pero no tiene el rol permitido -> Redirige a /forbidden (403).
  */
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { isAuthenticated, activeRole } = useAuth();
+  const { isAuthenticated, hasAnyRole } = useAuth();
   const location = useLocation();
 
-  // Si no está autenticado, redirigir al login y guardar la ruta que intentaba visitar
+  // 1. Si no hay sesión activa, redirigir al login
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Si se especifican roles permitidos y el rol actual no está en la lista
-  if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(activeRole)) {
-    // Si es cajero, devolver al cajero. Si no, al admin dashboard.
-    if (activeRole === ROLES.CAJERO) {
-      return <Navigate to="/cajero" replace />;
-    } else {
-      return <Navigate to="/admin" replace />;
+  // 2. Si la ruta exige roles específicos y el usuario no cuenta con ninguno de ellos
+  if (allowedRoles && allowedRoles.length > 0) {
+    const tieneAcceso = hasAnyRole(allowedRoles);
+    if (!tieneAcceso) {
+      return <Navigate to="/forbidden" replace />;
     }
   }
 

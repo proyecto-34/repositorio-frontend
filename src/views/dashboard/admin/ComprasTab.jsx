@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { Plus, Search, Truck, Eye, FileText, CheckCircle2, DollarSign, PackagePlus, Trash2, Calendar, CreditCard, Layers } from 'lucide-react';
 import comprasService from '../../../services/comprasService';
 import productosService from '../../../services/productosService';
+import Can from '../../../components/Can';
 
 export const ComprasTab = ({
   compras = [],
@@ -229,7 +230,7 @@ export const ComprasTab = ({
           </p>
         </div>
 
-        {canManage && (
+        <Can do="create" on="compras">
           <button
             type="button"
             onClick={() => handleAbrirNuevaCompra()}
@@ -250,9 +251,9 @@ export const ComprasTab = ({
             }}
           >
             <PackagePlus size={18} />
-            Registrar Entrada / Compra
+            + Registrar Entrada
           </button>
-        )}
+        </Can>
       </div>
 
       {/* Tarjetas de Métricas de Compras */}
