@@ -132,7 +132,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     setCargandoProveedores(true);
     try {
       const data = await proveedoresService.obtenerProveedores();
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data)) {
         setProveedores(data);
       }
     } catch (err) {
@@ -157,18 +157,19 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     }
   };
 
-  const handleActualizarStockDesdeCompra = (itemsComprados) => {
-    // Sincronizar el catálogo local para reflejar de inmediato el incremento de stock
+  const handleActualizarStockDesdeCompra = async (itemsComprados) => {
+    // Sincronizar el catálogo local y consultar la BD fresca
     setProductos((prevProductos) =>
       prevProductos.map((prod) => {
         const itemComprado = itemsComprados.find((it) => it.id_producto === prod.id);
         if (itemComprado) {
           const nuevoStock = (Number(prod.stock) || 0) + Number(itemComprado.cantidad || 0);
-          return { ...prod, stock: nuevoStock };
+          return { ...prod, stock: nuevoStock, cantidad: nuevoStock };
         }
         return prod;
       })
     );
+    await cargarProductos();
   };
 
   const handleAbrirCompraConProveedor = (proveedor) => {
@@ -274,6 +275,8 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
       const data = await productosService.obtenerProductos();
       if (Array.isArray(data) && data.length > 0) {
         setProductos(data);
+      } else if (Array.isArray(data)) {
+        setProductos(data);
       } else {
         setProductos(PRODUCTOS_DEFAULT);
       }
@@ -288,7 +291,8 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
   const handleAbrirCrearProducto = () => {
     setFormularioProducto({
       nombre: '',
-      categoria: 'Abarrotes',
+      id_categoria: 1,
+      categoria: 'Granos',
       precio: '',
       stock: '',
       stock_minimo: '5',
@@ -306,24 +310,14 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
 
     setGuardandoProducto(true);
     try {
-      try {
-        await productosService.crearProducto(formularioProducto);
-        toast.success(`Producto "${formularioProducto.nombre}" guardado en la base de datos`);
-      } catch (apiErr) {
-        toast.info(`Producto "${formularioProducto.nombre}" agregado localmente`);
-      }
+      await productosService.crearProducto(formularioProducto);
+      toast.success(`Producto "${formularioProducto.nombre}" guardado en la base de datos`);
 
-      const nuevoProd = {
-        id: productos.length > 0 ? Math.max(...productos.map(p => Number(p.id) || 0)) + 1 : 1,
-        ...formularioProducto,
-        precio: Number(formularioProducto.precio),
-        stock: Number(formularioProducto.stock),
-        stock_minimo: Number(formularioProducto.stock_minimo) || 5,
-      };
-      setProductos([nuevoProd, ...productos]);
+      await cargarProductos();
       setModalNuevoProducto(false);
     } catch (err) {
-      toast.error('Error al guardar el producto');
+      const msg = err.response?.data?.message || err.message || 'Error al guardar el producto en la BD';
+      toast.error(`Error al guardar producto: ${Array.isArray(msg) ? msg.join(', ') : msg}`);
     } finally {
       setGuardandoProducto(false);
     }
@@ -333,9 +327,10 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     setProductoSeleccionado(prod);
     setFormularioProducto({
       nombre: prod.nombre || '',
-      categoria: prod.categoria || prod.categoria_nombre || 'General',
+      id_categoria: Number(prod.id_categoria ?? 1),
+      categoria: prod.categoria || 'Granos',
       precio: prod.precio || prod.precio_venta || '',
-      stock: prod.stock !== undefined ? prod.stock : '',
+      stock: prod.stock !== undefined && prod.stock !== null ? prod.stock : (prod.cantidad ?? ''),
       stock_minimo: prod.stock_minimo || '5',
       codigo_barras: prod.codigo_barras || prod.codigo || '',
     });
@@ -348,28 +343,15 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
 
     setGuardandoProducto(true);
     try {
-      try {
-        await productosService.actualizarProducto(productoSeleccionado.id, formularioProducto);
-        toast.success(`Producto "${formularioProducto.nombre}" actualizado en la BD`);
-      } catch (apiErr) {
-        toast.info(`Producto "${formularioProducto.nombre}" actualizado`);
-      }
+      await productosService.actualizarProducto(productoSeleccionado.id, formularioProducto);
+      toast.success(`Producto "${formularioProducto.nombre}" actualizado correctamente en la BD`);
 
-      setProductos(productos.map(p => 
-        p.id === productoSeleccionado.id
-          ? {
-              ...p,
-              ...formularioProducto,
-              precio: Number(formularioProducto.precio),
-              stock: Number(formularioProducto.stock),
-              stock_minimo: Number(formularioProducto.stock_minimo) || 5,
-            }
-          : p
-      ));
+      await cargarProductos();
       setModalEditarProducto(false);
       setProductoSeleccionado(null);
     } catch (err) {
-      toast.error('Error al actualizar el producto');
+      const msg = err.response?.data?.message || err.message || 'Error al actualizar el producto en la BD';
+      toast.error(`Error al actualizar: ${Array.isArray(msg) ? msg.join(', ') : msg}`);
     } finally {
       setGuardandoProducto(false);
     }
@@ -1443,15 +1425,16 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Categoría *</label>
-                  <select value={formularioProducto.categoria} onChange={(e) => setFormularioProducto({ ...formularioProducto, categoria: e.target.value })} style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}>
-                    <option value="Abarrotes">Abarrotes</option>
-                    <option value="Lácteos">Lácteos</option>
-                    <option value="Granos">Granos</option>
-                    <option value="Bebidas">Bebidas</option>
-                    <option value="Huevos">Huevos</option>
-                    <option value="Panadería">Panadería</option>
-                    <option value="Aseo">Aseo</option>
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Categoría (id_categoria) *</label>
+                  <select
+                    value={formularioProducto.id_categoria || 1}
+                    onChange={(e) => setFormularioProducto({ ...formularioProducto, id_categoria: Number(e.target.value) })}
+                    style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
+                  >
+                    <option value={1}>1 - Granos</option>
+                    <option value={2}>2 - Pasta</option>
+                    <option value={3}>3 - Salsas</option>
+                    <option value={4}>4 - lacteos</option>
                   </select>
                 </div>
                 <div>
@@ -1461,11 +1444,11 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Precio (COP) *</label>
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Precio (precio) *</label>
                   <input type="number" value={formularioProducto.precio} onChange={(e) => setFormularioProducto({ ...formularioProducto, precio: e.target.value })} required min="1" style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Stock Inicial *</label>
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Cantidad (cantidad) *</label>
                   <input type="number" value={formularioProducto.stock} onChange={(e) => setFormularioProducto({ ...formularioProducto, stock: e.target.value })} required min="0" style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }} />
                 </div>
               </div>
@@ -1505,13 +1488,26 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Categoría (id_categoria) *</label>
+                  <select
+                    value={formularioProducto.id_categoria || 1}
+                    onChange={(e) => setFormularioProducto({ ...formularioProducto, id_categoria: Number(e.target.value) })}
+                    style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
+                  >
+                    <option value={1}>1 - Granos</option>
+                    <option value={2}>2 - Pasta</option>
+                    <option value={3}>3 - Salsas</option>
+                    <option value={4}>4 - lacteos</option>
+                  </select>
+                </div>
+                <div>
                   <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Precio (COP) *</label>
                   <input type="number" value={formularioProducto.precio} onChange={(e) => setFormularioProducto({ ...formularioProducto, precio: e.target.value })} required min="1" style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }} />
                 </div>
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Stock *</label>
-                  <input type="number" value={formularioProducto.stock} onChange={(e) => setFormularioProducto({ ...formularioProducto, stock: e.target.value })} required min="0" style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }} />
-                </div>
+              </div>
+              <div>
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Cantidad en Bodega (cantidad) *</label>
+                <input type="number" value={formularioProducto.stock} onChange={(e) => setFormularioProducto({ ...formularioProducto, stock: e.target.value })} required min="0" style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }} />
               </div>
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setModalEditarProducto(false)} style={{ background: '#1e273d', color: '#fff', border: 'none', padding: '9px 16px', borderRadius: '10px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>Cancelar</button>

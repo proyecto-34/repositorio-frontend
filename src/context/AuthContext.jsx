@@ -63,6 +63,44 @@ export const AuthProvider = ({ children }) => {
   const canManageSuppliers = isAdmin || isInventario || isSupervisor;
   const canManagePurchases = isAdmin || isInventario || isSupervisor || isContador;
 
+  /**
+   * Capa 3: Verificación de roles (hasAnyRole / hasAnyAuthority)
+   * @param {string|string[]} rolesRequeridos
+   * @returns {boolean}
+   */
+  const hasAnyRole = (rolesRequeridos) => {
+    if (!rolesRequeridos) return true;
+    const lista = Array.isArray(rolesRequeridos) ? rolesRequeridos : [rolesRequeridos];
+    if (lista.length === 0) return true;
+    const normReq = lista.map((r) => normalizarRol(r));
+    return normReq.includes(activeRole);
+  };
+
+  /**
+   * Capa 5: Verificación granular de acciones y recursos (Matriz de Permisos)
+   * @param {string} action - ej: 'view', 'create', 'edit', 'delete'
+   * @param {string} subject - ej: 'usuarios', 'inventario', 'proveedores', 'compras', 'reportes', 'ventas'
+   * @returns {boolean}
+   */
+  const hasPermission = (action, subject) => {
+    if (isAdmin) return true; // Admin tiene bypass total
+
+    const sub = (subject || '').toLowerCase();
+    const act = (action || '').toLowerCase();
+
+    if (sub === 'usuarios') return canManageUsers;
+    if (sub === 'inventario' || sub === 'productos') {
+      if (act === 'view') return true;
+      return canManageInventory;
+    }
+    if (sub === 'proveedores') return canManageSuppliers;
+    if (sub === 'compras') return canManagePurchases;
+    if (sub === 'reportes' || sub === 'balance') return canViewReports;
+    if (sub === 'ventas' || sub === 'caja' || sub === 'pos') return canSell;
+
+    return false;
+  };
+
   const value = {
     user,
     token,
@@ -79,6 +117,8 @@ export const AuthProvider = ({ children }) => {
     canViewReports,
     canManageSuppliers,
     canManagePurchases,
+    hasAnyRole,
+    hasPermission,
     login,
     logout,
     cambiarRolActivo,
