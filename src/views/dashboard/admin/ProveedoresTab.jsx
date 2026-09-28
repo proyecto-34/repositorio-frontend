@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Plus, Edit2, Trash2, Search, Truck, Phone, MapPin, Building2 } from 'lucide-react';
 import proveedoresService from '../../../services/proveedoresService';
+import Can from '../../../components/Can';
 
 export const ProveedoresTab = ({
   proveedores = [],
@@ -131,7 +132,7 @@ export const ProveedoresTab = ({
           </p>
         </div>
 
-        {canManage && (
+        <Can do="create" on="proveedores">
           <button
             type="button"
             onClick={handleAbrirNuevo}
@@ -154,7 +155,7 @@ export const ProveedoresTab = ({
             <Plus size={16} />
             Nuevo Proveedor
           </button>
-        )}
+        </Can>
       </div>
 
       {/* Barra de Búsqueda */}
@@ -279,59 +280,65 @@ export const ProveedoresTab = ({
                       <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                         <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
                           {onAbrirNuevaCompraConProveedor && (
+                            <Can do="create" on="compras">
+                              <button
+                                type="button"
+                                onClick={() => onAbrirNuevaCompraConProveedor(p)}
+                                title="Registrar Compra a este Proveedor"
+                                style={{
+                                  background: 'rgba(34, 197, 94, 0.15)',
+                                  color: '#4ade80',
+                                  border: 'none',
+                                  padding: '6px 10px',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 700,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                <Truck size={13} /> Compra
+                              </button>
+                            </Can>
+                          )}
+
+                          <Can do="edit" on="proveedores">
                             <button
                               type="button"
-                              onClick={() => onAbrirNuevaCompraConProveedor(p)}
-                              title="Registrar Compra a este Proveedor"
+                              onClick={() => handleAbrirEditar(p)}
+                              title="Editar Proveedor"
                               style={{
-                                background: 'rgba(34, 197, 94, 0.15)',
-                                color: '#4ade80',
+                                background: 'rgba(139, 92, 246, 0.15)',
+                                color: '#c4b5fd',
                                 border: 'none',
                                 padding: '6px 10px',
                                 borderRadius: '8px',
                                 cursor: 'pointer',
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px',
                               }}
                             >
-                              <Truck size={13} /> Compra
+                              <Edit2 size={14} />
                             </button>
-                          )}
+                          </Can>
 
-                          <button
-                            type="button"
-                            onClick={() => handleAbrirEditar(p)}
-                            title="Editar Proveedor"
-                            style={{
-                              background: 'rgba(139, 92, 246, 0.15)',
-                              color: '#c4b5fd',
-                              border: 'none',
-                              padding: '6px 10px',
-                              borderRadius: '8px',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <Edit2 size={14} />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleEliminar(p.id, p.nombre)}
-                            title="Eliminar Proveedor"
-                            style={{
-                              background: 'rgba(239, 68, 68, 0.15)',
-                              color: '#f87171',
-                              border: 'none',
-                              padding: '6px 10px',
-                              borderRadius: '8px',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          <Can do="delete" on="proveedores">
+                            <button
+                              type="button"
+                              onClick={() => handleEliminar(p.id, p.nombre)}
+                              title="Eliminar Proveedor"
+                              style={{
+                                background: 'rgba(239, 68, 68, 0.15)',
+                                color: '#f87171',
+                                border: 'none',
+                                padding: '6px 10px',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </Can>
                         </div>
                       </td>
                     )}
