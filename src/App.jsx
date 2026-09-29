@@ -5,6 +5,7 @@ import LoginView from './views/auth/LoginView';
 import CajeroPosView from './views/dashboard/CajeroPosView';
 import AdminDashboardView from './views/dashboard/AdminDashboardView';
 import FacturaModal from './components/FacturaModal';
+import NotificationBell from './components/NotificationBell';
 import { useAuth } from './context/AuthContext';
 import { ROLES, ROLE_BADGES } from './constants/roles';
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -79,6 +80,9 @@ function App() {
 
           {/* Acciones y Perfil */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+            {/* Centro de Notificaciones de la BD */}
+            <NotificationBell />
+
             <button
               onClick={() => setModalFacturaAbierto(true)}
               style={{
