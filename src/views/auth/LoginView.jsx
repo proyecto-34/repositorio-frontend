@@ -3,9 +3,10 @@ import { toast } from 'sonner';
 import { 
   Eye, 
   EyeOff, 
-  Loader2 
+  Loader2,
+  ArrowLeft
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ROLES, normalizarRol } from '../../constants/roles';
 import MotivationalQuote from '../../components/MotivationalQuote';
@@ -81,6 +82,28 @@ export const LoginView = () => {
   return (
     <div className="login-container">
       <div className="login-card">
+        {/* Enlace para volver a la presentación */}
+        <div style={{ marginBottom: '1rem' }}>
+          <Link 
+            to="/" 
+            style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '0.4rem', 
+              color: '#94a3b8', 
+              textDecoration: 'none', 
+              fontSize: '0.82rem',
+              fontWeight: 500,
+              transition: 'color 0.2s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#c4b5fd'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
+          >
+            <ArrowLeft size={16} />
+            <span>Volver a la portada</span>
+          </Link>
+        </div>
+
         {/* Cabecera limpia y tipográfica */}
         <div className="login-header">
           <span className="login-header-badge">Acceso al Sistema</span>
