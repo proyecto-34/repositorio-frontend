@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Toaster, toast } from 'sonner';
+import HomeView from './views/home/HomeView';
 import LoginView from './views/auth/LoginView';
 import CajeroPosView from './views/dashboard/CajeroPosView';
 import AdminDashboardView from './views/dashboard/AdminDashboardView';
@@ -32,6 +33,7 @@ function App() {
     navigate('/login');
   };
 
+  const isPublicPage = location.pathname === '/' || location.pathname === '/login';
   const roleInfo = ROLE_BADGES[activeRole] || ROLE_BADGES[ROLES.ADMIN];
 
   return (
@@ -45,8 +47,8 @@ function App() {
         onClose={() => setModalFacturaAbierto(false)}
       />
 
-      {/* Barra superior de navegación (Oculta en el login) */}
-      {location.pathname !== '/login' && (
+      {/* Barra superior de navegación (Oculta en la vista principal y en el login) */}
+      {!isPublicPage && (
         <nav style={{
           backgroundColor: '#151c2c',
           border: 'none',
@@ -65,7 +67,11 @@ function App() {
           width: '100%'
         }}>
           {/* Marca - Sin iconos, texto elegante y moderno */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div 
+            onClick={() => navigate('/')}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
+            title="Ir a la portada del sistema"
+          >
             <span style={{
               width: '10px',
               height: '10px',
@@ -149,16 +155,20 @@ function App() {
         </nav>
       )}
 
-      {/* Cuerpo principal de la aplicación en pantalla completa */}
+      {/* Cuerpo principal de la aplicación */}
       <main style={{
-        minHeight: location.pathname === '/login' ? '100vh' : 'calc(100vh - 65px)',
+        minHeight: isPublicPage ? '100vh' : 'calc(100vh - 65px)',
         backgroundColor: '#0b0f19',
-        padding: location.pathname === '/login' ? 0 : '1.5rem 2rem',
+        padding: isPublicPage ? 0 : '1.5rem 2rem',
         fontFamily: 'system-ui, -apple-system, sans-serif',
         width: '100%',
         boxSizing: 'border-box'
       }}>
         <Routes>
+          {/* Ruta principal: Presentación del proyecto */}
+          <Route path="/" element={<HomeView />} />
+          
+          {/* Ruta de autenticación */}
           <Route path="/login" element={<LoginView />} />
           
           <Route path="/cajero" element={
@@ -182,11 +192,6 @@ function App() {
           
           {/* Ruta pública 404 explícita */}
           <Route path="/not-found" element={<NotFoundView />} />
-
-          {/* Redirección raíz */}
-          <Route path="/" element={
-            <Navigate to={isAuthenticated ? (isCajero ? '/cajero' : '/admin') : '/login'} replace />
-          } />
 
           {/* Cualquier otra ruta no coincidente muestra Error 404 */}
           <Route path="*" element={<NotFoundView />} />
