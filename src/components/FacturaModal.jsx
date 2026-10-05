@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { facturacionService } from '../services/facturacionService';
+import { formatearCOP } from '../utils/formatters';
+import '../styles/factura-modal.css';
 
 export const FacturaModal = ({ isOpen, onClose }) => {
   const [ventas, setVentas] = useState([]);
@@ -71,43 +73,31 @@ export const FacturaModal = ({ isOpen, onClose }) => {
   const total = Number(facturaData?.totales?.total || 0);
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, backgroundColor: 'rgba(11, 15, 25, 0.8)',
-      backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center',
-      justifyContent: 'center', zIndex: 50, padding: '1rem', fontFamily: 'system-ui, sans-serif'
-    }}>
-      <div style={{
-        backgroundColor: '#151c2c', color: '#f8fafc', borderRadius: '18px',
-        border: 'none', width: '100%', maxWidth: '620px',
-        maxHeight: '90vh', overflowY: 'auto', padding: '1.75rem', display: 'flex',
-        flexDirection: 'column', gap: '1.25rem', boxShadow: '0 25px 60px rgba(0,0,0,0.7)'
-      }}>
+    <div className="factura-modal-overlay">
+      <div className="factura-modal-card">
         {/* Cabecera */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="factura-modal-header">
           <div>
-            <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>Facturación Automática (BD)</h2>
-            <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Comprobantes y tickets del sistema</span>
+            <h2 className="factura-modal-title">Facturación Automática (BD)</h2>
+            <span className="factura-modal-subtitle">Comprobantes y tickets del sistema</span>
           </div>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}>
+          <button onClick={onClose} className="factura-modal-btn-close">
             ✕
           </button>
         </div>
 
         {/* Selector de Ventas de la BD */}
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div className="factura-modal-selector-row">
           <select
             value={ventaId}
             onChange={(e) => seleccionarVenta(e.target.value)}
             disabled={cargando}
-            style={{
-              flex: 1, background: '#0b0f19', border: 'none', color: '#fff',
-              padding: '10px 14px', borderRadius: '10px', fontSize: '0.88rem', outline: 'none'
-            }}
+            className="factura-modal-select"
           >
             {ventas.length === 0 && <option value="">No hay ventas registradas</option>}
             {ventas.map((v) => (
               <option key={v.id} value={v.id}>
-                Venta #{v.id} — Cliente: {v.cliente || 'Consumidor'} — ${Number(v.total).toLocaleString('es-CO')}
+                Venta #{v.id} — Cliente: {v.cliente || 'Consumidor'} — {formatearCOP(v.total)}
               </option>
             ))}
           </select>
@@ -115,7 +105,7 @@ export const FacturaModal = ({ isOpen, onClose }) => {
             type="button"
             onClick={cargarVentas}
             title="Recargar ventas"
-            style={{ background: '#1e273d', border: 'none', color: '#c4b5fd', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem' }}
+            className="factura-modal-btn-reload"
           >
             {cargando ? '...' : 'Recargar'}
           </button>
@@ -123,38 +113,38 @@ export const FacturaModal = ({ isOpen, onClose }) => {
 
         {/* Previsualización de Datos */}
         {cargando ? (
-          <div style={{ textAlign: 'center', padding: '2.5rem', color: '#c4b5fd' }}>
+          <div className="factura-modal-loading">
             <Loader2 size={26} className="spin-icon" style={{ margin: '0 auto 8px' }} />
             <p style={{ margin: 0, fontSize: '0.85rem' }}>Cargando datos de detalle_venta...</p>
           </div>
         ) : facturaData ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="factura-modal-details-body">
             {/* Info Resumen */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', background: '#0b0f19', padding: '12px 16px', borderRadius: '12px', fontSize: '0.82rem' }}>
-              <div><strong style={{ color: '#94a3b8' }}>Factura:</strong> <span style={{ color: '#f8fafc' }}>{enc.nro_factura || `FAC-${ventaId}`}</span></div>
-              <div><strong style={{ color: '#94a3b8' }}>Cliente:</strong> <span style={{ color: '#f8fafc' }}>{enc.cliente || 'Consumidor'}</span></div>
-              <div><strong style={{ color: '#94a3b8' }}>Cajero:</strong> <span style={{ color: '#f8fafc' }}>{enc.cajero || 'Cajero'}</span></div>
+            <div className="factura-modal-summary-grid">
+              <div><strong>Factura:</strong> <span>{enc.nro_factura || `FAC-${ventaId}`}</span></div>
+              <div><strong>Cliente:</strong> <span>{enc.cliente || 'Consumidor'}</span></div>
+              <div><strong>Cajero:</strong> <span>{enc.cajero || 'Cajero'}</span></div>
             </div>
 
             {/* Tabla de detalle_venta */}
-            <div style={{ borderRadius: '12px', overflow: 'hidden', background: '#0b0f19', border: 'none' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="factura-modal-table-wrapper">
+              <table className="factura-modal-table">
                 <thead>
-                  <tr style={{ background: 'rgba(30, 39, 61, 0.4)', color: '#94a3b8', textAlign: 'left' }}>
-                    <th style={{ padding: '10px 12px', fontWeight: 600 }}>Cant.</th>
-                    <th style={{ padding: '10px 12px', fontWeight: 600 }}>Producto</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600 }}>Unitario</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600 }}>Subtotal</th>
+                  <tr style={{ textAlign: 'left' }}>
+                    <th>Cant.</th>
+                    <th>Producto</th>
+                    <th style={{ textAlign: 'right' }}>Unitario</th>
+                    <th style={{ textAlign: 'right' }}>Subtotal</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((it, idx) => (
-                    <tr key={idx} style={{ background: idx % 2 === 0 ? 'transparent' : 'rgba(21, 28, 44, 0.3)' }}>
-                      <td style={{ padding: '10px 12px', color: '#f8fafc' }}>{it.cantidad}</td>
-                      <td style={{ padding: '10px 12px', fontWeight: 600, color: '#f8fafc' }}>{it.producto}</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#94a3b8' }}>${Number(it.precio_unitario).toLocaleString('es-CO')}</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#22c55e', fontWeight: 700 }}>
-                        ${Number(it.subtotal).toLocaleString('es-CO')}
+                    <tr key={idx}>
+                      <td style={{ color: '#f8fafc' }}>{it.cantidad}</td>
+                      <td style={{ fontWeight: 600, color: '#f8fafc' }}>{it.producto}</td>
+                      <td style={{ textAlign: 'right', color: '#94a3b8' }}>{formatearCOP(it.precio_unitario)}</td>
+                      <td style={{ textAlign: 'right', color: '#22c55e', fontWeight: 700 }}>
+                        {formatearCOP(it.subtotal)}
                       </td>
                     </tr>
                   ))}
@@ -163,29 +153,24 @@ export const FacturaModal = ({ isOpen, onClose }) => {
             </div>
 
             {/* Total */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0b0f19', padding: '12px 16px', borderRadius: '12px', border: 'none' }}>
+            <div className="factura-modal-total-box">
               <span style={{ fontSize: '0.88rem', color: '#94a3b8' }}>Total Venta (BD):</span>
-              <span style={{ fontSize: '1.35rem', fontWeight: 800, color: '#22c55e' }}>
-                ${total.toLocaleString('es-CO')}
+              <span className="factura-modal-total-amount">
+                {formatearCOP(total)}
               </span>
             </div>
           </div>
         ) : null}
 
         {/* Botón de Descarga */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '0.5rem' }}>
-          <button onClick={onClose} style={{ background: '#1e273d', border: 'none', color: '#cbd5e1', padding: '10px 18px', borderRadius: '10px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+        <div className="factura-modal-actions">
+          <button onClick={onClose} className="factura-modal-btn-cancel">
             Cerrar
           </button>
           <button
             onClick={handleDescargar}
             disabled={!facturaData || descargando || cargando}
-            style={{
-              background: '#8b5cf6', border: 'none', color: '#ffffff', padding: '10px 22px',
-              borderRadius: '10px', cursor: 'pointer', fontWeight: 700, display: 'flex',
-              alignItems: 'center', gap: '8px', fontSize: '0.88rem',
-              boxShadow: '0 4px 14px rgba(139, 92, 246, 0.35)'
-            }}
+            className="factura-modal-btn-download"
           >
             {descargando && <Loader2 size={16} className="spin-icon" />}
             Descargar Factura PDF

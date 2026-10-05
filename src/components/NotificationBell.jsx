@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { notificacionesService } from '../services/notificacionesService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
+import '../styles/notification-bell.css';
 
 export const NotificationBell = () => {
   const { activeRole, user, isAuthenticated } = useAuth();
@@ -208,32 +209,13 @@ export const NotificationBell = () => {
   const restantes = notificacionesFiltradas.length - notificacionesVisibles.length;
 
   return (
-    <div ref={dropdownRef} style={{ position: 'relative', display: 'inline-block' }}>
+    <div ref={dropdownRef} className="notification-bell-container">
       {/* Botón de la Campana */}
       <button
         type="button"
         onClick={() => setAbierto(!abierto)}
         title="Centro de Notificaciones"
-        style={{
-          background: abierto ? '#1e273d' : 'rgba(255, 255, 255, 0.06)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '10px',
-          width: '38px',
-          height: '38px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          color: totalNoLeidas > 0 ? '#fbbf24' : '#cbd5e1',
-          position: 'relative',
-          transition: 'all 0.2s ease',
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = '#1e273d')}
-        onMouseLeave={(e) =>
-          (e.currentTarget.style.background = abierto
-            ? '#1e273d'
-            : 'rgba(255, 255, 255, 0.06)')
-        }
+        className={`notification-bell-btn ${abierto ? 'active' : ''} ${totalNoLeidas > 0 ? 'has-unread' : ''}`}
       >
         {/* Icono de Campana SVG */}
         <svg
@@ -253,26 +235,7 @@ export const NotificationBell = () => {
 
         {/* Badge Flotante con Contador */}
         {totalNoLeidas > 0 && (
-          <span
-            style={{
-              position: 'absolute',
-              top: '-4px',
-              right: '-4px',
-              background: '#ef4444',
-              color: '#ffffff',
-              fontSize: '0.68rem',
-              fontWeight: 800,
-              minWidth: '18px',
-              height: '18px',
-              borderRadius: '999px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '0 4px',
-              boxShadow: '0 0 10px rgba(239, 68, 68, 0.6)',
-              animation: 'pulse 2s infinite',
-            }}
-          >
+          <span className="notification-bell-badge">
             {totalNoLeidas > 9 ? '9+' : totalNoLeidas}
           </span>
         )}
@@ -280,61 +243,17 @@ export const NotificationBell = () => {
 
       {/* Menú Desplegable (Dropdown) */}
       {abierto && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '48px',
-            right: 0,
-            width: '380px',
-            maxWidth: '92vw',
-            backgroundColor: '#151c2c',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '16px',
-            boxShadow: '0 16px 40px rgba(0, 0, 0, 0.75)',
-            zIndex: 100,
-            overflow: 'hidden',
-            animation: 'fadeIn 0.18s ease-out',
-          }}
-        >
+        <div className="notification-bell-dropdown">
           {/* Cabecera del Panel */}
-          <div
-            style={{
-              padding: '14px 18px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              backgroundColor: '#111726',
-            }}
-          >
+          <div className="notification-bell-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <strong style={{ color: '#f8fafc', fontSize: '0.95rem', fontWeight: 800 }}>
-                Notificaciones
-              </strong>
+              <strong>Notificaciones</strong>
               {totalNoLeidas > 0 ? (
-                <span
-                  style={{
-                    background: 'rgba(239, 68, 68, 0.18)',
-                    color: '#f87171',
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: '12px',
-                  }}
-                >
+                <span className="notification-badge-unread">
                   {totalNoLeidas} nuevas
                 </span>
               ) : (
-                <span
-                  style={{
-                    background: 'rgba(52, 211, 153, 0.15)',
-                    color: '#34d399',
-                    fontSize: '0.7rem',
-                    fontWeight: 600,
-                    padding: '2px 8px',
-                    borderRadius: '12px',
-                  }}
-                >
+                <span className="notification-badge-uptodate">
                   Al día
                 </span>
               )}
@@ -345,17 +264,7 @@ export const NotificationBell = () => {
                 <button
                   type="button"
                   onClick={handleMarcarTodasLeidas}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#a78bfa',
-                    fontSize: '0.74rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    padding: 0,
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
-                  onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                  className="notification-btn-readall"
                 >
                   Marcar leídas
                 </button>
@@ -363,17 +272,8 @@ export const NotificationBell = () => {
             </div>
           </div>
 
-          {/* Filtros rápidos con soporte de rol */}
-          <div
-            style={{
-              display: 'flex',
-              gap: '6px',
-              padding: '8px 14px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-              backgroundColor: '#131929',
-              overflowX: 'auto',
-            }}
-          >
+          {/* Filtros rápidos */}
+          <div className="notification-filter-bar">
             {[
               { id: 'todas', label: 'Todas' },
               { id: 'alertas', label: '⚠️ Alertas' },
@@ -388,18 +288,7 @@ export const NotificationBell = () => {
                   setFiltro(f.id);
                   setLimiteVisual(6);
                 }}
-                style={{
-                  background: filtro === f.id ? '#8b5cf6' : 'rgba(255, 255, 255, 0.04)',
-                  color: filtro === f.id ? '#ffffff' : '#94a3b8',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '4px 10px',
-                  fontSize: '0.72rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  transition: 'all 0.15s ease',
-                }}
+                className={`notification-filter-btn ${filtro === f.id ? 'active' : ''}`}
               >
                 {f.label}
               </button>
@@ -407,16 +296,9 @@ export const NotificationBell = () => {
           </div>
 
           {/* Lista de Notificaciones con Paginación */}
-          <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
+          <div className="notification-list-scroll">
             {notificacionesVisibles.length === 0 ? (
-              <div
-                style={{
-                  padding: '2.5rem 1.5rem',
-                  textAlign: 'center',
-                  color: '#64748b',
-                  fontSize: '0.85rem',
-                }}
-              >
+              <div className="notification-empty">
                 <div style={{ fontSize: '1.75rem', marginBottom: '6px' }}>📭</div>
                 No hay notificaciones en este filtro
               </div>
@@ -427,43 +309,11 @@ export const NotificationBell = () => {
                   <div
                     key={item.id}
                     onClick={() => !item.leida && handleMarcarLeida(item.id)}
-                    style={{
-                      padding: '12px 16px',
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                      backgroundColor: item.leida ? 'transparent' : 'rgba(139, 92, 246, 0.05)',
-                      cursor: 'pointer',
-                      transition: 'background 0.15s ease',
-                      position: 'relative',
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)')
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.backgroundColor = item.leida
-                        ? 'transparent'
-                        : 'rgba(139, 92, 246, 0.05)')
-                    }
+                    className={`notification-item ${item.leida ? 'leida' : ''}`}
                   >
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-start',
-                        marginBottom: '6px',
-                      }}
-                    >
+                    <div className="notification-item-header">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {!item.leida && (
-                          <span
-                            style={{
-                              width: '6px',
-                              height: '6px',
-                              borderRadius: '50%',
-                              backgroundColor: '#8b5cf6',
-                              display: 'inline-block',
-                            }}
-                          />
-                        )}
+                        {!item.leida && <span className="notification-item-unread-dot" />}
                         <span
                           style={{
                             fontSize: '0.68rem',
@@ -491,40 +341,17 @@ export const NotificationBell = () => {
                       </span>
                     </div>
 
-                    <p
-                      style={{
-                        margin: 0,
-                        color: item.leida ? '#cbd5e1' : '#f8fafc',
-                        fontSize: '0.82rem',
-                        fontWeight: item.leida ? 400 : 600,
-                        lineHeight: '1.4',
-                      }}
-                    >
+                    <p className={`notification-item-text ${item.leida ? 'leida' : ''}`}>
                       {item.mensaje}
                     </p>
 
                     {/* Acciones flotantes */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'flex-end',
-                        gap: '10px',
-                        marginTop: '6px',
-                      }}
-                    >
+                    <div className="notification-item-actions">
                       {!item.leida && (
                         <button
                           type="button"
                           onClick={(e) => handleMarcarLeida(item.id, e)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#a78bfa',
-                            fontSize: '0.7rem',
-                            cursor: 'pointer',
-                            padding: 0,
-                            fontWeight: 600,
-                          }}
+                          className="notification-btn-subaction"
                         >
                           Marcar leída
                         </button>
@@ -533,16 +360,7 @@ export const NotificationBell = () => {
                         type="button"
                         onClick={(e) => handleEliminar(item.id, e)}
                         title="Descartar permanentemente"
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#64748b',
-                          fontSize: '0.7rem',
-                          cursor: 'pointer',
-                          padding: 0,
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = '#64748b')}
+                        className="notification-btn-discard"
                       >
                         Descartar
                       </button>
@@ -554,33 +372,12 @@ export const NotificationBell = () => {
           </div>
 
           {/* Pie del Dropdown: Cargar más y Limpiar leídas */}
-          <div
-            style={{
-              padding: '10px 14px',
-              backgroundColor: '#111726',
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              fontSize: '0.75rem',
-            }}
-          >
+          <div className="notification-bell-footer">
             {restantes > 0 ? (
               <button
                 type="button"
                 onClick={() => setLimiteVisual((prev) => prev + 6)}
-                style={{
-                  background: 'rgba(139, 92, 246, 0.15)',
-                  color: '#c4b5fd',
-                  border: '1px solid rgba(139, 92, 246, 0.3)',
-                  borderRadius: '6px',
-                  padding: '4px 10px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(139, 92, 246, 0.25)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(139, 92, 246, 0.15)')}
+                className="notification-btn-loadmore"
               >
                 Cargar más (+{restantes})
               </button>
@@ -594,16 +391,7 @@ export const NotificationBell = () => {
               <button
                 type="button"
                 onClick={handleDescartarLeidas}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#94a3b8',
-                  fontSize: '0.72rem',
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
+                className="notification-btn-clearread"
               >
                 🗑️ Limpiar leídas
               </button>

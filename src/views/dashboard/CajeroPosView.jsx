@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { facturacionService } from '../../services/facturacionService';
 import { productosService } from '../../services/productosService';
+import { formatearCOP } from '../../utils/formatters';
+import '../../styles/pos.css';
 
 // Catálogo de respaldo inicial
 const PRODUCTOS_INICIALES = [
@@ -28,6 +30,7 @@ export const CajeroPosView = ({ user }) => {
   const [metodoPago, setMetodoPago] = useState('Efectivo');
   const [montoRecibido, setMontoRecibido] = useState('');
   const [ventasTurno, setVentasTurno] = useState({ total: 0, transacciones: 0 });
+  const [guardandoVenta, setGuardandoVenta] = useState(false);
 
   useEffect(() => {
     cargarCatalogo();
@@ -41,7 +44,7 @@ export const CajeroPosView = ({ user }) => {
         const normalizados = data.map((p) => ({
           id: p.id,
           nombre: p.nombre,
-          categoria: p.categoria || p.categoria_nombre || 'Abarrotes',
+          categoria: p.categoria || p.categoria_nombre || 'General',
           precio: Number(p.precio) || Number(p.precio_venta) || 0,
           stock: Number(p.stock) !== undefined ? Number(p.stock) : 10,
           codigo_barras: p.codigo_barras || p.codigo || '',
@@ -55,18 +58,33 @@ export const CajeroPosView = ({ user }) => {
     }
   };
 
-  const categorias = ['Todas', ...new Set(catalogo.map((p) => p.categoria || 'General'))];
+  // Categorías dinámicas memoizadas
+  const categorias = useMemo(() => {
+    return ['Todas', ...new Set(catalogo.map((p) => p.categoria || 'General'))];
+  }, [catalogo]);
 
-  const productosFiltrados = catalogo.filter((prod) => {
-    const q = busqueda.toLowerCase();
-    const coincideNombre = (
-      (prod.nombre && prod.nombre.toLowerCase().includes(q)) ||
-      (prod.codigo_barras && prod.codigo_barras.toLowerCase().includes(q))
-    );
-    const cat = prod.categoria || 'General';
-    const coincideCat = categoriaSeleccionada === 'Todas' || cat === categoriaSeleccionada;
-    return coincideNombre && coincideCat;
-  });
+  // Filtro de productos optimizado
+  const productosFiltrados = useMemo(() => {
+    const q = busqueda.toLowerCase().trim();
+    return catalogo.filter((prod) => {
+      const coincideNombre = (
+        (prod.nombre && prod.nombre.toLowerCase().includes(q)) ||
+        (prod.codigo_barras && prod.codigo_barras.toLowerCase().includes(q))
+      );
+      const cat = prod.categoria || 'General';
+      const coincideCat = categoriaSeleccionada === 'Todas' || cat === categoriaSeleccionada;
+      return coincideNombre && coincideCat;
+    });
+  }, [catalogo, busqueda, categoriaSeleccionada]);
+
+  // Totales de la venta memoizados
+  const { totalPagar, iva, subtotal, cambio } = useMemo(() => {
+    const total = carrito.reduce((acc, item) => acc + item.total, 0);
+    const imp = Math.round(total * 0.19);
+    const sub = total - imp;
+    const vueltas = Math.max(0, (Number(montoRecibido) || 0) - total);
+    return { totalPagar: total, iva: imp, subtotal: sub, cambio: vueltas };
+  }, [carrito, montoRecibido]);
 
   const agregarAlCarrito = (producto) => {
     if (producto.stock <= 0) {
@@ -97,11 +115,11 @@ export const CajeroPosView = ({ user }) => {
     }
   };
 
-  const actualizarCantidad = (id, cambio) => {
+  const actualizarCantidad = (id, cambioQty) => {
     setCarrito((prev) =>
       prev.map((item) => {
         if (item.id === id) {
-          const nuevaCantidad = item.cantidad + cambio;
+          const nuevaCantidad = item.cantidad + cambioQty;
           if (nuevaCantidad <= 0) return null;
           if (nuevaCantidad > item.stockMax) {
             toast.warning(`Stock máximo disponible: ${item.stockMax}`);
@@ -122,13 +140,6 @@ export const CajeroPosView = ({ user }) => {
     setCarrito([]);
   };
 
-  const totalPagar = carrito.reduce((acc, item) => acc + item.total, 0);
-  const iva = Math.round(totalPagar * 0.19);
-  const subtotal = totalPagar - iva;
-  const cambio = Math.max(0, (Number(montoRecibido) || 0) - totalPagar);
-
-  const [guardandoVenta, setGuardandoVenta] = useState(false);
-
   const handleFinalizarVenta = async () => {
     if (carrito.length === 0) {
       toast.error('El ticket de venta está vacío');
@@ -136,14 +147,14 @@ export const CajeroPosView = ({ user }) => {
     }
 
     if (metodoPago === 'Efectivo' && Number(montoRecibido) < totalPagar) {
-      toast.error(`El monto recibido ($${Number(montoRecibido).toLocaleString('es-CO')}) es menor al total ($${totalPagar.toLocaleString('es-CO')})`);
+      toast.error(`El monto recibido (${formatearCOP(montoRecibido)}) es menor al total (${formatearCOP(totalPagar)})`);
       return;
     }
 
     setGuardandoVenta(true);
 
     try {
-      // 1. Preparar el payload exacto según CreateVentaDto de NestJS
+      // 1. Preparar payload según CreateVentaDto de NestJS
       const ventaPayload = {
         total: Number(totalPagar) || 0,
         cliente: (clienteNombre || '').trim() || 'Consumidor Final',
@@ -154,7 +165,7 @@ export const CajeroPosView = ({ user }) => {
         })),
       };
 
-      // 2. Enviar a NestJS (POST /ventas): inserta en ventas, detalle_venta y descuenta stock en MySQL
+      // 2. Enviar a NestJS (POST /ventas): inserta en BD y descuenta stock
       const ventaGuardada = await facturacionService.registrarVenta(ventaPayload);
 
       const nroFactura = ventaGuardada?.id 
@@ -175,13 +186,13 @@ export const CajeroPosView = ({ user }) => {
         console.warn('No se pudo generar el PDF pero la venta fue guardada en BD:', pdfErr);
       }
 
-      // 4. Actualizar estadísticas del turno en pantalla
+      // 4. Actualizar estadísticas del turno
       setVentasTurno((prev) => ({
         total: prev.total + totalPagar,
         transacciones: prev.transacciones + 1,
       }));
 
-      // 5. Recargar catálogo para refrescar el stock real descontado de la BD
+      // 5. Recargar catálogo para refrescar el stock real descontado
       await cargarCatalogo();
 
       // 6. Limpiar carrito y campos
@@ -197,105 +208,44 @@ export const CajeroPosView = ({ user }) => {
   };
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'minmax(0, 1.9fr) minmax(360px, 1.1fr)',
-      gap: '1.75rem',
-      maxWidth: '100%',
-      width: '100%',
-      margin: 0,
-      alignItems: 'start'
-    }}>
+    <div className="pos-container">
       {/* Columna Izquierda: Catálogo y Búsqueda */}
-      <section style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        {/* Cabecera del POS - Estilo Deep Indigo sin bordes */}
-        <div style={{
-          background: '#151c2c',
-          borderRadius: '16px',
-          padding: '1.4rem 1.6rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '1rem',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)',
-          border: 'none'
-        }}>
+      <section className="pos-catalog-section">
+        {/* Cabecera del POS */}
+        <div className="pos-header-card">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#8b5cf6' }} />
-              <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.4px', color: '#f8fafc' }}>
-                Punto de Venta (POS)
-              </h2>
+            <div className="pos-header-title-row">
+              <span className="pos-header-dot" />
+              <h2 className="pos-header-title">Punto de Venta (POS)</h2>
             </div>
-            <p style={{ margin: '6px 0 0 0', color: '#94a3b8', fontSize: '0.85rem' }}>
-              Atención en caja &middot; Cajero: <strong style={{ color: '#f8fafc' }}>{user?.nombre || user?.email || 'Cajero'}</strong>
+            <p className="pos-header-subtitle">
+              Atención en caja &middot; Cajero: <strong>{user?.nombre || user?.email || 'Cajero'}</strong>
             </p>
           </div>
 
           {/* Resumen del Turno */}
-          <div style={{
-            display: 'flex',
-            gap: '16px',
-            background: '#0b0f19',
-            padding: '10px 18px',
-            borderRadius: '12px',
-            border: 'none'
-          }}>
+          <div className="pos-turn-summary">
             <div>
-              <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Ventas del Turno
-              </span>
-              <strong style={{ color: '#22c55e', fontSize: '1.1rem', fontWeight: 800 }}>
-                ${ventasTurno.total.toLocaleString('es-CO')}
-              </strong>
+              <span className="pos-turn-stat-label">Ventas del Turno</span>
+              <strong className="pos-turn-stat-value-green">{formatearCOP(ventasTurno.total)}</strong>
             </div>
             <div style={{ paddingLeft: '14px' }}>
-              <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Tickets
-              </span>
-              <strong style={{ color: '#8b5cf6', fontSize: '1.1rem', fontWeight: 800 }}>
-                {ventasTurno.transacciones}
-              </strong>
+              <span className="pos-turn-stat-label">Tickets</span>
+              <strong className="pos-turn-stat-value-purple">{ventasTurno.transacciones}</strong>
             </div>
           </div>
         </div>
 
-        {/* Barra de Búsqueda y Categorías */}
-        <div style={{
-          background: '#151c2c',
-          padding: '1.25rem',
-          borderRadius: '16px',
-          border: 'none',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1rem',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)'
-        }}>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <div style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              background: '#0b0f19',
-              borderRadius: '10px',
-              padding: '0 14px',
-              border: 'none'
-            }}>
+        {/* Barra de Búsqueda y Filtro de Categorías */}
+        <div className="pos-search-card">
+          <div className="pos-search-row">
+            <div className="pos-search-input-wrapper">
               <input
                 type="text"
                 placeholder="Buscar por nombre o código de barras..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#f8fafc',
-                  padding: '12px 0',
-                  width: '100%',
-                  outline: 'none',
-                  fontSize: '0.92rem'
-                }}
+                className="pos-search-input"
               />
             </div>
 
@@ -303,43 +253,20 @@ export const CajeroPosView = ({ user }) => {
               type="button"
               onClick={cargarCatalogo}
               disabled={cargandoCatalogo}
-              style={{
-                background: '#1e273d',
-                color: '#cbd5e1',
-                border: 'none',
-                padding: '0 18px',
-                borderRadius: '10px',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                transition: 'background 0.2s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#283552'}
-              onMouseLeave={(e) => e.currentTarget.style.background = '#1e273d'}
+              className="pos-btn-reload"
             >
               {cargandoCatalogo ? 'Cargando...' : 'Actualizar'}
             </button>
           </div>
 
           {/* Categorías */}
-          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+          <div className="pos-categories-pill-list">
             {categorias.map((cat) => (
               <button
                 key={cat}
                 type="button"
                 onClick={() => setCategoriaSeleccionada(cat)}
-                style={{
-                  background: categoriaSeleccionada === cat ? '#8b5cf6' : '#0b0f19',
-                  color: categoriaSeleccionada === cat ? '#ffffff' : '#94a3b8',
-                  border: 'none',
-                  padding: '7px 16px',
-                  borderRadius: '20px',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  transition: 'all 0.15s ease'
-                }}
+                className={`pos-category-pill ${categoriaSeleccionada === cat ? 'active' : ''}`}
               >
                 {cat}
               </button>
@@ -348,91 +275,29 @@ export const CajeroPosView = ({ user }) => {
         </div>
 
         {/* Cuadrícula de Productos */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-          gap: '1rem'
-        }}>
+        <div className="pos-products-grid">
           {productosFiltrados.map((prod) => {
             const agotado = prod.stock <= 0;
+            const stockClase = agotado ? 'agotado' : prod.stock < 10 ? 'bajo' : 'normal';
+
             return (
               <div
                 key={prod.id}
                 onClick={() => !agotado && agregarAlCarrito(prod)}
-                style={{
-                  background: agotado ? 'rgba(21, 28, 44, 0.4)' : '#151c2c',
-                  border: 'none',
-                  borderRadius: '14px',
-                  padding: '1.1rem',
-                  cursor: agotado ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  position: 'relative',
-                  opacity: agotado ? 0.5 : 1,
-                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
-                  transition: 'transform 0.15s ease, background 0.15s ease'
-                }}
-                onMouseEnter={(e) => {
-                  if (!agotado) {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.background = '#1e273d';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!agotado) {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.background = '#151c2c';
-                  }
-                }}
+                className={`pos-product-card ${agotado ? 'agotado' : ''}`}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{
-                    fontSize: '0.72rem',
-                    color: '#c4b5fd',
-                    background: 'rgba(139, 92, 246, 0.15)',
-                    padding: '3px 8px',
-                    borderRadius: '6px',
-                    fontWeight: 600
-                  }}>
-                    {prod.categoria}
-                  </span>
-                  <span style={{
-                    fontSize: '0.72rem',
-                    padding: '3px 8px',
-                    borderRadius: '10px',
-                    background: agotado ? 'rgba(239, 68, 68, 0.15)' : prod.stock < 10 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(34, 197, 94, 0.15)',
-                    color: agotado ? '#f87171' : prod.stock < 10 ? '#fbbf24' : '#4ade80',
-                    fontWeight: 700
-                  }}>
+                <div className="pos-product-card-top">
+                  <span className="pos-category-badge">{prod.categoria}</span>
+                  <span className={`pos-stock-badge ${stockClase}`}>
                     {agotado ? 'Agotado' : `${prod.stock} un.`}
                   </span>
                 </div>
 
-                <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '0.95rem', lineHeight: '1.3', marginTop: '4px' }}>
-                  {prod.nombre}
-                </div>
+                <div className="pos-product-name">{prod.nombre}</div>
 
-                <div style={{
-                  marginTop: 'auto',
-                  paddingTop: '8px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}>
-                  <strong style={{ color: '#22c55e', fontSize: '1.05rem', fontWeight: 800 }}>
-                    ${prod.precio.toLocaleString('es-CO')}
-                  </strong>
-                  <div style={{
-                    background: agotado ? '#1e273d' : '#8b5cf6',
-                    color: '#fff',
-                    borderRadius: '8px',
-                    padding: '4px 10px',
-                    fontSize: '0.8rem',
-                    fontWeight: 700
-                  }}>
-                    + Agregar
-                  </div>
+                <div className="pos-product-bottom">
+                  <strong className="pos-product-price">{formatearCOP(prod.precio)}</strong>
+                  <div className="pos-btn-add">+ Agregar</div>
                 </div>
               </div>
             );
@@ -441,151 +306,83 @@ export const CajeroPosView = ({ user }) => {
       </section>
 
       {/* Columna Derecha: Ticket de Venta y Cobro */}
-      <section style={{
-        background: '#151c2c',
-        border: 'none',
-        borderRadius: '16px',
-        padding: '1.4rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1.1rem',
-        position: 'sticky',
-        top: '80px',
-        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
-      }}>
+      <section className="pos-ticket-panel">
         {/* Encabezado del Ticket */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="pos-ticket-header">
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#f8fafc', fontWeight: 800 }}>
-              Ticket de Venta
-            </h3>
-            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+            <h3 className="pos-ticket-title">Ticket de Venta</h3>
+            <span className="pos-ticket-subtitle">
               {carrito.length} {carrito.length === 1 ? 'producto' : 'productos'} agregados
             </span>
           </div>
           {carrito.length > 0 && (
-            <button
-              type="button"
-              onClick={vaciarCarrito}
-              style={{
-                background: 'rgba(239, 68, 68, 0.15)',
-                border: 'none',
-                color: '#f87171',
-                fontSize: '0.75rem',
-                cursor: 'pointer',
-                padding: '4px 10px',
-                borderRadius: '6px',
-                fontWeight: 600
-              }}
-            >
+            <button type="button" onClick={vaciarCarrito} className="pos-btn-vaciar">
               Vaciar
             </button>
           )}
         </div>
 
         {/* Datos del Cliente */}
-        <div style={{
-          background: '#0b0f19',
-          padding: '12px 14px',
-          borderRadius: '12px',
-          border: 'none',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '10px'
-        }}>
+        <div className="pos-customer-card">
           <div>
-            <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '2px', fontWeight: 600 }}>Cliente</label>
+            <label className="pos-field-label">Cliente</label>
             <input
               type="text"
               value={clienteNombre}
               onChange={(e) => setClienteNombre(e.target.value)}
-              style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '0.85rem', width: '100%', outline: 'none', fontWeight: 700 }}
+              className="pos-field-input"
             />
           </div>
           <div>
-            <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '2px', fontWeight: 600 }}>C.C. / NIT</label>
+            <label className="pos-field-label">C.C. / NIT</label>
             <input
               type="text"
               value={clienteDoc}
               onChange={(e) => setClienteDoc(e.target.value)}
-              style={{ background: 'transparent', border: 'none', color: '#c4b5fd', fontSize: '0.85rem', width: '100%', outline: 'none', fontWeight: 700 }}
+              className="pos-field-input purple"
             />
           </div>
         </div>
 
         {/* Lista de Items del Carrito */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          maxHeight: '260px',
-          overflowY: 'auto',
-          paddingRight: '4px'
-        }}>
+        <div className="pos-cart-list">
           {carrito.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#64748b' }}>
-              <p style={{ margin: 0, fontSize: '0.88rem' }}>Selecciona productos del catálogo para agregarlos al ticket de venta.</p>
+            <div className="pos-cart-empty">
+              <p style={{ margin: 0, fontSize: '0.88rem' }}>Selecciona productos del catálogo para agregarlos al ticket.</p>
             </div>
           ) : (
             carrito.map((item) => (
-              <div
-                key={item.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  background: '#0b0f19',
-                  padding: '10px 12px',
-                  borderRadius: '10px',
-                  border: 'none'
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f8fafc' }}>
-                    {item.nombre}
-                  </div>
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                    ${item.precio.toLocaleString('es-CO')} c/u
-                  </span>
+              <div key={item.id} className="pos-cart-item">
+                <div className="pos-cart-item-info">
+                  <div className="pos-cart-item-name">{item.nombre}</div>
+                  <span className="pos-cart-item-price">{formatearCOP(item.precio)} c/u</span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#151c2c', borderRadius: '6px', padding: '3px' }}>
+                <div className="pos-cart-item-actions">
+                  <div className="pos-qty-stepper">
                     <button
                       type="button"
                       onClick={() => actualizarCantidad(item.id, -1)}
-                      style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px 8px', fontSize: '0.85rem', fontWeight: 700 }}
+                      className="pos-btn-step"
                     >
                       -
                     </button>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#fff', minWidth: '18px', textAlign: 'center' }}>
-                      {item.cantidad}
-                    </span>
+                    <span className="pos-qty-display">{item.cantidad}</span>
                     <button
                       type="button"
                       onClick={() => actualizarCantidad(item.id, 1)}
-                      style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px 8px', fontSize: '0.85rem', fontWeight: 700 }}
+                      className="pos-btn-step"
                     >
                       +
                     </button>
                   </div>
 
-                  <strong style={{ color: '#22c55e', fontSize: '0.88rem', minWidth: '65px', textAlign: 'right' }}>
-                    ${item.total.toLocaleString('es-CO')}
-                  </strong>
+                  <strong className="pos-cart-item-total">{formatearCOP(item.total)}</strong>
 
                   <button
                     type="button"
                     onClick={() => eliminarDelCarrito(item.id)}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#f87171',
-                      cursor: 'pointer',
-                      padding: '2px 6px',
-                      fontSize: '0.75rem',
-                      fontWeight: 600
-                    }}
+                    className="pos-btn-quitar"
                   >
                     Quitar
                   </button>
@@ -595,28 +392,16 @@ export const CajeroPosView = ({ user }) => {
           )}
         </div>
 
-        {/* Método de Pago */}
-        <div>
-          <label style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block', marginBottom: '8px', fontWeight: 600 }}>
-            Método de Pago
-          </label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+        {/* Selector de Método de Pago */}
+        <div className="pos-payment-section">
+          <label className="pos-field-label" style={{ marginBottom: '8px' }}>Método de Pago</label>
+          <div className="pos-payment-grid">
             {['Efectivo', 'Nequi', 'Tarjeta'].map((metodo) => (
               <button
                 key={metodo}
                 type="button"
                 onClick={() => setMetodoPago(metodo)}
-                style={{
-                  background: metodoPago === metodo ? '#8b5cf6' : '#0b0f19',
-                  color: metodoPago === metodo ? '#ffffff' : '#94a3b8',
-                  border: 'none',
-                  padding: '8px 10px',
-                  borderRadius: '8px',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'background 0.2s ease'
-                }}
+                className={`pos-payment-btn ${metodoPago === metodo ? 'active' : ''}`}
               >
                 {metodo}
               </button>
@@ -626,78 +411,44 @@ export const CajeroPosView = ({ user }) => {
 
         {/* Monto Recibido y Cambio */}
         {metodoPago === 'Efectivo' && (
-          <div style={{
-            background: '#0b0f19',
-            padding: '12px',
-            borderRadius: '10px',
-            border: 'none',
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '10px',
-            alignItems: 'center'
-          }}>
+          <div className="pos-cash-calculator">
             <div>
-              <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '2px', fontWeight: 600 }}>Recibido ($)</label>
+              <label className="pos-field-label">Recibido ($)</label>
               <input
                 type="number"
                 placeholder={totalPagar.toString()}
                 value={montoRecibido}
                 onChange={(e) => setMontoRecibido(e.target.value)}
-                style={{ background: '#151c2c', border: 'none', color: '#fff', padding: '8px', borderRadius: '6px', width: '100%', fontSize: '0.88rem', fontWeight: 700, outline: 'none' }}
+                className="pos-cash-input"
               />
             </div>
             <div>
-              <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '2px', fontWeight: 600 }}>Cambio / Vueltas</span>
-              <strong style={{ color: '#22c55e', fontSize: '1.05rem', fontWeight: 800 }}>
-                ${cambio.toLocaleString('es-CO')}
-              </strong>
+              <span className="pos-field-label">Cambio / Vueltas</span>
+              <strong className="pos-cash-change">{formatearCOP(cambio)}</strong>
             </div>
           </div>
         )}
 
         {/* Totales y Botón de Cobro */}
-        <div style={{
-          background: '#0b0f19',
-          padding: '14px',
-          borderRadius: '12px',
-          border: 'none',
-          marginTop: 'auto'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: '#94a3b8' }}>
+        <div className="pos-totals-card">
+          <div className="pos-totals-row">
             <span>Subtotal</span>
-            <span>${subtotal.toLocaleString('es-CO')}</span>
+            <span>{formatearCOP(subtotal)}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: '#94a3b8', marginTop: '4px' }}>
+          <div className="pos-totals-row">
             <span>IVA (19% inc.)</span>
-            <span>${iva.toLocaleString('es-CO')}</span>
+            <span>{formatearCOP(iva)}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.3rem', fontWeight: 800, color: '#f8fafc', marginTop: '10px' }}>
+          <div className="pos-totals-row grand-total">
             <span>TOTAL</span>
-            <span style={{ color: '#22c55e' }}>${totalPagar.toLocaleString('es-CO')}</span>
+            <span className="amount">{formatearCOP(totalPagar)}</span>
           </div>
         </div>
 
         <button
           onClick={handleFinalizarVenta}
           disabled={carrito.length === 0 || guardandoVenta}
-          style={{
-            background: carrito.length === 0 || guardandoVenta ? '#1e273d' : '#8b5cf6',
-            color: '#fff',
-            border: 'none',
-            padding: '14px',
-            borderRadius: '12px',
-            cursor: carrito.length === 0 || guardandoVenta ? 'not-allowed' : 'pointer',
-            fontWeight: 800,
-            fontSize: '0.95rem',
-            transition: 'background 0.2s ease',
-            boxShadow: carrito.length > 0 && !guardandoVenta ? '0 4px 20px rgba(139, 92, 246, 0.4)' : 'none'
-          }}
-          onMouseEnter={(e) => {
-            if (carrito.length > 0 && !guardandoVenta) e.currentTarget.style.background = '#7c3aed';
-          }}
-          onMouseLeave={(e) => {
-            if (carrito.length > 0 && !guardandoVenta) e.currentTarget.style.background = '#8b5cf6';
-          }}
+          className="pos-btn-checkout"
         >
           {guardandoVenta ? 'Procesando y Guardando en BD...' : 'Cobrar y Emitir Factura PDF'}
         </button>

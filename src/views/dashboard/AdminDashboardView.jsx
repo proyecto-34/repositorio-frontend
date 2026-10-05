@@ -13,6 +13,7 @@ import ComprasTab from './admin/ComprasTab';
 import ProveedoresTab from './admin/ProveedoresTab';
 import ReportesTab from './admin/ReportesTab';
 import UsuariosTab from './admin/UsuariosTab';
+import '../../styles/admin-dashboard.css';
 
 const PRODUCTOS_DEFAULT = [
   { id: 1, nombre: 'Leche Entera 1L', categoria: 'Lácteos', precio: 4200, stock: 24, stock_minimo: 10, codigo_barras: '7701001' },
@@ -209,16 +210,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: '100%',
-        width: '100%',
-        margin: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1.75rem',
-      }}
-    >
+    <div className="admin-dashboard-container">
       {/* Tarjetas de Métricas Globales */}
       <DashboardKpis
         tabActiva={tabActiva}
@@ -246,30 +238,12 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
       />
 
       {/* Selector de Pestañas */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '0.75rem',
-          paddingBottom: '0.25rem',
-          flexWrap: 'wrap',
-        }}
-      >
+      <div className="admin-tabs-bar">
         {canManageInventory && (
           <button
             type="button"
             onClick={() => setTabActiva('inventario')}
-            style={{
-              background: tabActiva === 'inventario' ? '#8b5cf6' : '#151c2c',
-              color: tabActiva === 'inventario' ? '#ffffff' : '#94a3b8',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              transition: 'all 0.2s ease',
-              boxShadow: tabActiva === 'inventario' ? '0 4px 14px rgba(139, 92, 246, 0.4)' : 'none',
-            }}
+            className={`admin-tab-btn ${tabActiva === 'inventario' ? 'active purple' : ''}`}
           >
             Inventario & Productos
           </button>
@@ -279,18 +253,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
           <button
             type="button"
             onClick={() => setTabActiva('compras')}
-            style={{
-              background: tabActiva === 'compras' ? '#22c55e' : '#151c2c',
-              color: tabActiva === 'compras' ? '#0b0f19' : '#94a3b8',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              transition: 'all 0.2s ease',
-              boxShadow: tabActiva === 'compras' ? '0 4px 14px rgba(34, 197, 94, 0.4)' : 'none',
-            }}
+            className={`admin-tab-btn ${tabActiva === 'compras' ? 'active green' : ''}`}
           >
             Entradas & Compras
           </button>
@@ -300,18 +263,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
           <button
             type="button"
             onClick={() => setTabActiva('proveedores')}
-            style={{
-              background: tabActiva === 'proveedores' ? '#38bdf8' : '#151c2c',
-              color: tabActiva === 'proveedores' ? '#0b0f19' : '#94a3b8',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              transition: 'all 0.2s ease',
-              boxShadow: tabActiva === 'proveedores' ? '0 4px 14px rgba(56, 189, 248, 0.4)' : 'none',
-            }}
+            className={`admin-tab-btn ${tabActiva === 'proveedores' ? 'active blue' : ''}`}
           >
             Proveedores
           </button>
@@ -321,18 +273,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
           <button
             type="button"
             onClick={() => setTabActiva('reportes')}
-            style={{
-              background: tabActiva === 'reportes' ? '#8b5cf6' : '#151c2c',
-              color: tabActiva === 'reportes' ? '#ffffff' : '#94a3b8',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              transition: 'all 0.2s ease',
-              boxShadow: tabActiva === 'reportes' ? '0 4px 14px rgba(139, 92, 246, 0.4)' : 'none',
-            }}
+            className={`admin-tab-btn ${tabActiva === 'reportes' ? 'active purple' : ''}`}
           >
             Reportes Financieros & Balance
           </button>
@@ -342,18 +283,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
           <button
             type="button"
             onClick={() => setTabActiva('usuarios')}
-            style={{
-              background: tabActiva === 'usuarios' ? '#8b5cf6' : '#151c2c',
-              color: tabActiva === 'usuarios' ? '#ffffff' : '#94a3b8',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              transition: 'all 0.2s ease',
-              boxShadow: tabActiva === 'usuarios' ? '0 4px 14px rgba(139, 92, 246, 0.4)' : 'none',
-            }}
+            className={`admin-tab-btn ${tabActiva === 'usuarios' ? 'active purple' : ''}`}
           >
             Usuarios y Roles
           </button>
