@@ -1,21 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 
-/**
- * Componente <Can> (Equivalente a la directiva v-can de Vue)
- * Oculta o renderiza elementos del DOM según el rol o permiso del usuario activo.
- * 
- * Ejemplos de uso:
- * 1. Por Roles:
- *    <Can roles={['admin', 'supervisor']}>
- *      <button>Crear Usuario</button>
- *    </Can>
- * 
- * 2. Por Acción y Recurso:
- *    <Can do="create" on="proveedores">
- *      <button>Nuevo Proveedor</button>
- *    </Can>
- */
+
 export const Can = ({ roles, do: action, on: subject, children, fallback = null }) => {
   const { hasAnyRole, hasPermission } = useAuth();
 
@@ -35,3 +21,5 @@ export const Can = ({ roles, do: action, on: subject, children, fallback = null 
 };
 
 export default Can;
+
+

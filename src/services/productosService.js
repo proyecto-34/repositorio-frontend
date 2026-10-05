@@ -63,7 +63,7 @@ export const productosService = {
             id_categoria: idCat,
             categoria: nombreCat,
             categoria_nombre: nombreCat,
-            stock_minimo: Number(p.stock_minimo) || 5,
+            stock_minimo: Number(p.stock_minimo ?? p.stockMinimo ?? p.stock_min) || 5,
             codigo_barras: p.codigo_barras || p.codigo || '',
           };
         });

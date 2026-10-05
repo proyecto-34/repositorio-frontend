@@ -1,34 +1,9 @@
 import axiosClient from '../api/axiosClient';
 import { ENDPOINTS } from '../api/endpoints';
 
-export const COMPRAS_DEFAULT = [
-  {
-    id: 1,
-    fecha: '2026-09-07T19:57:48.000Z',
-    total: 350000,
-    proveedor: {
-      id: 1,
-      nombre: 'Distribuidora S.A.',
-      contacto: '3001234567',
-      direccion: 'Calle 123 #45-67',
-    },
-    items: [
-      {
-        id: 1,
-        id_producto: 1,
-        producto_nombre: 'frijol',
-        cantidad: 100,
-        costo_unitario: 3500,
-        subtotal: 350000,
-        total: 350000,
-      },
-    ],
-  },
-];
-
 export const comprasService = {
   /**
-   * Obtiene la lista de compras desde la BD de NestJS
+   * Obtiene la lista real de compras desde la BD de NestJS
    */
   obtenerCompras: async () => {
     try {
@@ -65,7 +40,7 @@ export const comprasService = {
             id_proveedor: c.proveedor?.id || c.id_proveedor,
             proveedor: c.proveedor || {
               id: c.id_proveedor,
-              nombre: 'Proveedor General',
+              nombre: 'Proveedor',
               contacto: '',
               direccion: '',
             },
@@ -74,10 +49,10 @@ export const comprasService = {
           };
         });
       }
-      return COMPRAS_DEFAULT;
+      return [];
     } catch (error) {
-      console.warn('Usando compras de respaldo:', error.message);
-      return COMPRAS_DEFAULT;
+      console.warn('Error al cargar compras de la BD:', error.message);
+      return [];
     }
   },
 

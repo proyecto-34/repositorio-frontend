@@ -47,27 +47,24 @@ export const ENDPOINTS = {
   // Pagos
   PAGOS: {
     BASE: '/pagos',
-    BY_ID: (id) => `/pagos/${id}`,
+    BY_VENTA_ID: (ventaId) => `/pagos/${ventaId}`,
   },
 
   // Facturación
   FACTURACION: {
     BASE: '/facturacion',
-    BY_ID: (id) => `/facturacion/${id}`,
-    DESCARGAR_PDF: (id) => `/facturacion/${id}/pdf`,
+    BY_VENTA_ID: (ventaId) => `/facturacion/${ventaId}`,
   },
 
   // Reportes
   REPORTES: {
-    VENTAS: '/reportes/ventas',
-    INVENTARIO: '/reportes/inventario',
-    BALANCE: '/reportes/balance',
+    PDF_DIARIO: '/reportes/pdf-diario',
+    HEALTH: '/reportes/health',
   },
 
   // Notificaciones
   NOTIFICACIONES: {
     BASE: '/notificaciones',
-    MARCAR_LEIDA: (id) => `/notificaciones/${id}/leida`,
   },
 
   // Auditoría

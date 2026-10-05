@@ -3,7 +3,7 @@ import { ENDPOINTS } from '../api/endpoints';
 
 // Clave local para persistir cuáles notificaciones han sido leídas por el usuario
 const STORAGE_KEY_LEIDAS = 'tienda_notificaciones_leidas';
-// Clave local para persistir notificaciones descartadas/eliminadas (incluyendo alertas generadas)
+// Clave local para persistir notificaciones descartadas/eliminadas
 const STORAGE_KEY_DESCARTADAS = 'tienda_notificaciones_descartadas';
 
 const obtenerIdsLeidasLocal = () => {
@@ -58,57 +58,17 @@ const guardarTodasDescartadasLocal = (ids) => {
   } catch {}
 };
 
-// Datos iniciales idénticos a los registros reales de tu BD MySQL
-export const NOTIFICACIONES_DEFAULT = [
-  {
-    id: 1,
-    mensaje: 'Nuevo usuario registrado: Johan',
-    tipo: 'EVENTO',
-    fecha: '2026-09-07 19:51:42.013236',
-    usuario_id: 1,
-  },
-  {
-    id: 2,
-    mensaje: 'Nuevo usuario registrado: Danna',
-    tipo: 'EVENTO',
-    fecha: '2026-09-07 19:52:27.700137',
-    usuario_id: 2,
-  },
-  {
-    id: 7,
-    mensaje: 'Nueva venta registrada por 100 (ID: 1)',
-    tipo: 'EVENTO',
-    fecha: '2026-09-07 19:58:12.067442',
-    usuario_id: 1,
-  },
-  {
-    id: 8,
-    mensaje: 'Nueva venta registrada por 400 (ID: 2)',
-    tipo: 'EVENTO',
-    fecha: '2026-09-07 19:58:45.200923',
-    usuario_id: 1,
-  },
-  {
-    id: 25,
-    mensaje: 'Usuario Johan ha iniciado sesión',
-    tipo: 'INFO',
-    fecha: '2026-09-14 21:10:40.625787',
-    usuario_id: 1,
-  },
-];
-
 export const notificacionesService = {
   /**
-   * Obtiene la lista de notificaciones desde el backend NestJS (Tabla `notificaciones`)
-   * e integra automáticamente alertas en tiempo real si el stock de algún producto está bajo o agotado.
-   * Filtra las descartadas almacenadas en localStorage y aplica paginación.
+   * Obtiene la lista de notificaciones 100% REALES desde el backend NestJS (Tabla `notificaciones`)
+   * e integra automáticamente alertas en tiempo real si algún producto real en la BD tiene stock bajo o agotado.
    */
-  obtenerNotificaciones: async (params = { limit: 50, page: 1 }) => {
+  obtenerNotificaciones: async (params = { limit: 60, page: 1 }) => {
     const idsLeidas = obtenerIdsLeidasLocal();
     const idsDescartadas = obtenerIdsDescartadasLocal();
     let lista = [];
 
-    // 1. Obtener eventos de la tabla `notificaciones`
+    // 1. Obtener eventos reales de la tabla `notificaciones` de MySQL
     try {
       const response = await axiosClient.get(ENDPOINTS.NOTIFICACIONES.BASE, { params });
       const data = response.data;
@@ -120,15 +80,11 @@ export const notificacionesService = {
         else if (Array.isArray(data.result)) lista = data.result;
       }
     } catch (error) {
-      console.warn('Usando notificaciones por defecto con estructura real:', error.message);
-      lista = [...NOTIFICACIONES_DEFAULT];
+      console.warn('Error al consultar notificaciones en BD:', error.message);
+      lista = [];
     }
 
-    if (lista.length === 0) {
-      lista = [...NOTIFICACIONES_DEFAULT];
-    }
-
-    // 2. Comprobar alertas de stock bajo o agotado en la tabla `productos`
+    // 2. Comprobar alertas de stock bajo o agotado en la tabla `productos` real
     let alertasStock = [];
     try {
       const respProductos = await axiosClient.get(ENDPOINTS.PRODUCTOS.BASE, {
@@ -152,7 +108,7 @@ export const notificacionesService = {
               mensaje: `🚫 Producto Agotado: "${p.nombre}" tiene 0 unidades en inventario.`,
               tipo: 'ALERTA',
               fecha: new Date().toISOString(),
-              usuario_id: null,
+              usuarioId: null,
             });
           } else if (stock <= stockMin) {
             alertasStock.push({
@@ -160,29 +116,14 @@ export const notificacionesService = {
               mensaje: `⚠️ Stock Bajo: "${p.nombre}" tiene solo ${stock} unidades (Mínimo: ${stockMin}).`,
               tipo: 'ALERTA',
               fecha: new Date().toISOString(),
-              usuario_id: null,
+              usuarioId: null,
             });
           }
         });
       }
     } catch {
-      // Si la llamada falla, inyectamos alertas de stock de demostración
-      alertasStock = [
-        {
-          id: 'stock-low-4',
-          mensaje: '⚠️ Stock Bajo: "Aceite Vegetal 900ml" tiene solo 8 unidades en bodega (Mínimo: 10).',
-          tipo: 'ALERTA',
-          fecha: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
-          usuario_id: null,
-        },
-        {
-          id: 'stock-low-9',
-          mensaje: '🚫 Producto Agotado: "Gaseosa Coca-Cola 1.5L" está en nivel crítico (3 unidades).',
-          tipo: 'ALERTA',
-          fecha: new Date(Date.now() - 1000 * 60 * 70).toISOString(),
-          usuario_id: null,
-        },
-      ];
+      // Si la consulta falla, no inventamos alertas falsas
+      alertasStock = [];
     }
 
     // Unir alertas de stock con las notificaciones de la BD
@@ -197,7 +138,8 @@ export const notificacionesService = {
       mensaje: n.mensaje || 'Evento del sistema',
       tipo: String(n.tipo || 'INFO').toUpperCase(),
       fecha: n.fecha || new Date().toISOString(),
-      usuario_id: n.usuario_id || null,
+      usuario_id: n.usuarioId || n.usuario_id || n.usuario?.id || null,
+      usuario_nombre: n.usuario?.nombre || null,
       leida: idsLeidas.includes(n.id),
     }));
 
@@ -223,7 +165,6 @@ export const notificacionesService = {
       const tipo = (n.tipo || '').toUpperCase();
 
       if (rol === 'cajero') {
-        // Cajero: Alertas de stock crítico (producto agotado), eventos de ventas/caja y sus inicios de sesión
         return (
           tipo === 'ALERTA' ||
           msg.includes('venta') ||
@@ -234,7 +175,6 @@ export const notificacionesService = {
       }
 
       if (rol === 'contador') {
-        // Contador: Ventas, facturación, compras, balance
         return (
           msg.includes('venta') ||
           msg.includes('factura') ||
@@ -253,14 +193,6 @@ export const notificacionesService = {
    */
   marcarComoLeida: async (id) => {
     guardarIdLeidaLocal(id);
-    try {
-      const endpoint = ENDPOINTS.NOTIFICACIONES.MARCAR_LEIDA 
-        ? ENDPOINTS.NOTIFICACIONES.MARCAR_LEIDA(id) 
-        : `/notificaciones/${id}/leida`;
-      await axiosClient.patch(endpoint, { leida: true });
-    } catch (error) {
-      // Si la BD no tiene endpoint de patch, queda guardada en localStorage
-    }
     return true;
   },
 
@@ -269,11 +201,6 @@ export const notificacionesService = {
    */
   marcarTodasComoLeidas: async (ids = []) => {
     guardarTodasLeidasLocal(ids);
-    try {
-      await axiosClient.patch(`${ENDPOINTS.NOTIFICACIONES.BASE}/marcar-todas-leidas`);
-    } catch (error) {
-      // Guardado localmente
-    }
     return true;
   },
 
@@ -282,11 +209,6 @@ export const notificacionesService = {
    */
   eliminarNotificacion: async (id) => {
     guardarIdDescartadaLocal(id);
-    try {
-      await axiosClient.delete(`${ENDPOINTS.NOTIFICACIONES.BASE}/${id}`);
-    } catch (error) {
-      console.warn(`Descarte local aplicado para notificación #${id}`);
-    }
     return true;
   },
 

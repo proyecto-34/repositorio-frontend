@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { usuariosService, USUARIOS_DEFAULT } from '../../services/usuariosService';
+import { usuariosService } from '../../services/usuariosService';
 import { productosService } from '../../services/productosService';
 import { facturacionService } from '../../services/facturacionService';
-import proveedoresService, { PROVEEDORES_DEFAULT } from '../../services/proveedoresService';
-import comprasService, { COMPRAS_DEFAULT } from '../../services/comprasService';
+import proveedoresService from '../../services/proveedoresService';
+import comprasService from '../../services/comprasService';
+import pagosService from '../../services/pagosService';
 import { normalizarRol, ROLES } from '../../constants/roles';
 import { useAuth } from '../../context/AuthContext';
 
@@ -13,27 +14,8 @@ import ComprasTab from './admin/ComprasTab';
 import ProveedoresTab from './admin/ProveedoresTab';
 import ReportesTab from './admin/ReportesTab';
 import UsuariosTab from './admin/UsuariosTab';
+import AuditoriaTab from './admin/AuditoriaTab';
 import '../../styles/admin-dashboard.css';
-
-const PRODUCTOS_DEFAULT = [
-  { id: 1, nombre: 'Leche Entera 1L', categoria: 'Lácteos', precio: 4200, stock: 24, stock_minimo: 10, codigo_barras: '7701001' },
-  { id: 2, nombre: 'Arroz Diana 1kg', categoria: 'Granos', precio: 4800, stock: 40, stock_minimo: 15, codigo_barras: '7701002' },
-  { id: 3, nombre: 'Huevos AA x Unidad', categoria: 'Huevos', precio: 600, stock: 120, stock_minimo: 30, codigo_barras: '7701003' },
-  { id: 4, nombre: 'Aceite Vegetal 900ml', categoria: 'Abarrotes', precio: 9500, stock: 8, stock_minimo: 10, codigo_barras: '7701004' },
-  { id: 5, nombre: 'Pan Tajado Bimbo', categoria: 'Panadería', precio: 6500, stock: 5, stock_minimo: 8, codigo_barras: '7701005' },
-  { id: 6, nombre: 'Café Sello Rojo 250g', categoria: 'Bebidas', precio: 7800, stock: 30, stock_minimo: 10, codigo_barras: '7701006' },
-  { id: 7, nombre: 'Azúcar Morena 1kg', categoria: 'Abarrotes', precio: 4300, stock: 25, stock_minimo: 10, codigo_barras: '7701007' },
-  { id: 8, nombre: 'Jabón Rey x Unidad', categoria: 'Aseo', precio: 2500, stock: 50, stock_minimo: 15, codigo_barras: '7701008' },
-  { id: 9, nombre: 'Gaseosa Coca-Cola 1.5L', categoria: 'Bebidas', precio: 5500, stock: 3, stock_minimo: 10, codigo_barras: '7701009' },
-  { id: 10, nombre: 'Lentejas 500g', categoria: 'Granos', precio: 3800, stock: 35, stock_minimo: 12, codigo_barras: '7701010' },
-];
-
-const VENTAS_DEFAULT = [
-  { id: '1001', fecha: '2026-09-13T10:30:00', cliente: 'Carlos Ramírez', documento: '1098765432', cajero: 'Cajero POS', total: 45000, metodo: 'Efectivo', items: [{ nombre: 'Leche Entera 1L', cantidad: 3, precio: 4200, total: 12600 }, { nombre: 'Arroz Diana 1kg', cantidad: 4, precio: 4800, total: 19200 }, { nombre: 'Aceite Vegetal 900ml', cantidad: 1, precio: 9500, total: 9500 }] },
-  { id: '1002', fecha: '2026-09-13T11:15:00', cliente: 'Consumidor Final', documento: '222222222', cajero: 'Cajero POS', total: 28600, metodo: 'Nequi', items: [{ nombre: 'Pan Tajado Bimbo', cantidad: 2, precio: 6500, total: 13000 }, { nombre: 'Café Sello Rojo 250g', cantidad: 2, precio: 7800, total: 15600 }] },
-  { id: '1003', fecha: '2026-09-13T12:05:00', cliente: 'María Rodríguez', documento: '52345678', cajero: 'Cajero POS', total: 64200, metodo: 'Tarjeta', items: [{ nombre: 'Huevos AA x Unidad', cantidad: 30, precio: 600, total: 18000 }, { nombre: 'Aceite Vegetal 900ml', cantidad: 2, precio: 9500, total: 19000 }, { nombre: 'Azúcar Morena 1kg', cantidad: 3, precio: 4300, total: 12900 }, { nombre: 'Gaseosa Coca-Cola 1.5L', cantidad: 2, precio: 5500, total: 11000 }] },
-  { id: '1004', fecha: '2026-09-13T13:40:00', cliente: 'Juan Arteaga', documento: '1004567890', cajero: 'Cajero POS', total: 19800, metodo: 'Efectivo', items: [{ nombre: 'Lentejas 500g', cantidad: 2, precio: 3800, total: 7600 }, { nombre: 'Jabón Rey x Unidad', cantidad: 3, precio: 2500, total: 7500 }, { nombre: 'Leche Entera 1L', cantidad: 1, precio: 4200, total: 4200 }] },
-];
 
 export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
   const {
@@ -43,6 +25,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     canViewReports,
     canManageSuppliers,
     canManagePurchases,
+    canViewPurchases,
     isAdmin,
     isContador,
     isSupervisor,
@@ -57,30 +40,30 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
   // Filtro de stock controlado para cuando se da clic en la tarjeta KPI
   const [filtroStockInventario, setFiltroStockInventario] = useState('todos');
 
-  // Estados de datos
-  const [proveedores, setProveedores] = useState(PROVEEDORES_DEFAULT);
+  // Estados de datos (100% reales de la Base de Datos)
+  const [proveedores, setProveedores] = useState([]);
   const [cargandoProveedores, setCargandoProveedores] = useState(false);
 
-  const [compras, setCompras] = useState(COMPRAS_DEFAULT);
+  const [compras, setCompras] = useState([]);
   const [cargandoCompras, setCargandoCompras] = useState(false);
   const [proveedorParaNuevaCompra, setProveedorParaNuevaCompra] = useState(null);
 
-  const [usuarios, setUsuarios] = useState(USUARIOS_DEFAULT);
+  const [usuarios, setUsuarios] = useState([]);
   const [cargandoUsuarios, setCargandoUsuarios] = useState(false);
 
   const [productos, setProductos] = useState([]);
   const [cargandoProductos, setCargandoProductos] = useState(true);
 
-  const [ventas, setVentas] = useState(VENTAS_DEFAULT);
+  const [ventas, setVentas] = useState([]);
   const [cargandoVentas, setCargandoVentas] = useState(false);
 
   // Carga inicial según permisos del rol activo
   useEffect(() => {
     if (canManageUsers) cargarUsuarios();
-    if (canManageInventory) cargarProductos();
+    if (canManageInventory || canManagePurchases || canViewPurchases) cargarProductos();
     if (canViewReports) cargarVentas();
     if (canManageSuppliers) cargarProveedores();
-    if (canManagePurchases) cargarCompras();
+    if (canManagePurchases || canViewPurchases) cargarCompras();
   }, [activeRole]);
 
   // Sincronizar pestaña si el rol cambia
@@ -88,14 +71,15 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     if (isContador) setTabActiva('reportes');
   }, [activeRole, isContador]);
 
-  // Consultas a los servicios
+  // Consultas a los servicios (Datos Reales de la BD)
   const cargarProveedores = async () => {
     setCargandoProveedores(true);
     try {
       const data = await proveedoresService.obtenerProveedores();
-      if (Array.isArray(data)) setProveedores(data);
+      setProveedores(Array.isArray(data) ? data : []);
     } catch (err) {
       console.warn('Error al cargar proveedores:', err.message);
+      setProveedores([]);
     } finally {
       setCargandoProveedores(false);
     }
@@ -105,9 +89,10 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     setCargandoCompras(true);
     try {
       const data = await comprasService.obtenerCompras();
-      if (Array.isArray(data) && data.length > 0) setCompras(data);
+      setCompras(Array.isArray(data) ? data : []);
     } catch (err) {
       console.warn('Error al cargar compras:', err.message);
+      setCompras([]);
     } finally {
       setCargandoCompras(false);
     }
@@ -117,14 +102,10 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     setCargandoUsuarios(true);
     try {
       const data = await usuariosService.obtenerUsuarios();
-      if (Array.isArray(data) && data.length > 0) {
-        setUsuarios(data);
-      } else {
-        setUsuarios(USUARIOS_DEFAULT);
-      }
+      setUsuarios(Array.isArray(data) ? data : []);
     } catch (err) {
       console.warn('Error al cargar usuarios de la BD:', err.message);
-      setUsuarios(USUARIOS_DEFAULT);
+      setUsuarios([]);
     } finally {
       setCargandoUsuarios(false);
     }
@@ -134,14 +115,13 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     setCargandoProductos(true);
     try {
       const data = await productosService.obtenerProductos();
-      if (Array.isArray(data) && data.length > 0) {
-        setProductos(data);
-      } else {
-        setProductos(PRODUCTOS_DEFAULT);
-      }
+      const lista = Array.isArray(data) ? data : [];
+      setProductos(lista);
+      return lista;
     } catch (err) {
-      console.warn('Usando catálogo por fallback:', err.message);
-      setProductos(PRODUCTOS_DEFAULT);
+      console.warn('Error al consultar productos de la BD:', err.message);
+      setProductos([]);
+      return [];
     } finally {
       setCargandoProductos(false);
     }
@@ -156,38 +136,68 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
       else if (response && Array.isArray(response.data)) rawList = response.data;
       else if (response && Array.isArray(response.ventas)) rawList = response.ventas;
 
-      if (rawList.length > 0) {
-        setVentas(
-          rawList.map((v) => ({
+      // Obtener el método de pago real desde la tabla de pagos para cada venta
+      const ventasConMetodo = await Promise.all(
+        rawList.map(async (v) => {
+          let metodo = v.metodo;
+          if (!metodo) {
+            try {
+              const pagos = await pagosService.obtenerPagosPorVenta(v.id);
+              if (Array.isArray(pagos) && pagos.length > 0) {
+                metodo = pagos[0].metodo;
+              }
+            } catch {
+              metodo = 'EFECTIVO';
+            }
+          }
+          let docCliente = '222222222222';
+          if (v.documento && typeof v.documento === 'string' && v.documento.trim()) {
+            docCliente = v.documento.trim();
+          } else if (typeof v.cliente === 'string' && v.cliente.trim() && !v.cliente.includes('[object Object]')) {
+            docCliente = v.cliente.trim();
+          } else if (v.cliente && typeof v.cliente === 'object') {
+            docCliente = v.cliente.documento || v.cliente.cedula || v.cliente.nit || '222222222222';
+          }
+          if (docCliente === 'Consumidor Final') {
+            docCliente = '222222222222';
+          }
+
+          let nomCajero = 'Cajero POS';
+          if (typeof v.cajero === 'string' && v.cajero.trim()) {
+            nomCajero = v.cajero.trim();
+          } else if (v.cajero && typeof v.cajero === 'object') {
+            nomCajero = v.cajero.nombre || v.cajero.name || v.cajero.email || 'Cajero POS';
+          }
+
+          return {
             id: v.id,
             fecha: v.fecha || new Date().toISOString(),
-            cliente: v.cliente || 'Consumidor Final',
-            documento: v.documento || '222222222',
-            cajero: v.cajero?.nombre || v.cajero || 'Cajero POS',
+            cliente: docCliente,
+            documento: docCliente,
+            cajero: nomCajero,
             total: Number(v.total) || 0,
-            metodo: v.metodo || 'Efectivo',
-            items: v.detalles || v.items || [],
-          }))
-        );
-      }
+            metodo: metodo || 'EFECTIVO',
+            items: (v.detalles || v.items || []).map((d) => ({
+              id: d.id,
+              nombre: d.producto?.nombre || d.producto || d.nombre || 'Producto',
+              cantidad: Number(d.cantidad) || 1,
+              precio: Number(d.producto?.precio || d.precio_unitario || d.precio || 0),
+              total: Number(d.subtotal || d.total || 0),
+            })),
+          };
+        })
+      );
+
+      setVentas(ventasConMetodo);
     } catch (err) {
       console.warn('Error al cargar ventas de la BD:', err.message);
+      setVentas([]);
     } finally {
       setCargandoVentas(false);
     }
   };
 
   const handleActualizarStockDesdeCompra = async (itemsComprados) => {
-    setProductos((prevProductos) =>
-      prevProductos.map((prod) => {
-        const itemComprado = itemsComprados.find((it) => it.id_producto === prod.id);
-        if (itemComprado) {
-          const nuevoStock = (Number(prod.stock) || 0) + Number(itemComprado.cantidad || 0);
-          return { ...prod, stock: nuevoStock, cantidad: nuevoStock };
-        }
-        return prod;
-      })
-    );
     await cargarProductos();
   };
 
@@ -196,7 +206,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     setTabActiva('compras');
   };
 
-  // Cálculos para KPIs
+  // Cálculos para KPIs 100% reales
   const totalVentasBrutas = ventas.reduce((acc, v) => acc + Number(v.total || 0), 0);
   const totalProductos = productos.length;
   const productosBajoStock = productos.filter((p) => (Number(p.stock) || 0) <= (Number(p.stock_minimo) || 5)).length;
@@ -215,6 +225,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
       <DashboardKpis
         tabActiva={tabActiva}
         setTabActiva={setTabActiva}
+        filtroStock={filtroStockInventario}
         onSeleccionarFiltroStock={(filtro) => {
           setFiltroStockInventario(filtro);
           setTabActiva('inventario');
@@ -230,7 +241,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
         valorTotalInventario={valorTotalInventario}
         productosBajoStock={productosBajoStock}
         proveedoresCount={proveedores.length}
-        proveedoresActivosCount={proveedores.filter((p) => p.activo !== false).length}
+        proveedoresActivosCount={proveedores.length}
         cargandoProveedores={cargandoProveedores}
         usuariosCount={usuarios.length}
         cargandoUsuarios={cargandoUsuarios}
@@ -249,7 +260,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
           </button>
         )}
 
-        {canManagePurchases && (
+        {(canManagePurchases || canViewPurchases) && (
           <button
             type="button"
             onClick={() => setTabActiva('compras')}
@@ -288,6 +299,16 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
             Usuarios y Roles
           </button>
         )}
+
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => setTabActiva('auditoria')}
+            className={`admin-tab-btn ${tabActiva === 'auditoria' ? 'active blue' : ''}`}
+          >
+            Auditoría del Sistema
+          </button>
+        )}
       </div>
 
       {/* Contenido Modular según Pestaña Activa */}
@@ -304,13 +325,14 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
         />
       )}
 
-      {tabActiva === 'compras' && canManagePurchases && (
+      {tabActiva === 'compras' && (canManagePurchases || canViewPurchases) && (
         <ComprasTab
           compras={compras}
           proveedores={proveedores}
           productos={productos}
           cargando={cargandoCompras}
           onRecargar={cargarCompras}
+          onRecargarProductos={cargarProductos}
           onActualizarStock={handleActualizarStockDesdeCompra}
           canManage={canManagePurchases}
           proveedorInicial={proveedorParaNuevaCompra}
@@ -341,6 +363,10 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
           cargando={cargandoUsuarios}
           onRecargar={cargarUsuarios}
         />
+      )}
+
+      {tabActiva === 'auditoria' && isAdmin && (
+        <AuditoriaTab />
       )}
     </div>
   );

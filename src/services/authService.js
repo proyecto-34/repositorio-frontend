@@ -92,9 +92,11 @@ export const authService = {
 
     // Si aún no tenemos user completo, construimos a partir del token JWT y payload
     if (!user) {
+      const emailExtraido = jwtPayload?.correo || jwtPayload?.email || correoVal;
       user = {
-        email: payload.email,
-        nombre: jwtPayload?.nombre || jwtPayload?.name || payload.email.split('@')[0],
+        email: emailExtraido,
+        correo: emailExtraido,
+        nombre: jwtPayload?.nombre || jwtPayload?.name || emailExtraido.split('@')[0],
         rol: jwtPayload?.rol || jwtPayload?.role || jwtPayload?.roles || 'admin',
       };
     } else {

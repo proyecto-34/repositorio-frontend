@@ -1,24 +1,12 @@
 import axiosClient from '../api/axiosClient';
 import { ENDPOINTS } from '../api/endpoints';
 
-/**
- * Catálogo de respaldo exacto según la tabla tienda_comunitaria.usuarios:
- * Columnas: id, nombre, correo, contraseña, id_rol, id_estado
- */
-export const USUARIOS_DEFAULT = [
-  { id: 1, nombre: 'Johan ARTEAGA', correo: 'johanarteaga215@gmail.com', id_rol: 1, id_estado: 1 },
-  { id: 12, nombre: 'cajero', correo: 'cajero@gmail.com', id_rol: 2, id_estado: 1 },
-  { id: 13, nombre: 'Supervisor', correo: 'supervisor@gmail.com', id_rol: 3, id_estado: 1 },
-  { id: 14, nombre: 'Contador', correo: 'contador@gmail.com', id_rol: 4, id_estado: 1 },
-];
-
 export const usuariosService = {
   /**
-   * Obtiene la lista real de usuarios desde la Base de Datos a través de NestJS
+   * Obtiene la lista real de usuarios desde la Base de Datos MySQL a través de NestJS
    */
   obtenerUsuarios: async () => {
     try {
-      // Pasamos limit: 100 para que NestJS devuelva todos los registros
       const response = await axiosClient.get(ENDPOINTS.USUARIOS.BASE, {
         params: { limit: 100, page: 1 },
       });
@@ -38,17 +26,16 @@ export const usuariosService = {
           nombre: u.nombre,
           correo: u.correo || u.email,
           email: u.correo || u.email,
-          // TypeORM devuelve rol: { id: 2, nombre: "..." } y estado: { id: 1, nombre: "..." }
           id_rol: Number(u.id_rol ?? u.rol?.id ?? u.rol?.id_rol ?? (typeof u.rol === 'number' ? u.rol : 2)),
           id_estado: Number(u.id_estado ?? u.estado?.id ?? u.estado?.id_estado ?? (typeof u.estado === 'number' ? u.estado : 1)),
           rol: u.rol,
           estado: u.estado,
         }));
       }
-      return USUARIOS_DEFAULT;
+      return [];
     } catch (error) {
-      console.warn('Usando lista de respaldo de usuarios:', error.message);
-      return USUARIOS_DEFAULT;
+      console.warn('Error al cargar usuarios de la BD:', error.message);
+      return [];
     }
   },
 
@@ -69,7 +56,6 @@ export const usuariosService = {
       const response = await axiosClient.post(ENDPOINTS.USUARIOS.BASE, payload);
       return response.data;
     } catch (error) {
-      // Si el DTO de NestJS no acepta la 'ñ' y pide 'contrasena' o 'password'
       if (error.response && error.response.status === 400) {
         try {
           const fallbackPayload = {
@@ -90,14 +76,9 @@ export const usuariosService = {
   },
 
   /**
-   * Actualiza rol o estado de un usuario
-   */
-  /**
    * Actualiza rol, estado o datos de un usuario en NestJS
-   * Mapeo exacto según tabla: { nombre, correo, contraseña, id_rol, id_estado }
    */
   actualizarUsuario: async (id, datos) => {
-    // Payload limpio con nombres exactos de columnas de la BD
     const payload = {};
     if (datos.nombre) payload.nombre = datos.nombre.trim();
     if (datos.correo) payload.correo = datos.correo.trim();
@@ -108,11 +89,9 @@ export const usuariosService = {
     }
 
     try {
-      // NestJS usa comúnmente @Patch(':id') para updates parciales
       const response = await axiosClient.patch(ENDPOINTS.USUARIOS.BY_ID(id), payload);
       return response.data;
     } catch (patchError) {
-      // Si el backend fue configurado con @Put(':id')
       if (patchError.response && (patchError.response.status === 404 || patchError.response.status === 405)) {
         const putResponse = await axiosClient.put(ENDPOINTS.USUARIOS.BY_ID(id), payload);
         return putResponse.data;

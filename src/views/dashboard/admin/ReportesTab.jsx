@@ -15,36 +15,39 @@ export const ReportesTab = ({
   const totalIvaRecaudado = Math.round(totalVentasBrutas * 0.19);
   const totalVentasNetas = totalVentasBrutas - totalIvaRecaudado;
   const ventasEfectivo = ventas
-    .filter((v) => v.metodo === 'Efectivo')
+    .filter((v) => (v.metodo || '').toUpperCase().includes('EFECTIVO'))
     .reduce((acc, v) => acc + Number(v.total || 0), 0);
   const ventasNequi = ventas
-    .filter((v) => v.metodo === 'Nequi')
+    .filter((v) => (v.metodo || '').toUpperCase().includes('TRANSF') || (v.metodo || '').toUpperCase().includes('NEQUI'))
     .reduce((acc, v) => acc + Number(v.total || 0), 0);
   const ventasTarjeta = ventas
-    .filter((v) => v.metodo === 'Tarjeta')
+    .filter((v) => (v.metodo || '').toUpperCase().includes('TARJETA'))
     .reduce((acc, v) => acc + Number(v.total || 0), 0);
 
   const ventasFiltradas = ventas.filter((v) => {
     const q = busquedaFactura.toLowerCase();
+    const doc = String(v.documento || v.cliente || '').toLowerCase();
     return (
       String(v.id).toLowerCase().includes(q) ||
-      (v.cliente && v.cliente.toLowerCase().includes(q)) ||
+      doc.includes(q) ||
       (v.metodo && v.metodo.toLowerCase().includes(q))
     );
   });
 
   const handleDescargarFacturaPDF = (v) => {
     try {
+      const docVal = v.documento || (typeof v.cliente === 'string' && /^\d+$/.test(v.cliente.replace(/[-.]/g, '')) ? v.cliente : '222222222222');
       facturacionService.generarTicketPDF({
-        numeroFactura: `FAC-${v.id}`,
-        cajero: v.cajero || 'Cajero de Turno',
-        cliente: {
-          nombre: v.cliente || 'Consumidor Final',
-          documento: v.documento || '222222222',
-        },
+        id: v.id,
+        numeroFactura: `FAC-${String(v.id).padStart(6, '0')}`,
+        cajero: v.cajero || 'Cajero POS',
+        cliente: docVal,
+        documento: docVal,
+        clienteDoc: docVal,
+        items: v.items || [],
         productos: v.items || [],
         total: v.total,
-        metodoPago: v.metodo || 'Efectivo',
+        metodoPago: v.metodo || 'EFECTIVO',
       });
       toast.success(`Factura #${v.id} descargada en PDF`);
     } catch (err) {
@@ -92,24 +95,52 @@ export const ReportesTab = ({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={onRecargar}
-            disabled={cargando}
-            style={{
-              background: '#1e273d',
-              color: '#cbd5e1',
-              border: 'none',
-              padding: '8px 16px',
-              borderRadius: '10px',
-              cursor: cargando ? 'not-allowed' : 'pointer',
-              fontWeight: 600,
-              fontSize: '0.82rem',
-              transition: 'background 0.2s ease',
-            }}
-          >
-            {cargando ? 'Actualizando...' : 'Actualizar'}
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  facturacionService.generarReporteFinancieroDiarioPDF(ventas);
+                  toast.success('Reporte financiero diario descargado en PDF');
+                } catch {
+                  toast.error('Error al generar reporte diario');
+                }
+              }}
+              disabled={ventas.length === 0}
+              style={{
+                background: '#8b5cf6',
+                color: '#fff',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '10px',
+                cursor: ventas.length === 0 ? 'not-allowed' : 'pointer',
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                boxShadow: '0 4px 14px rgba(139, 92, 246, 0.35)',
+              }}
+            >
+              📄 Exportar Balance PDF
+            </button>
+
+            <button
+              type="button"
+              onClick={onRecargar}
+              disabled={cargando}
+              style={{
+                background: '#1e273d',
+                color: '#cbd5e1',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '10px',
+                cursor: cargando ? 'not-allowed' : 'pointer',
+                fontWeight: 600,
+                fontSize: '0.82rem',
+                transition: 'background 0.2s ease',
+              }}
+            >
+              {cargando ? 'Actualizando...' : 'Actualizar'}
+            </button>
+          </div>
         </div>
 
         {/* Tarjetas de Métricas Contables */}
@@ -181,7 +212,7 @@ export const ReportesTab = ({
         >
           <input
             type="text"
-            placeholder="Buscar factura por Nro, Cliente o Método de Pago..."
+            placeholder="Buscar factura por Nro, C.C./NIT o Método de Pago..."
             value={busquedaFactura}
             onChange={(e) => setBusquedaFactura(e.target.value)}
             style={{
@@ -203,7 +234,7 @@ export const ReportesTab = ({
               <tr style={{ background: 'rgba(30, 39, 61, 0.4)', color: '#94a3b8', textAlign: 'left' }}>
                 <th style={{ padding: '12px 14px', fontWeight: 600 }}>Nro. Factura</th>
                 <th style={{ padding: '12px 14px', fontWeight: 600 }}>Fecha</th>
-                <th style={{ padding: '12px 14px', fontWeight: 600 }}>Cliente</th>
+                <th style={{ padding: '12px 14px', fontWeight: 600 }}>C.C. / NIT</th>
                 <th style={{ padding: '12px 14px', fontWeight: 600 }}>Método</th>
                 <th style={{ padding: '12px 14px', fontWeight: 600 }}>Total</th>
                 <th style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 600 }}>
@@ -234,7 +265,7 @@ export const ReportesTab = ({
                       })}
                     </td>
                     <td style={{ padding: '12px 14px', color: '#f8fafc', fontWeight: 600 }}>
-                      {v.cliente || 'Consumidor Final'}
+                      {v.documento || (typeof v.cliente === 'string' && v.cliente !== 'Consumidor Final' ? v.cliente : '222222222222')}
                     </td>
                     <td style={{ padding: '12px 14px' }}>
                       <span
