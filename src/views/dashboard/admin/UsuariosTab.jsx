@@ -208,7 +208,7 @@ export const UsuariosTab = ({
                 <th style={{ padding: '12px 14px', width: '50px', fontWeight: 700 }}># ID</th>
                 <th style={{ padding: '12px 14px', fontWeight: 700 }}>Nombre</th>
                 <th style={{ padding: '12px 14px', fontWeight: 700 }}>Correo Electrónico</th>
-                <th style={{ padding: '12px 14px', fontWeight: 700 }}>Rol (id_rol)</th>
+                <th style={{ padding: '12px 14px', fontWeight: 700 }}>Rol</th>
                 <th style={{ padding: '12px 14px', fontWeight: 700, textAlign: 'center' }}>Estado</th>
                 <th style={{ padding: '12px 14px', fontWeight: 700, textAlign: 'center' }}>Acciones</th>
               </tr>
@@ -269,10 +269,10 @@ export const UsuariosTab = ({
                             fontWeight: 700,
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '4px',
+                            letterSpacing: '0.3px',
                           }}
                         >
-                          {infoRol.icon} {infoRol.label} (#{idRolNum})
+                          {infoRol.label}
                         </span>
                       </td>
                       <td style={{ padding: '12px 14px', textAlign: 'center' }}>
@@ -286,7 +286,7 @@ export const UsuariosTab = ({
                             fontWeight: 700,
                           }}
                         >
-                          {idEstadoNum === 1 ? 'Activo (1)' : 'Inactivo (2)'}
+                          {idEstadoNum === 1 ? 'Activo' : 'Inactivo'}
                         </span>
                       </td>
                       <td style={{ padding: '12px 14px', textAlign: 'center' }}>
@@ -424,7 +424,7 @@ export const UsuariosTab = ({
               </div>
               <div>
                 <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
-                  Correo Electrónico (correo) *
+                  Correo Electrónico *
                 </label>
                 <input
                   type="email"
@@ -446,7 +446,7 @@ export const UsuariosTab = ({
               </div>
               <div>
                 <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
-                  Contraseña (contraseña) {usuarioEditando ? '(Opcional al editar)' : '*'}
+                  Contraseña {usuarioEditando ? '(Opcional al editar)' : '*'}
                 </label>
                 <input
                   type="password"
@@ -469,7 +469,7 @@ export const UsuariosTab = ({
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
-                    Rol (id_rol)
+                    Rol
                   </label>
                   <select
                     value={formUsuario.id_rol}
@@ -487,14 +487,14 @@ export const UsuariosTab = ({
                   >
                     {ROLES_DB.map((r) => (
                       <option key={r.id} value={r.id}>
-                        {r.nombre} (id: {r.id})
+                        {r.nombre}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
                   <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
-                    Estado (id_estado)
+                    Estado
                   </label>
                   <select
                     value={formUsuario.id_estado}
@@ -510,8 +510,8 @@ export const UsuariosTab = ({
                       outline: 'none',
                     }}
                   >
-                    <option value={1}>1 - Activo</option>
-                    <option value={2}>2 - Inactivo</option>
+                    <option value={1}>Activo</option>
+                    <option value={2}>Inactivo</option>
                   </select>
                 </div>
               </div>
