@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Toaster, toast } from 'sonner';
 import HomeView from './views/home/HomeView';
 import LoginView from './views/auth/LoginView';
@@ -12,14 +12,13 @@ import { ROLES, ROLE_BADGES } from './constants/roles';
 import ProtectedRoute from './routes/ProtectedRoute';
 import ForbiddenView from './views/errors/ForbiddenView';
 import NotFoundView from './views/errors/NotFoundView';
+import './styles/navbar.css';
 
 function App() {
   const { 
     user, 
     activeRole, 
-    isCajero,
     logout, 
-    isAuthenticated 
   } = useAuth();
 
   const navigate = useNavigate();
@@ -47,105 +46,46 @@ function App() {
         onClose={() => setModalFacturaAbierto(false)}
       />
 
-      {/* Barra superior de navegación (Oculta en la vista principal y en el login) */}
+      {/* Barra superior de navegación */}
       {!isPublicPage && (
-        <nav style={{
-          backgroundColor: '#151c2c',
-          border: 'none',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.35)',
-          padding: '0.85rem 2rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          color: '#f8fafc',
-          fontFamily: 'system-ui, sans-serif',
-          flexWrap: 'wrap',
-          gap: '0.75rem',
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
-          width: '100%'
-        }}>
-          {/* Marca - Sin iconos, texto elegante y moderno */}
+        <nav className="app-navbar">
+          {/* Marca */}
           <div 
             onClick={() => navigate('/')}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
+            className="app-navbar-brand"
             title="Ir a la portada del sistema"
           >
-            <span style={{
-              width: '10px',
-              height: '10px',
-              borderRadius: '50%',
-              backgroundColor: '#8b5cf6',
-              display: 'inline-block'
-            }} />
-            <strong style={{ color: '#f8fafc', fontSize: '1.15rem', fontWeight: 800, letterSpacing: '-0.3px' }}>
+            <span className="app-navbar-brand-dot" />
+            <strong className="app-navbar-brand-text">
               Tienda Comunitaria
             </strong>
           </div>
 
           {/* Acciones y Perfil */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            {/* Centro de Notificaciones de la BD */}
-            <NotificationBell />
+          <div className="app-navbar-actions">
+            {/* Centro de Notificaciones de la BD (Solo Admin y Supervisor) */}
+            {(activeRole === ROLES.ADMIN || activeRole === ROLES.SUPERVISOR) && (
+              <NotificationBell />
+            )}
 
             <button
               onClick={() => setModalFacturaAbierto(true)}
-              style={{
-                background: '#8b5cf6',
-                color: '#ffffff',
-                border: 'none',
-                padding: '7px 16px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: 700,
-                fontSize: '0.82rem',
-                transition: 'background 0.2s ease',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#7c3aed'}
-              onMouseLeave={(e) => e.currentTarget.style.background = '#8b5cf6'}
+              className="app-navbar-btn-pdf"
             >
               Factura PDF
             </button>
 
             {user && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{
-                  background: 'rgba(139, 92, 246, 0.18)',
-                  color: '#c4b5fd',
-                  border: 'none',
-                  padding: '4px 10px',
-                  borderRadius: '20px',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.3px'
-                }}>
+              <div className="app-navbar-user-box">
+                <span className="app-navbar-role-badge">
                   {roleInfo.label}
                 </span>
-                <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 500 }}>
+                <span className="app-navbar-user-email">
                   {user.nombre || user.email || 'Usuario'}
                 </span>
                 <button
                   onClick={handleLogout}
-                  style={{
-                    background: 'rgba(239, 68, 68, 0.15)',
-                    color: '#f87171',
-                    border: 'none',
-                    padding: '6px 14px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#ef4444';
-                    e.currentTarget.style.color = '#fff';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
-                    e.currentTarget.style.color = '#f87171';
-                  }}
+                  className="app-navbar-btn-logout"
                 >
                   Salir
                 </button>
@@ -156,14 +96,7 @@ function App() {
       )}
 
       {/* Cuerpo principal de la aplicación */}
-      <main style={{
-        minHeight: isPublicPage ? '100vh' : 'calc(100vh - 65px)',
-        backgroundColor: '#0b0f19',
-        padding: isPublicPage ? 0 : '1.5rem 2rem',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        width: '100%',
-        boxSizing: 'border-box'
-      }}>
+      <main className={`app-main-layout ${isPublicPage ? 'public' : 'private'}`}>
         <Routes>
           {/* Ruta principal: Presentación del proyecto */}
           <Route path="/" element={<HomeView />} />
@@ -178,7 +111,7 @@ function App() {
           } />
           
           <Route path="/admin" element={
-            <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.INVENTARIO, ROLES.CONTADOR]}>
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CONTADOR]}>
               <AdminDashboardView
                 user={user}
                 onOpenFactura={() => setModalFacturaAbierto(true)}

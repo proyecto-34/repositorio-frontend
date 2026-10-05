@@ -1,0 +1,603 @@
+/* ==========================================================================
+   PUNTO DE VENTA (POS) - ESTILOS DEDICADOS
+   ========================================================================== */
+
+.pos-container {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(360px, 1.1fr);
+  gap: 1.75rem;
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .pos-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Columna Izquierda: Catálogo y Filtros
+   -------------------------------------------------------------------------- */
+.pos-catalog-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Cabecera del POS */
+.pos-header-card {
+  background: #151c2c;
+  border-radius: 16px;
+  padding: 1.4rem 1.6rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.pos-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pos-header-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #8b5cf6;
+}
+
+.pos-header-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: #f8fafc;
+}
+
+.pos-header-subtitle {
+  margin: 6px 0 0 0;
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.pos-header-subtitle strong {
+  color: #f8fafc;
+}
+
+.pos-turn-summary {
+  display: flex;
+  gap: 16px;
+  background: #0b0f19;
+  padding: 10px 18px;
+  border-radius: 12px;
+}
+
+.pos-turn-stat-label {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pos-turn-stat-value-green {
+  color: #22c55e;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.pos-turn-stat-value-purple {
+  color: #8b5cf6;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+/* Barra de Búsqueda y Filtros de Categorías */
+.pos-search-card {
+  background: #151c2c;
+  padding: 1.25rem;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.pos-search-row {
+  display: flex;
+  gap: 10px;
+}
+
+.pos-search-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #0b0f19;
+  border-radius: 10px;
+  padding: 0 14px;
+}
+
+.pos-search-input {
+  background: transparent;
+  border: none;
+  color: #f8fafc;
+  padding: 12px 0;
+  width: 100%;
+  outline: none;
+  font-size: 0.92rem;
+}
+
+.pos-search-input::placeholder {
+  color: #64748b;
+}
+
+.pos-btn-reload {
+  background: #1e273d;
+  color: #cbd5e1;
+  border: none;
+  padding: 0 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.pos-btn-reload:hover:not(:disabled) {
+  background: #283552;
+}
+
+.pos-btn-reload:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pos-categories-pill-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.pos-category-pill {
+  border: none;
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.pos-category-pill.active {
+  background: #8b5cf6;
+  color: #ffffff;
+}
+
+.pos-category-pill:not(.active) {
+  background: #0b0f19;
+  color: #94a3b8;
+}
+
+.pos-category-pill:not(.active):hover {
+  background: #1e273d;
+  color: #f8fafc;
+}
+
+/* Cuadrícula de Productos */
+.pos-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.pos-product-card {
+  background: #151c2c;
+  border-radius: 14px;
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease, background 0.15s ease;
+  cursor: pointer;
+}
+
+.pos-product-card:hover:not(.agotado) {
+  transform: translateY(-2px);
+  background: #1e273d;
+}
+
+.pos-product-card.agotado {
+  background: rgba(21, 28, 44, 0.4);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pos-product-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pos-category-badge {
+  font-size: 0.72rem;
+  color: #c4b5fd;
+  background: rgba(139, 92, 246, 0.15);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.pos-stock-badge {
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.pos-stock-badge.agotado {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.pos-stock-badge.bajo {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.pos-stock-badge.normal {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.pos-product-name {
+  font-weight: 700;
+  color: #f8fafc;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  margin-top: 4px;
+}
+
+.pos-product-bottom {
+  margin-top: auto;
+  padding-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pos-product-price {
+  color: #22c55e;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.pos-btn-add {
+  background: #8b5cf6;
+  color: #fff;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.pos-product-card.agotado .pos-btn-add {
+  background: #1e273d;
+  color: #64748b;
+}
+
+/* --------------------------------------------------------------------------
+   Columna Derecha: Ticket Lateral de Venta
+   -------------------------------------------------------------------------- */
+.pos-ticket-panel {
+  background: #151c2c;
+  border-radius: 16px;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  position: sticky;
+  top: 80px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.pos-ticket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pos-ticket-title {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #f8fafc;
+  font-weight: 800;
+}
+
+.pos-ticket-subtitle {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.pos-btn-vaciar {
+  background: rgba(239, 68, 68, 0.15);
+  border: none;
+  color: #f87171;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: background 0.15s ease;
+}
+
+.pos-btn-vaciar:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+/* Datos del Cliente */
+.pos-customer-card {
+  background: #0b0f19;
+  padding: 12px 14px;
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.pos-field-label {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  display: block;
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+
+.pos-field-input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 0.85rem;
+  width: 100%;
+  outline: none;
+  font-weight: 700;
+}
+
+.pos-field-input.purple {
+  color: #c4b5fd;
+}
+
+/* Lista de Items del Ticket */
+.pos-cart-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.pos-cart-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: #64748b;
+}
+
+.pos-cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0b0f19;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.pos-cart-item-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.pos-cart-item-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.pos-cart-item-price {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+.pos-cart-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pos-qty-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #151c2c;
+  border-radius: 6px;
+  padding: 3px;
+}
+
+.pos-btn-step {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: color 0.15s ease;
+}
+
+.pos-btn-step:hover {
+  color: #ffffff;
+}
+
+.pos-qty-display {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #fff;
+  min-width: 18px;
+  text-align: center;
+}
+
+.pos-cart-item-total {
+  color: #22c55e;
+  font-size: 0.88rem;
+  min-width: 65px;
+  text-align: right;
+  font-weight: 800;
+}
+
+.pos-btn-quitar {
+  background: transparent;
+  border: none;
+  color: #f87171;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.pos-btn-quitar:hover {
+  text-decoration: underline;
+}
+
+/* Selector de Método de Pago */
+.pos-payment-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.pos-payment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.pos-payment-btn {
+  border: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.pos-payment-btn.active {
+  background: #8b5cf6;
+  color: #ffffff;
+}
+
+.pos-payment-btn:not(.active) {
+  background: #0b0f19;
+  color: #94a3b8;
+}
+
+.pos-payment-btn:not(.active):hover {
+  background: #1e273d;
+  color: #f8fafc;
+}
+
+/* Monto Recibido y Vueltas */
+.pos-cash-calculator {
+  background: #0b0f19;
+  padding: 12px;
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.pos-cash-input {
+  background: #151c2c;
+  border: none;
+  color: #fff;
+  padding: 8px;
+  border-radius: 6px;
+  width: 100%;
+  font-size: 0.88rem;
+  font-weight: 700;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.pos-cash-change {
+  color: #22c55e;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+/* Card de Totales */
+.pos-totals-card {
+  background: #0b0f19;
+  padding: 14px;
+  border-radius: 12px;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pos-totals-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: #94a3b8;
+}
+
+.pos-totals-row.grand-total {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pos-totals-row.grand-total .amount {
+  color: #22c55e;
+}
+
+/* Botón Principal de Cobro */
+.pos-btn-checkout {
+  background: #8b5cf6;
+  color: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+}
+
+.pos-btn-checkout:hover:not(:disabled) {
+  background: #7c3aed;
+  transform: translateY(-1px);
+}
+
+.pos-btn-checkout:disabled {
+  background: #1e273d;
+  color: #64748b;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}

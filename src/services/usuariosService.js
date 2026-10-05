@@ -7,13 +7,13 @@ import { ENDPOINTS } from '../api/endpoints';
  */
 export const USUARIOS_DEFAULT = [
   { id: 1, nombre: 'Johan', correo: 'johanarteaga215@gmail.com', id_rol: 1, id_estado: 1 },
-  { id: 2, nombre: 'Danna', correo: 'Dannaarteaga@gmail.com', id_rol: 5, id_estado: 1 },
-  { id: 3, nombre: 'carlos', correo: 'carlos@gmail.com', id_rol: 5, id_estado: 1 },
-  { id: 4, nombre: 'luisa', correo: 'luisaT@gmail.com', id_rol: 5, id_estado: 1 },
-  { id: 5, nombre: 'David', correo: 'davidzambrano@gmail.com', id_rol: 5, id_estado: 1 },
-  { id: 6, nombre: 'luis', correo: 'luis@gmail.com', id_rol: 5, id_estado: 1 },
-  { id: 7, nombre: 'karla', correo: 'karla@gmail.com', id_rol: 5, id_estado: 1 },
-  { id: 8, nombre: 'lucas', correo: 'lucas@gmail.com', id_rol: 5, id_estado: 1 },
+  { id: 2, nombre: 'Danna', correo: 'Dannaarteaga@gmail.com', id_rol: 2, id_estado: 1 },
+  { id: 3, nombre: 'carlos', correo: 'carlos@gmail.com', id_rol: 2, id_estado: 1 },
+  { id: 4, nombre: 'luisa', correo: 'luisaT@gmail.com', id_rol: 2, id_estado: 1 },
+  { id: 5, nombre: 'David', correo: 'davidzambrano@gmail.com', id_rol: 2, id_estado: 1 },
+  { id: 6, nombre: 'luis', correo: 'luis@gmail.com', id_rol: 2, id_estado: 1 },
+  { id: 7, nombre: 'karla', correo: 'karla@gmail.com', id_rol: 2, id_estado: 1 },
+  { id: 8, nombre: 'lucas', correo: 'lucas@gmail.com', id_rol: 2, id_estado: 1 },
 ];
 
 export const usuariosService = {
@@ -42,8 +42,8 @@ export const usuariosService = {
           nombre: u.nombre,
           correo: u.correo || u.email,
           email: u.correo || u.email,
-          // TypeORM devuelve rol: { id: 4, nombre: "..." } y estado: { id: 2, nombre: "..." }
-          id_rol: Number(u.id_rol ?? u.rol?.id ?? u.rol?.id_rol ?? (typeof u.rol === 'number' ? u.rol : 5)),
+          // TypeORM devuelve rol: { id: 2, nombre: "..." } y estado: { id: 1, nombre: "..." }
+          id_rol: Number(u.id_rol ?? u.rol?.id ?? u.rol?.id_rol ?? (typeof u.rol === 'number' ? u.rol : 2)),
           id_estado: Number(u.id_estado ?? u.estado?.id ?? u.estado?.id_estado ?? (typeof u.estado === 'number' ? u.estado : 1)),
           rol: u.rol,
           estado: u.estado,
@@ -65,7 +65,7 @@ export const usuariosService = {
       nombre: (nuevoUsuario.nombre || '').trim(),
       correo: (nuevoUsuario.correo || nuevoUsuario.email || '').trim(),
       contraseña: nuevoUsuario.contraseña || nuevoUsuario.contrasena || nuevoUsuario.password,
-      id_rol: Number(nuevoUsuario.id_rol) || 5, // 1: ADMIN, 2: CONTADOR, 3: INVENTARIO, 4: SUPERVISOR, 5: CAJERO
+      id_rol: Number(nuevoUsuario.id_rol) || 2, // 1: ADMIN, 2: CAJERO, 3: SUPERVISOR, 4: CONTADOR
       id_estado: Number(nuevoUsuario.id_estado) || 1, // 1: ACTIVO, 2: INACTIVO
     };
 

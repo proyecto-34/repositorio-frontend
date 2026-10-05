@@ -80,8 +80,8 @@ export const HomeView = () => {
     },
     {
       icon: <ShieldCheck className="feature-icon text-indigo" size={28} />,
-      title: 'Seguridad RBAC (5 Roles)',
-      description: 'Control de acceso granular basado en roles (Admin, Contador, Inventario, Supervisor y Cajero) con autenticación protegida por JWT.',
+      title: 'Seguridad RBAC (4 Roles)',
+      description: 'Control de acceso granular basado en roles (Admin, Contador, Supervisor y Cajero) con autenticación protegida por JWT.',
       badge: 'Seguridad',
       color: 'indigo'
     }

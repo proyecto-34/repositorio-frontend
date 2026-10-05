@@ -1,0 +1,122 @@
+/* ==========================================================================
+   BARRA SUPERIOR DE NAVEGACIÓN (NAVBAR) & LAYOUT GENERAL
+   ========================================================================== */
+
+.app-navbar {
+  background-color: #151c2c;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  padding: 0.85rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #f8fafc;
+  font-family: system-ui, sans-serif;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  width: 100%;
+}
+
+.app-navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.app-navbar-brand-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #8b5cf6;
+  display: inline-block;
+}
+
+.app-navbar-brand-text {
+  color: #f8fafc;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.app-navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.app-navbar-btn-pdf {
+  background: #8b5cf6;
+  color: #ffffff;
+  border: none;
+  padding: 7px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.82rem;
+  transition: background 0.2s ease;
+}
+
+.app-navbar-btn-pdf:hover {
+  background: #7c3aed;
+}
+
+.app-navbar-user-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.app-navbar-role-badge {
+  background: rgba(139, 92, 246, 0.18);
+  color: #c4b5fd;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.app-navbar-user-email {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.app-navbar-btn-logout {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.app-navbar-btn-logout:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.app-main-layout {
+  background-color: #0b0f19;
+  font-family: system-ui, -apple-system, sans-serif;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.app-main-layout.public {
+  min-height: 100vh;
+  padding: 0;
+}
+
+.app-main-layout.private {
+  min-height: calc(100vh - 65px);
+  padding: 1.5rem 2rem;
+}

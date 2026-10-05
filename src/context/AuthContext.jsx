@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Permite alternar dinámicamente entre cualquiera de los 5 roles
+   * Permite alternar dinámicamente entre cualquiera de los roles disponibles
    */
   const cambiarRolActivo = (nuevoRol) => {
     setActiveRole(nuevoRol);
@@ -51,17 +51,16 @@ export const AuthProvider = ({ children }) => {
   // Permisos según el rol activo
   const isAdmin = activeRole === ROLES.ADMIN;
   const isContador = activeRole === ROLES.CONTADOR;
-  const isInventario = activeRole === ROLES.INVENTARIO;
   const isSupervisor = activeRole === ROLES.SUPERVISOR;
   const isCajero = activeRole === ROLES.CAJERO;
 
   // Matrices de permisos
   const canManageUsers = isAdmin || isSupervisor;
-  const canManageInventory = isAdmin || isInventario || isSupervisor;
+  const canManageInventory = isAdmin || isSupervisor;
   const canSell = isAdmin || isCajero || isSupervisor;
   const canViewReports = isAdmin || isContador || isSupervisor;
-  const canManageSuppliers = isAdmin || isInventario || isSupervisor;
-  const canManagePurchases = isAdmin || isInventario || isSupervisor || isContador;
+  const canManageSuppliers = isAdmin || isSupervisor;
+  const canManagePurchases = isAdmin || isSupervisor || isContador;
 
   /**
    * Capa 3: Verificación de roles (hasAnyRole / hasAnyAuthority)
@@ -108,7 +107,6 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: Boolean(token),
     isAdmin,
     isContador,
-    isInventario,
     isSupervisor,
     isCajero,
     canManageUsers,

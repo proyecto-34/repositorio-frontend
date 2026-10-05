@@ -40,27 +40,33 @@ axiosClient.interceptors.response.use(
 
     // Error 401: No autenticado o Token expirado
     if (status === 401) {
-      // Si el error ocurrió durante el intento de login, dejamos que el formulario de login maneje el mensaje
-      if (!url.includes('/auth/login')) {
-        // Limpiar tokens y sesión
+      const isLoggingOrPublic = url.includes('/auth/login') || currentPath === '/login' || currentPath === '/';
+      const storedToken = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+      // Solo mostramos alerta si el usuario tenía sesión activa y no está en proceso de logout o en login
+      if (!isLoggingOrPublic && storedToken) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         sessionStorage.removeItem('token');
 
         toast.error('Tu sesión ha expirado o el token es inválido. Inicia sesión nuevamente.');
 
-        // Redirigir al login si no estamos en login
-        if (currentPath !== '/login') {
-          setTimeout(() => {
-            window.location.href = '/login';
-          }, 800);
-        }
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 800);
       }
     }
 
     // Error 403: Prohibido / Sin privilegios de rol
+    // Solo mostrar notificación de error en acciones directas de mutación (POST, PUT, PATCH, DELETE)
+    // Las peticiones GET en segundo plano o de componentes informativos no deben generar spam de alertas
     if (status === 403) {
-      toast.error('No tienes permisos suficientes para realizar esta acción (Error 403)');
+      const method = (error.config?.method || 'get').toLowerCase();
+      const isMutation = ['post', 'put', 'patch', 'delete'].includes(method);
+
+      if (isMutation) {
+        toast.error('No tienes permisos suficientes para realizar esta acción (Error 403)');
+      }
     }
 
     return Promise.reject(error);

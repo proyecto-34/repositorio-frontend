@@ -12,6 +12,12 @@ export const facturacionService = {
     return res.data;
   },
 
+  // Registrar nueva venta en la base de datos a través de NestJS (POST /ventas)
+  registrarVenta: async (ventaDto) => {
+    const res = await axiosClient.post('/ventas', ventaDto);
+    return res.data;
+  },
+
   // Listar ventas de la BD
   obtenerVentas: async (page = 1, limit = 50) => {
     const res = await axiosClient.get('/ventas', { params: { page, limit } });
