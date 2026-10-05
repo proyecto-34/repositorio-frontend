@@ -6,14 +6,10 @@ import { ENDPOINTS } from '../api/endpoints';
  * Columnas: id, nombre, correo, contraseña, id_rol, id_estado
  */
 export const USUARIOS_DEFAULT = [
-  { id: 1, nombre: 'Johan', correo: 'johanarteaga215@gmail.com', id_rol: 1, id_estado: 1 },
-  { id: 2, nombre: 'Danna', correo: 'Dannaarteaga@gmail.com', id_rol: 2, id_estado: 1 },
-  { id: 3, nombre: 'carlos', correo: 'carlos@gmail.com', id_rol: 2, id_estado: 1 },
-  { id: 4, nombre: 'luisa', correo: 'luisaT@gmail.com', id_rol: 2, id_estado: 1 },
-  { id: 5, nombre: 'David', correo: 'davidzambrano@gmail.com', id_rol: 2, id_estado: 1 },
-  { id: 6, nombre: 'luis', correo: 'luis@gmail.com', id_rol: 2, id_estado: 1 },
-  { id: 7, nombre: 'karla', correo: 'karla@gmail.com', id_rol: 2, id_estado: 1 },
-  { id: 8, nombre: 'lucas', correo: 'lucas@gmail.com', id_rol: 2, id_estado: 1 },
+  { id: 1, nombre: 'Johan ARTEAGA', correo: 'johanarteaga215@gmail.com', id_rol: 1, id_estado: 1 },
+  { id: 12, nombre: 'cajero', correo: 'cajero@gmail.com', id_rol: 2, id_estado: 1 },
+  { id: 13, nombre: 'Supervisor', correo: 'supervisor@gmail.com', id_rol: 3, id_estado: 1 },
+  { id: 14, nombre: 'Contador', correo: 'contador@gmail.com', id_rol: 4, id_estado: 1 },
 ];
 
 export const usuariosService = {
