@@ -213,7 +213,6 @@ export const HomeView = () => {
           {ROLES_DB.map((r) => (
             <div key={r.id} className="role-card">
               <div className="role-card-header">
-                <span className="role-emoji">{r.icon}</span>
                 <div>
                   <h4 className="role-name">{r.label}</h4>
                   <span className="role-tag">Rol #{r.id} ({r.nombre})</span>
