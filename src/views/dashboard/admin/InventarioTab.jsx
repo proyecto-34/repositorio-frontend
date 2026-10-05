@@ -672,7 +672,7 @@ export const InventarioTab = ({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <WeatherWidget />
 
-        {(isAdmin || isSupervisor) && (
+        {isAdmin && (
           <div
             style={{
               background: '#151c2c',

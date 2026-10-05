@@ -22,8 +22,10 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     activeRole,
     canManageUsers,
     canManageInventory,
+    canViewInventory,
     canViewReports,
     canManageSuppliers,
+    canViewSuppliers,
     canManagePurchases,
     canViewPurchases,
     isAdmin,
@@ -60,9 +62,9 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
   // Carga inicial según permisos del rol activo
   useEffect(() => {
     if (canManageUsers) cargarUsuarios();
-    if (canManageInventory || canManagePurchases || canViewPurchases) cargarProductos();
+    if (canManageInventory || canViewInventory || canManagePurchases || canViewPurchases) cargarProductos();
     if (canViewReports) cargarVentas();
-    if (canManageSuppliers) cargarProveedores();
+    if (canManageSuppliers || canViewSuppliers) cargarProveedores();
     if (canManagePurchases || canViewPurchases) cargarCompras();
   }, [activeRole]);
 
@@ -232,7 +234,9 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
         }}
         canViewReports={canViewReports}
         canManageInventory={canManageInventory}
+        canViewInventory={canViewInventory}
         canManageSuppliers={canManageSuppliers}
+        canViewSuppliers={canViewSuppliers}
         canManageUsers={canManageUsers}
         totalVentasBrutas={totalVentasBrutas}
         ventasCount={ventas.length}
@@ -250,7 +254,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
 
       {/* Selector de Pestañas */}
       <div className="admin-tabs-bar">
-        {canManageInventory && (
+        {(canManageInventory || canViewInventory) && (
           <button
             type="button"
             onClick={() => setTabActiva('inventario')}
@@ -270,7 +274,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
           </button>
         )}
 
-        {canManageSuppliers && (
+        {(canManageSuppliers || canViewSuppliers) && (
           <button
             type="button"
             onClick={() => setTabActiva('proveedores')}
@@ -312,7 +316,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
       </div>
 
       {/* Contenido Modular según Pestaña Activa */}
-      {tabActiva === 'inventario' && canManageInventory && (
+      {tabActiva === 'inventario' && (canManageInventory || canViewInventory) && (
         <InventarioTab
           productos={productos}
           cargando={cargandoProductos}
@@ -339,7 +343,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
         />
       )}
 
-      {tabActiva === 'proveedores' && canManageSuppliers && (
+      {tabActiva === 'proveedores' && (canManageSuppliers || canViewSuppliers) && (
         <ProveedoresTab
           proveedores={proveedores}
           cargando={cargandoProveedores}

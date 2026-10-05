@@ -8,7 +8,9 @@ export const DashboardKpis = ({
   filtroStock = 'todos',
   canViewReports = true,
   canManageInventory = true,
+  canViewInventory = true,
   canManageSuppliers = true,
+  canViewSuppliers = true,
   canManageUsers = true,
   totalVentasBrutas = 0,
   ventasCount = 0,
@@ -69,7 +71,7 @@ export const DashboardKpis = ({
       )}
 
       {/* KPI 2: Inventario */}
-      {canManageInventory && (
+      {(canManageInventory || canViewInventory) && (
         <div
           onClick={() => {
             setTabActiva('inventario');
@@ -109,7 +111,7 @@ export const DashboardKpis = ({
       )}
 
       {/* KPI 3: Alertas de Stock */}
-      {canManageInventory && (
+      {(canManageInventory || canViewInventory) && (
         <div
           onClick={() => {
             setTabActiva('inventario');
@@ -167,7 +169,7 @@ export const DashboardKpis = ({
       )}
 
       {/* KPI 4: Proveedores */}
-      {canManageSuppliers && (
+      {(canManageSuppliers || canViewSuppliers) && (
         <div
           onClick={() => setTabActiva('proveedores')}
           style={{

@@ -44,6 +44,7 @@ export const ComprasTab = ({
     id_categoria: 1,
     categoria: 'Granos',
     precio: '',
+    cantidad: 1,
     stock_minimo: 5,
     codigo_barras: '',
   });
@@ -69,6 +70,7 @@ export const ComprasTab = ({
       id_categoria: listaCategorias[0]?.id || 1,
       categoria: listaCategorias[0]?.nombre || 'Granos',
       precio: '',
+      cantidad: 1,
       stock_minimo: 5,
       codigo_barras: `770${Math.floor(1000 + Math.random() * 9000)}`,
     });
@@ -89,12 +91,12 @@ export const ComprasTab = ({
     setGuardandoNuevoProd(true);
     try {
       const catObj = listaCategorias.find((c) => c.id === Number(nuevoProdForm.id_categoria)) || listaCategorias[0];
-      // El producto se crea en el catálogo con stock inicial 0, pues esta compra le dará el stock real
+      const cantNum = Math.max(0, Number(nuevoProdForm.cantidad !== undefined && nuevoProdForm.cantidad !== '' ? nuevoProdForm.cantidad : 1));
       const productoCreado = await productosService.crearProducto({
         nombre: nuevoProdForm.nombre.trim(),
         precio: Number(nuevoProdForm.precio),
-        cantidad: 0,
-        stock: 0,
+        cantidad: cantNum,
+        stock: cantNum,
         id_categoria: Number(nuevoProdForm.id_categoria),
         categoria: catObj?.nombre || 'General',
         stock_minimo: Number(nuevoProdForm.stock_minimo) || 5,
@@ -1178,7 +1180,7 @@ export const ComprasTab = ({
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                     Código de Barras
@@ -1204,7 +1206,31 @@ export const ComprasTab = ({
 
                 <div>
                   <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
-                    Stock Mínimo Alerta
+                    Stock Inicial
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="1"
+                    value={nuevoProdForm.cantidad}
+                    onChange={(e) => setNuevoProdForm({ ...nuevoProdForm, cantidad: e.target.value })}
+                    style={{
+                      width: '100%',
+                      background: '#0b0f19',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#fff',
+                      padding: '9px 12px',
+                      borderRadius: '8px',
+                      fontSize: '0.85rem',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                    Stock Mín. Alerta
                   </label>
                   <input
                     type="number"
