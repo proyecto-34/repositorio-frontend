@@ -95,11 +95,14 @@ export const FacturaModal = ({ isOpen, onClose }) => {
             className="factura-modal-select"
           >
             {ventas.length === 0 && <option value="">No hay ventas registradas</option>}
-            {ventas.map((v) => (
-              <option key={v.id} value={v.id}>
-                Venta #{v.id} — Cliente: {v.cliente || 'Consumidor'} — {formatearCOP(v.total)}
-              </option>
-            ))}
+            {ventas.map((v) => {
+              const clienteDoc = v.documento || (typeof v.cliente === 'object' ? (v.cliente?.documento || v.cliente?.cedula || v.cliente?.nit) : v.cliente) || '222222222222';
+              return (
+                <option key={v.id} value={v.id}>
+                  Venta #{v.id} — C.C./NIT: {clienteDoc} — {formatearCOP(v.total)}
+                </option>
+              );
+            })}
           </select>
           <button
             type="button"
@@ -122,8 +125,20 @@ export const FacturaModal = ({ isOpen, onClose }) => {
             {/* Info Resumen */}
             <div className="factura-modal-summary-grid">
               <div><strong>Factura:</strong> <span>{enc.nro_factura || `FAC-${ventaId}`}</span></div>
-              <div><strong>Cliente:</strong> <span>{enc.cliente || 'Consumidor'}</span></div>
-              <div><strong>Cajero:</strong> <span>{enc.cajero || 'Cajero'}</span></div>
+              <div>
+                <strong>C.C. / NIT:</strong>{' '}
+                <span>
+                  {enc.documento || (typeof enc.cliente === 'object' ? (enc.cliente?.documento || enc.cliente?.cedula || enc.cliente?.nit) : enc.cliente) || '222222222222'}
+                </span>
+              </div>
+              <div>
+                <strong>Cajero:</strong>{' '}
+                <span>
+                  {typeof enc.cajero === 'object'
+                    ? enc.cajero?.nombre || 'Cajero'
+                    : enc.cajero || 'Cajero'}
+                </span>
+              </div>
             </div>
 
             {/* Tabla de detalle_venta */}

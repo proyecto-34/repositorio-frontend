@@ -91,7 +91,7 @@ export const HomeView = () => {
     { name: 'React 19', role: 'Frontend UI Dinámico', icon: <Cpu size={20} /> },
     { name: 'Vite', role: 'Bundler de Alta Velocidad', icon: <Sparkles size={20} /> },
     { name: 'NestJS', role: 'Backend Modular & REST API', icon: <Layers size={20} /> },
-    { name: 'PostgreSQL', role: 'Base de Datos Relacional', icon: <Database size={20} /> },
+    { name: 'MySQL', role: 'Base de Datos Relacional', icon: <Database size={20} /> },
     { name: 'JWT + RBAC', role: 'Autenticación & Permisos', icon: <KeyRound size={20} /> },
     { name: 'Recharts', role: 'Analítica Visual', icon: <TrendingUp size={20} /> }
   ];
@@ -157,7 +157,7 @@ export const HomeView = () => {
         {/* Mini stats cards */}
         <div className="hero-stats-grid">
           <div className="stat-card">
-            <div className="stat-number">5</div>
+            <div className="stat-number">4</div>
             <div className="stat-label">Roles RBAC Especializados</div>
           </div>
           <div className="stat-card">
@@ -203,7 +203,7 @@ export const HomeView = () => {
       <section id="roles" className="section-container section-roles">
         <div className="section-header">
           <span className="section-badge">Control de Acceso</span>
-          <h2 className="section-title">Modelo de Seguridad RBAC (5 Roles)</h2>
+          <h2 className="section-title">Modelo de Seguridad RBAC (4 Roles)</h2>
           <p className="section-subtitle">
             Garantiza que cada usuario acceda únicamente a las vistas y funciones acordes a su responsabilidad en la tienda.
           </p>
@@ -223,36 +223,29 @@ export const HomeView = () => {
                 {r.id === 1 && (
                   <>
                     <li><CheckCircle2 size={15} /> Control total de usuarios y roles</li>
-                    <li><CheckCircle2 size={15} /> Configuración global de la tienda</li>
-                    <li><CheckCircle2 size={15} /> Acceso a todos los módulos y reportes</li>
+                    <li><CheckCircle2 size={15} /> Gestión completa del inventario y compras</li>
+                    <li><CheckCircle2 size={15} /> Acceso a reportes y auditoría del sistema</li>
                   </>
                 )}
                 {r.id === 2 && (
                   <>
-                    <li><CheckCircle2 size={15} /> Balances y métricas financieras</li>
-                    <li><CheckCircle2 size={15} /> Arqueo de ingresos y métodos de pago</li>
-                    <li><CheckCircle2 size={15} /> Exportación de reportes contables</li>
+                    <li><CheckCircle2 size={15} /> Terminal de venta rápida POS en caja</li>
+                    <li><CheckCircle2 size={15} /> Búsqueda por código de barras y categorías</li>
+                    <li><CheckCircle2 size={15} /> Registro de pagos y emisión de factura PDF</li>
                   </>
                 )}
                 {r.id === 3 && (
                   <>
-                    <li><CheckCircle2 size={15} /> Catálogo de productos y categorías</li>
-                    <li><CheckCircle2 size={15} /> Control de existencias y stock mínimo</li>
-                    <li><CheckCircle2 size={15} /> Registro de entradas de compras</li>
+                    <li><CheckCircle2 size={15} /> Catálogo de productos y existencias</li>
+                    <li><CheckCircle2 size={15} /> Monitoreo de stock mínimo y alertas</li>
+                    <li><CheckCircle2 size={15} /> Entradas de mercancía con proveedores</li>
                   </>
                 )}
                 {r.id === 4 && (
                   <>
-                    <li><CheckCircle2 size={15} /> Supervisión de caja y movimientos</li>
-                    <li><CheckCircle2 size={15} /> Monitoreo de actividad de usuarios</li>
-                    <li><CheckCircle2 size={15} /> Anulaciones y auditoría operativa</li>
-                  </>
-                )}
-                {r.id === 5 && (
-                  <>
-                    <li><CheckCircle2 size={15} /> Terminal de venta rápida en caja</li>
-                    <li><CheckCircle2 size={15} /> Búsqueda por código de barras</li>
-                    <li><CheckCircle2 size={15} /> Emisión de comprobantes al cliente</li>
+                    <li><CheckCircle2 size={15} /> Balances y métricas financieras en tiempo real</li>
+                    <li><CheckCircle2 size={15} /> Desglose de ingresos por método de pago</li>
+                    <li><CheckCircle2 size={15} /> Exportación de reportes contables en PDF</li>
                   </>
                 )}
               </ul>

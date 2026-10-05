@@ -1,28 +1,9 @@
 import axiosClient from '../api/axiosClient';
 import { ENDPOINTS } from '../api/endpoints';
 
-/**
- * Catálogo de respaldo según el esquema exacto de la BD:
- * tabla: tienda_comunitaria.proveedores (id, nombre, contacto, direccion)
- */
-export const PROVEEDORES_DEFAULT = [
-  {
-    id: 1,
-    nombre: 'Distribuidora S.A.',
-    contacto: '3001234567',
-    direccion: 'Calle 123 #45-67',
-  },
-  {
-    id: 2,
-    nombre: 'Empresa Bogota',
-    contacto: '43543453',
-    direccion: 'calle 45 #2',
-  },
-];
-
 export const proveedoresService = {
   /**
-   * Obtiene la lista de proveedores desde la BD en NestJS
+   * Obtiene la lista de proveedores desde la BD en NestJS (tienda_comunitaria.proveedores)
    */
   obtenerProveedores: async () => {
     try {
@@ -36,10 +17,10 @@ export const proveedoresService = {
         if (Array.isArray(data.proveedores)) return data.proveedores;
         if (Array.isArray(data.result)) return data.result;
       }
-      return PROVEEDORES_DEFAULT;
+      return [];
     } catch (error) {
-      console.warn('Usando proveedores locales de respaldo:', error.message);
-      return PROVEEDORES_DEFAULT;
+      console.warn('Error al consultar proveedores de la BD:', error.message);
+      return [];
     }
   },
 

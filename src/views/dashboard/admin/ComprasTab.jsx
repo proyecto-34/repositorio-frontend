@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Plus, Search, Truck, Eye, FileText, CheckCircle2, DollarSign, PackagePlus, Trash2, Calendar, CreditCard, Layers } from 'lucide-react';
 import comprasService from '../../../services/comprasService';
 import productosService from '../../../services/productosService';
+import categoriasService, { CATEGORIAS_DEFAULT } from '../../../services/categoriasService';
 import Can from '../../../components/Can';
 
 export const ComprasTab = ({
@@ -11,12 +12,13 @@ export const ComprasTab = ({
   productos = [],
   cargando = false,
   onRecargar,
+  onRecargarProductos,
   onActualizarStock,
   canManage = true,
   proveedorInicial = null,
 }) => {
   const [busqueda, setBusqueda] = useState('');
-  const [modalNuevaCompra, setModalNuevaCompra] = useState(Boolean(proveedorInicial));
+  const [modalNuevaCompra, setModalNuevaCompra] = useState(Boolean(proveedorInicial && canManage));
   const [modalDetalle, setModalDetalle] = useState(false);
   const [compraSeleccionada, setCompraSeleccionada] = useState(null);
   const [guardando, setGuardando] = useState(false);
@@ -32,6 +34,102 @@ export const ComprasTab = ({
   const [idProductoSeleccionado, setIdProductoSeleccionado] = useState('');
   const [cantidadItem, setCantidadItem] = useState(10);
   const [costoUnitarioItem, setCostoUnitarioItem] = useState('');
+
+  // Modal para crear un nuevo producto directamente desde la entrada/compra
+  const [modalNuevoProducto, setModalNuevoProducto] = useState(false);
+  const [guardandoNuevoProd, setGuardandoNuevoProd] = useState(false);
+  const [listaCategorias, setListaCategorias] = useState(CATEGORIAS_DEFAULT);
+  const [nuevoProdForm, setNuevoProdForm] = useState({
+    nombre: '',
+    id_categoria: 1,
+    categoria: 'Granos',
+    precio: '',
+    stock_minimo: 5,
+    codigo_barras: '',
+  });
+
+  // Cargar categorías disponibles desde la base de datos
+  useEffect(() => {
+    const cargarCategorias = async () => {
+      try {
+        const data = await categoriasService.obtenerCategorias();
+        if (Array.isArray(data) && data.length > 0) {
+          setListaCategorias(data);
+        }
+      } catch (err) {
+        console.warn('Error al cargar categorías en ComprasTab:', err);
+      }
+    };
+    cargarCategorias();
+  }, []);
+
+  const handleAbrirModalNuevoProducto = () => {
+    setNuevoProdForm({
+      nombre: '',
+      id_categoria: listaCategorias[0]?.id || 1,
+      categoria: listaCategorias[0]?.nombre || 'Granos',
+      precio: '',
+      stock_minimo: 5,
+      codigo_barras: `770${Math.floor(1000 + Math.random() * 9000)}`,
+    });
+    setModalNuevoProducto(true);
+  };
+
+  const handleGuardarNuevoProducto = async (e) => {
+    e.preventDefault();
+    if (!nuevoProdForm.nombre.trim()) {
+      toast.error('Por favor escribe el nombre del producto');
+      return;
+    }
+    if (!nuevoProdForm.precio || Number(nuevoProdForm.precio) <= 0) {
+      toast.error('Por favor ingresa un precio de venta válido');
+      return;
+    }
+
+    setGuardandoNuevoProd(true);
+    try {
+      const catObj = listaCategorias.find((c) => c.id === Number(nuevoProdForm.id_categoria)) || listaCategorias[0];
+      // El producto se crea en el catálogo con stock inicial 0, pues esta compra le dará el stock real
+      const productoCreado = await productosService.crearProducto({
+        nombre: nuevoProdForm.nombre.trim(),
+        precio: Number(nuevoProdForm.precio),
+        cantidad: 0,
+        stock: 0,
+        id_categoria: Number(nuevoProdForm.id_categoria),
+        categoria: catObj?.nombre || 'General',
+        stock_minimo: Number(nuevoProdForm.stock_minimo) || 5,
+        codigo_barras: nuevoProdForm.codigo_barras.trim(),
+      });
+
+      toast.success(`Producto "${nuevoProdForm.nombre}" creado y agregado al catálogo de la BD`);
+
+      // Refrescar catálogo en tiempo real
+      let nuevoId = productoCreado?.id || productoCreado?.producto?.id;
+      if (onRecargarProductos) {
+        const listaActualizada = await onRecargarProductos();
+        if (!nuevoId && Array.isArray(listaActualizada)) {
+          const encontrado = listaActualizada.find(
+            (p) => p.nombre.toLowerCase().trim() === nuevoProdForm.nombre.toLowerCase().trim()
+          );
+          if (encontrado) nuevoId = encontrado.id;
+        }
+      }
+
+      // Si tenemos el nuevo ID, seleccionarlo automáticamente y sugerir costo de compra
+      if (nuevoId) {
+        setIdProductoSeleccionado(nuevoId);
+        const costoSugerido = Math.round(Number(nuevoProdForm.precio) * 0.7);
+        setCostoUnitarioItem(costoSugerido);
+      }
+
+      setModalNuevoProducto(false);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Error al guardar el nuevo producto';
+      toast.error(`Error: ${Array.isArray(msg) ? msg.join(', ') : msg}`);
+    } finally {
+      setGuardandoNuevoProd(false);
+    }
+  };
 
   // Filtrado de Compras
   const comprasFiltradas = compras.filter((c) => {
@@ -56,6 +154,10 @@ export const ComprasTab = ({
   }, 0);
 
   const handleAbrirNuevaCompra = (prov = null) => {
+    if (!canManage) {
+      toast.error('Tu rol solo tiene permisos de consulta.');
+      return;
+    }
     if (prov) {
       setIdProveedor(prov.id);
     } else if (proveedores.length > 0) {
@@ -226,34 +328,38 @@ export const ComprasTab = ({
             </h2>
           </div>
           <p style={{ margin: '6px 0 0 0', color: '#94a3b8', fontSize: '0.85rem' }}>
-            Registra abastecimientos, actualiza el stock automáticamente y controla los costos de adquisición
+            {canManage
+              ? 'Registra abastecimientos, actualiza el stock automáticamente y controla los costos de adquisición'
+              : 'Consulta de abastecimientos, historial de facturas de compras y control de costos de adquisición'}
           </p>
         </div>
 
-        <Can do="create" on="compras">
-          <button
-            type="button"
-            onClick={() => handleAbrirNuevaCompra()}
-            style={{
-              background: '#22c55e',
-              color: '#0b0f19',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '10px',
-              cursor: 'pointer',
-              fontWeight: 800,
-              fontSize: '0.85rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 4px 14px rgba(34, 197, 94, 0.35)',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <PackagePlus size={18} />
-            + Registrar Entrada
-          </button>
-        </Can>
+        {canManage && (
+          <Can do="create" on="compras">
+            <button
+              type="button"
+              onClick={() => handleAbrirNuevaCompra()}
+              style={{
+                background: '#22c55e',
+                color: '#0b0f19',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 14px rgba(34, 197, 94, 0.35)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <PackagePlus size={18} />
+              + Registrar Entrada
+            </button>
+          </Can>
+        )}
       </div>
 
       {/* Tarjetas de Métricas de Compras */}
@@ -623,9 +729,32 @@ export const ComprasTab = ({
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr 1.2fr auto', gap: '10px', alignItems: 'flex-end' }}>
                   <div>
-                    <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
-                      Producto del Catálogo
-                    </label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600 }}>
+                        Producto del Catálogo
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleAbrirModalNuevoProducto}
+                        style={{
+                          background: 'rgba(56, 189, 248, 0.15)',
+                          border: '1px solid rgba(56, 189, 248, 0.35)',
+                          color: '#38bdf8',
+                          borderRadius: '6px',
+                          padding: '2px 8px',
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          transition: 'all 0.15s ease',
+                        }}
+                        title="¿El producto no está en el catálogo? Créalo aquí mismo sin perder tu orden de compra"
+                      >
+                        <Plus size={13} /> + Nuevo Producto
+                      </button>
+                    </div>
                     <select
                       value={idProductoSeleccionado}
                       onChange={(e) => handleSeleccionarProductoParaItem(e.target.value)}
@@ -908,6 +1037,234 @@ export const ComprasTab = ({
                 Cerrar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Crear Producto Nuevo al vuelo desde Compras / Entradas */}
+      {modalNuevoProducto && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(11, 15, 25, 0.88)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 70,
+            padding: '1rem',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#151c2c',
+              borderRadius: '18px',
+              padding: '1.5rem',
+              width: '100%',
+              maxWidth: '520px',
+              color: '#f8fafc',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.85)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.25rem',
+              border: '1px solid rgba(56, 189, 248, 0.25)',
+            }}
+          >
+            {/* Cabecera */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <PackagePlus size={22} color="#38bdf8" />
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>
+                    Crear Nuevo Producto en Catálogo
+                  </h3>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                    Se guardará en la BD e iniciará con stock 0 para ingresar su compra
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setModalNuevoProducto(false)}
+                type="button"
+                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Formulario */}
+            <form onSubmit={handleGuardarNuevoProducto} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                  Nombre del Producto *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej: Aceite Vegetal 900ml"
+                  value={nuevoProdForm.nombre}
+                  onChange={(e) => setNuevoProdForm({ ...nuevoProdForm, nombre: e.target.value })}
+                  required
+                  autoFocus
+                  style={{
+                    width: '100%',
+                    background: '#0b0f19',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#fff',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    fontSize: '0.85rem',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                    Categoría *
+                  </label>
+                  <select
+                    value={nuevoProdForm.id_categoria}
+                    onChange={(e) => {
+                      const id = Number(e.target.value);
+                      const cat = listaCategorias.find((c) => c.id === id);
+                      setNuevoProdForm({ ...nuevoProdForm, id_categoria: id, categoria: cat?.nombre || '' });
+                    }}
+                    style={{
+                      width: '100%',
+                      background: '#0b0f19',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#fff',
+                      padding: '9px 12px',
+                      borderRadius: '8px',
+                      fontSize: '0.85rem',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    {listaCategorias.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                    Precio Venta Público ($) *
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Ej: 8500"
+                    value={nuevoProdForm.precio}
+                    onChange={(e) => setNuevoProdForm({ ...nuevoProdForm, precio: e.target.value })}
+                    required
+                    style={{
+                      width: '100%',
+                      background: '#0b0f19',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#fff',
+                      padding: '9px 12px',
+                      borderRadius: '8px',
+                      fontSize: '0.85rem',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                    Código de Barras
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="770123456789"
+                    value={nuevoProdForm.codigo_barras}
+                    onChange={(e) => setNuevoProdForm({ ...nuevoProdForm, codigo_barras: e.target.value })}
+                    style={{
+                      width: '100%',
+                      background: '#0b0f19',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#fff',
+                      padding: '9px 12px',
+                      borderRadius: '8px',
+                      fontSize: '0.85rem',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                    Stock Mínimo Alerta
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="5"
+                    value={nuevoProdForm.stock_minimo}
+                    onChange={(e) => setNuevoProdForm({ ...nuevoProdForm, stock_minimo: e.target.value })}
+                    style={{
+                      width: '100%',
+                      background: '#0b0f19',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#fff',
+                      padding: '9px 12px',
+                      borderRadius: '8px',
+                      fontSize: '0.85rem',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setModalNuevoProducto(false)}
+                  style={{
+                    background: '#1e273d',
+                    color: '#94a3b8',
+                    border: 'none',
+                    padding: '9px 16px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={guardandoNuevoProd}
+                  style={{
+                    background: '#38bdf8',
+                    color: '#0b0f19',
+                    border: 'none',
+                    padding: '9px 18px',
+                    borderRadius: '8px',
+                    cursor: guardandoNuevoProd ? 'not-allowed' : 'pointer',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  {guardandoNuevoProd ? 'Creando...' : 'Crear y Usar en la Entrada'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -60,7 +60,8 @@ export const AuthProvider = ({ children }) => {
   const canSell = isAdmin || isCajero || isSupervisor;
   const canViewReports = isAdmin || isContador || isSupervisor;
   const canManageSuppliers = isAdmin || isSupervisor;
-  const canManagePurchases = isAdmin || isSupervisor || isContador;
+  const canManagePurchases = isAdmin || isSupervisor; // Solo Admin y Supervisor pueden registrar compras
+  const canViewPurchases = isAdmin || isSupervisor || isContador; // Contador solo consulta
 
   /**
    * Capa 3: Verificación de roles (hasAnyRole / hasAnyAuthority)
@@ -89,13 +90,19 @@ export const AuthProvider = ({ children }) => {
 
     if (sub === 'usuarios') return canManageUsers;
     if (sub === 'inventario' || sub === 'productos') {
-      if (act === 'view') return true;
+      if (act === 'view' || act === 'read') return true;
       return canManageInventory;
     }
     if (sub === 'proveedores') return canManageSuppliers;
-    if (sub === 'compras') return canManagePurchases;
+    if (sub === 'compras' || sub === 'entradas') {
+      if (act === 'view' || act === 'read' || act === 'consultar') return canViewPurchases;
+      return canManagePurchases;
+    }
     if (sub === 'reportes' || sub === 'balance') return canViewReports;
-    if (sub === 'ventas' || sub === 'caja' || sub === 'pos') return canSell;
+    if (sub === 'ventas' || sub === 'caja' || sub === 'pos') {
+      if (act === 'view' || act === 'read' || act === 'consultar') return canViewReports || canSell;
+      return canSell;
+    }
 
     return false;
   };
@@ -115,6 +122,7 @@ export const AuthProvider = ({ children }) => {
     canViewReports,
     canManageSuppliers,
     canManagePurchases,
+    canViewPurchases,
     hasAnyRole,
     hasPermission,
     login,

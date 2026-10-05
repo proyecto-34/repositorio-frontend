@@ -83,15 +83,67 @@ export const categoriasService = {
     try {
       const response = await axiosClient.get(ENDPOINTS.PRODUCTOS.CATEGORIAS || '/categorias');
       const data = response.data;
-      if (Array.isArray(data) && data.length > 0) return data;
-      if (data && Array.isArray(data.data) && data.data.length > 0) return data.data;
+      let list = [];
+      if (Array.isArray(data) && data.length > 0) list = data;
+      else if (data && Array.isArray(data.data) && data.data.length > 0) list = data.data;
+
+      if (list.length > 0) {
+        list.forEach((c) => {
+          if (c && c.id && c.nombre) {
+            CATEGORIAS_MAP[c.id] = c.nombre;
+            CATEGORIAS_MAP[String(c.id)] = c.nombre;
+          }
+        });
+        return list;
+      }
       return CATEGORIAS_DEFAULT;
     } catch (error) {
       try {
         const fallbackRes = await axiosClient.get('/categorias');
-        if (Array.isArray(fallbackRes.data) && fallbackRes.data.length > 0) return fallbackRes.data;
+        if (Array.isArray(fallbackRes.data) && fallbackRes.data.length > 0) {
+          fallbackRes.data.forEach((c) => {
+            if (c && c.id && c.nombre) {
+              CATEGORIAS_MAP[c.id] = c.nombre;
+              CATEGORIAS_MAP[String(c.id)] = c.nombre;
+            }
+          });
+          return fallbackRes.data;
+        }
       } catch (e) {}
       return CATEGORIAS_DEFAULT;
+    }
+  },
+
+  /**
+   * Crea una nueva categoría en la Base de Datos a través de NestJS
+   * @param {string} nombre - Nombre de la nueva categoría
+   */
+  crearCategoria: async (nombre) => {
+    const nombreLimpio = String(nombre).trim();
+    try {
+      const response = await axiosClient.post(ENDPOINTS.PRODUCTOS.CATEGORIAS, {
+        nombre: nombreLimpio,
+      });
+      const data = response.data;
+      if (data && data.id) {
+        CATEGORIAS_MAP[data.id] = data.nombre;
+        CATEGORIAS_MAP[String(data.id)] = data.nombre;
+      }
+      return data;
+    } catch (error) {
+      try {
+        const fallbackRes = await axiosClient.post('/categorias', {
+          nombre: nombreLimpio,
+        });
+        const data = fallbackRes.data;
+        if (data && data.id) {
+          CATEGORIAS_MAP[data.id] = data.nombre;
+          CATEGORIAS_MAP[String(data.id)] = data.nombre;
+        }
+        return data;
+      } catch {
+        throw error;
+      }
     }
   },
 };

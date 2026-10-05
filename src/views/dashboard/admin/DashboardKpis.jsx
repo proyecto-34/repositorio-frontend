@@ -1,9 +1,11 @@
 import React from 'react';
+import { toast } from 'sonner';
 
 export const DashboardKpis = ({
   tabActiva,
   setTabActiva,
   onSeleccionarFiltroStock,
+  filtroStock = 'todos',
   canViewReports = true,
   canManageInventory = true,
   canManageSuppliers = true,
@@ -69,9 +71,12 @@ export const DashboardKpis = ({
       {/* KPI 2: Inventario */}
       {canManageInventory && (
         <div
-          onClick={() => setTabActiva('inventario')}
+          onClick={() => {
+            setTabActiva('inventario');
+            if (onSeleccionarFiltroStock) onSeleccionarFiltroStock('todos');
+          }}
           style={{
-            background: tabActiva === 'inventario' ? '#1e273d' : '#151c2c',
+            background: tabActiva === 'inventario' && filtroStock === 'todos' ? '#1e273d' : '#151c2c',
             borderRadius: '16px',
             padding: '1.4rem',
             display: 'flex',
@@ -108,10 +113,22 @@ export const DashboardKpis = ({
         <div
           onClick={() => {
             setTabActiva('inventario');
-            if (onSeleccionarFiltroStock) onSeleccionarFiltroStock('bajo');
+            if (productosBajoStock === 0) {
+              if (onSeleccionarFiltroStock) onSeleccionarFiltroStock('todos');
+              toast.info('¡Inventario en nivel óptimo! Todos los productos tienen existencias suficientes.');
+            } else {
+              const nuevoFiltro = (tabActiva === 'inventario' && filtroStock === 'bajo') ? 'todos' : 'bajo';
+              if (onSeleccionarFiltroStock) onSeleccionarFiltroStock(nuevoFiltro);
+              if (nuevoFiltro === 'bajo') {
+                toast.warning(`Mostrando ${productosBajoStock} producto(s) con alerta de stock`);
+              } else {
+                toast.info('Mostrando catálogo completo de productos');
+              }
+            }
           }}
           style={{
-            background: '#151c2c',
+            background: tabActiva === 'inventario' && filtroStock === 'bajo' ? '#271f38' : '#151c2c',
+            border: tabActiva === 'inventario' && filtroStock === 'bajo' ? '1px solid #f59e0b' : 'none',
             borderRadius: '16px',
             padding: '1.4rem',
             display: 'flex',
@@ -120,7 +137,6 @@ export const DashboardKpis = ({
             cursor: 'pointer',
             transition: 'all 0.2s ease',
             boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
-            border: 'none',
           }}
         >
           <span
@@ -145,7 +161,7 @@ export const DashboardKpis = ({
             {productosBajoStock}
           </h3>
           <span style={{ fontSize: '0.75rem', color: productosBajoStock > 0 ? '#fbbf24' : '#86efac' }}>
-            {productosBajoStock > 0 ? 'Requieren reposición' : 'Stock en nivel óptimo'}
+            {productosBajoStock > 0 ? `${productosBajoStock} requieren reposición` : 'Stock en nivel óptimo'}
           </span>
         </div>
       )}

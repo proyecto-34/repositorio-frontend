@@ -2,25 +2,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { facturacionService } from '../../services/facturacionService';
 import { productosService } from '../../services/productosService';
+import pagosService from '../../services/pagosService';
 import { formatearCOP } from '../../utils/formatters';
 import '../../styles/pos.css';
 
-// Catálogo de respaldo inicial
-const PRODUCTOS_INICIALES = [
-  { id: 1, nombre: 'Leche Entera 1L', categoria: 'Lácteos', precio: 4200, stock: 24 },
-  { id: 2, nombre: 'Arroz Diana 1kg', categoria: 'Granos', precio: 4800, stock: 40 },
-  { id: 3, nombre: 'Huevos AA x Unidad', categoria: 'Huevos', precio: 600, stock: 120 },
-  { id: 4, nombre: 'Aceite Vegetal 900ml', categoria: 'Abarrotes', precio: 9500, stock: 15 },
-  { id: 5, nombre: 'Pan Tajado Bimbo', categoria: 'Panadería', precio: 6500, stock: 18 },
-  { id: 6, nombre: 'Café Sello Rojo 250g', categoria: 'Bebidas', precio: 7800, stock: 30 },
-  { id: 7, nombre: 'Azúcar Morena 1kg', categoria: 'Abarrotes', precio: 4300, stock: 25 },
-  { id: 8, nombre: 'Jabón Rey x Unidad', categoria: 'Aseo', precio: 2500, stock: 50 },
-  { id: 9, nombre: 'Gaseosa Coca-Cola 1.5L', categoria: 'Bebidas', precio: 5500, stock: 20 },
-  { id: 10, nombre: 'Lentejas 500g', categoria: 'Granos', precio: 3800, stock: 35 },
-];
-
 export const CajeroPosView = ({ user }) => {
-  const [catalogo, setCatalogo] = useState(PRODUCTOS_INICIALES);
+  const [catalogo, setCatalogo] = useState([]);
   const [cargandoCatalogo, setCargandoCatalogo] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
@@ -40,19 +27,22 @@ export const CajeroPosView = ({ user }) => {
     setCargandoCatalogo(true);
     try {
       const data = await productosService.obtenerProductos();
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data)) {
         const normalizados = data.map((p) => ({
           id: p.id,
           nombre: p.nombre,
           categoria: p.categoria || p.categoria_nombre || 'General',
           precio: Number(p.precio) || Number(p.precio_venta) || 0,
-          stock: Number(p.stock) !== undefined ? Number(p.stock) : 10,
+          stock: Number(p.stock !== undefined && p.stock !== null ? p.stock : (p.cantidad ?? 0)),
           codigo_barras: p.codigo_barras || p.codigo || '',
         }));
         setCatalogo(normalizados);
+      } else {
+        setCatalogo([]);
       }
     } catch (err) {
-      console.warn('Usando catálogo inicial por respaldo:', err.message);
+      console.warn('Error al cargar catálogo de la BD:', err.message);
+      setCatalogo([]);
     } finally {
       setCargandoCatalogo(false);
     }
@@ -119,16 +109,57 @@ export const CajeroPosView = ({ user }) => {
     setCarrito((prev) =>
       prev.map((item) => {
         if (item.id === id) {
-          const nuevaCantidad = item.cantidad + cambioQty;
+          const cantActual = Number(item.cantidad) || 0;
+          const nuevaCantidad = cantActual + cambioQty;
           if (nuevaCantidad <= 0) return null;
-          if (nuevaCantidad > item.stockMax) {
-            toast.warning(`Stock máximo disponible: ${item.stockMax}`);
+          if (item.stockMax && nuevaCantidad > item.stockMax) {
+            toast.warning(`Stock máximo disponible para ${item.nombre}: ${item.stockMax}`);
             return item;
           }
           return { ...item, cantidad: nuevaCantidad, total: nuevaCantidad * item.precio };
         }
         return item;
       }).filter(Boolean)
+    );
+  };
+
+  const establecerCantidadDirecta = (id, valor) => {
+    if (valor === '') {
+      setCarrito((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, cantidad: '', total: 0 } : item))
+      );
+      return;
+    }
+
+    const num = parseInt(valor, 10);
+    if (isNaN(num)) return;
+
+    setCarrito((prev) =>
+      prev.map((item) => {
+        if (item.id === id) {
+          let nuevaQty = Math.max(1, num);
+          if (item.stockMax && nuevaQty > item.stockMax) {
+            toast.warning(`Stock máximo disponible para ${item.nombre}: ${item.stockMax}`);
+            nuevaQty = item.stockMax;
+          }
+          return { ...item, cantidad: nuevaQty, total: nuevaQty * item.precio };
+        }
+        return item;
+      })
+    );
+  };
+
+  const handleBlurCantidad = (id) => {
+    setCarrito((prev) =>
+      prev.map((item) => {
+        if (item.id === id) {
+          const cant = Number(item.cantidad);
+          if (!cant || cant < 1) {
+            return { ...item, cantidad: 1, total: item.precio };
+          }
+        }
+        return item;
+      })
     );
   };
 
@@ -155,47 +186,66 @@ export const CajeroPosView = ({ user }) => {
 
     try {
       // 1. Preparar payload según CreateVentaDto de NestJS
+      const docVal = (clienteDoc || '').trim() || '222222222222';
       const ventaPayload = {
         total: Number(totalPagar) || 0,
-        cliente: (clienteNombre || '').trim() || 'Consumidor Final',
-        detalles: carrito.map((item) => ({
-          id_producto: Number(item.id),
-          cantidad: Number(item.cantidad),
-          subtotal: Number(item.total || (item.precio * item.cantidad)),
-        })),
+        cliente: docVal,
+        documento: docVal,
+        detalles: carrito.map((item) => {
+          const qty = Math.max(1, Number(item.cantidad) || 1);
+          return {
+            id_producto: Number(item.id),
+            cantidad: qty,
+            subtotal: Number(item.total || (item.precio * qty)),
+          };
+        }),
       };
 
       // 2. Enviar a NestJS (POST /ventas): inserta en BD y descuenta stock
       const ventaGuardada = await facturacionService.registrarVenta(ventaPayload);
 
-      const nroFactura = ventaGuardada?.id 
-        ? `FAC-${String(ventaGuardada.id).padStart(4, '0')}` 
-        : `FAC-${Math.floor(1000 + Math.random() * 9000)}`;
+      // 3. Registrar el Pago en la BD (POST /pagos)
+      const metodoMapeado = metodoPago === 'Tarjeta' ? 'TARJETA' : (metodoPago === 'Nequi' ? 'TRANSFERENCIA' : 'EFECTIVO');
+      try {
+        await pagosService.crearPago({
+          ventaId: ventaGuardada.id,
+          metodo: metodoMapeado,
+          monto: Number(totalPagar),
+        });
+      } catch (pagoErr) {
+        console.warn('Error al registrar pago en la BD:', pagoErr);
+      }
 
-      // 3. Generar y descargar el comprobante PDF oficial
+      const nroFactura = ventaGuardada?.id 
+        ? `FAC-${String(ventaGuardada.id).padStart(6, '0')}` 
+        : `FAC-000001`;
+
+      // 4. Generar y descargar el comprobante PDF oficial con C.C. / NIT
       try {
         facturacionService.generarTicketPDF({
           numeroFactura: nroFactura,
           cajero: user?.nombre || user?.email || 'Cajero de Turno',
-          cliente: { nombre: clienteNombre, documento: clienteDoc },
+          cliente: docVal,
+          documento: docVal,
+          clienteDoc: docVal,
           productos: carrito,
-          metodoPago,
+          metodoPago: metodoMapeado,
           montoRecibido: Number(montoRecibido) || totalPagar,
         });
       } catch (pdfErr) {
         console.warn('No se pudo generar el PDF pero la venta fue guardada en BD:', pdfErr);
       }
 
-      // 4. Actualizar estadísticas del turno
+      // 5. Actualizar estadísticas del turno
       setVentasTurno((prev) => ({
         total: prev.total + totalPagar,
         transacciones: prev.transacciones + 1,
       }));
 
-      // 5. Recargar catálogo para refrescar el stock real descontado
+      // 6. Recargar catálogo para refrescar el stock real descontado
       await cargarCatalogo();
 
-      // 6. Limpiar carrito y campos
+      // 7. Limpiar carrito y campos
       setCarrito([]);
       setMontoRecibido('');
       toast.success(`¡Venta #${nroFactura} registrada exitosamente en la BD!`);
@@ -364,14 +414,25 @@ export const CajeroPosView = ({ user }) => {
                       type="button"
                       onClick={() => actualizarCantidad(item.id, -1)}
                       className="pos-btn-step"
+                      title="Disminuir cantidad"
                     >
                       -
                     </button>
-                    <span className="pos-qty-display">{item.cantidad}</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max={item.stockMax || 9999}
+                      value={item.cantidad}
+                      onChange={(e) => establecerCantidadDirecta(item.id, e.target.value)}
+                      onBlur={() => handleBlurCantidad(item.id)}
+                      className="pos-qty-input"
+                      title="Escribe la cantidad directamente o usa +/-"
+                    />
                     <button
                       type="button"
                       onClick={() => actualizarCantidad(item.id, 1)}
                       className="pos-btn-step"
+                      title="Aumentar cantidad"
                     >
                       +
                     </button>
