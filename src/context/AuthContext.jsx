@@ -54,14 +54,30 @@ export const AuthProvider = ({ children }) => {
   const isSupervisor = activeRole === ROLES.SUPERVISOR;
   const isCajero = activeRole === ROLES.CAJERO;
 
-  // Matrices de permisos
-  const canManageUsers = isAdmin || isSupervisor;
-  const canManageInventory = isAdmin || isSupervisor;
-  const canSell = isAdmin || isCajero || isSupervisor;
+  // Matrices de permisos granulares
+  // 1. Usuarios: Ninguno para supervisor (solo ADMIN)
+  const canManageUsers = isAdmin;
+
+  // 2. Inventario/Productos: Supervisor solo puede VER
+  const canManageInventory = isAdmin;
+  const canViewInventory = isAdmin || isSupervisor;
+
+  // 3. Punto de Venta (POS): Supervisor Ninguno (solo Admin y Cajero)
+  const canSell = isAdmin || isCajero;
+
+  // 4. Reportes (PDF diario): Supervisor puede VER
   const canViewReports = isAdmin || isContador || isSupervisor;
-  const canManageSuppliers = isAdmin || isSupervisor;
-  const canManagePurchases = isAdmin || isSupervisor; // Solo Admin y Supervisor pueden registrar compras
-  const canViewPurchases = isAdmin || isSupervisor || isContador; // Contador solo consulta
+
+  // 5. Proveedores: Supervisor solo puede VER
+  const canManageSuppliers = isAdmin;
+  const canViewSuppliers = isAdmin || isSupervisor;
+
+  // 6. Compras/Entradas: Supervisor solo puede VER (igual que Contador)
+  const canManagePurchases = isAdmin;
+  const canViewPurchases = isAdmin || isSupervisor || isContador;
+
+  // 7. Notificaciones y alertas de stock: Supervisor puede VER
+  const canViewNotifications = isAdmin || isSupervisor;
 
   /**
    * Capa 3: Verificación de roles (hasAnyRole / hasAnyAuthority)
@@ -88,19 +104,33 @@ export const AuthProvider = ({ children }) => {
     const sub = (subject || '').toLowerCase();
     const act = (action || '').toLowerCase();
 
+    // 1. Usuarios: solo admin
     if (sub === 'usuarios') return canManageUsers;
-    if (sub === 'inventario' || sub === 'productos') {
-      if (act === 'view' || act === 'read') return true;
+
+    // 2. Inventario y productos: supervisor solo ver
+    if (sub === 'inventario' || sub === 'productos' || sub === 'categorias') {
+      if (act === 'view' || act === 'read' || act === 'consultar') return canViewInventory;
       return canManageInventory;
     }
-    if (sub === 'proveedores') return canManageSuppliers;
+
+    // 3. Proveedores: supervisor solo ver
+    if (sub === 'proveedores') {
+      if (act === 'view' || act === 'read' || act === 'consultar') return canViewSuppliers;
+      return canManageSuppliers;
+    }
+
+    // 4. Compras y entradas: supervisor y contador solo ver
     if (sub === 'compras' || sub === 'entradas') {
       if (act === 'view' || act === 'read' || act === 'consultar') return canViewPurchases;
       return canManagePurchases;
     }
+
+    // 5. Reportes y balances: supervisor, contador y admin pueden ver
     if (sub === 'reportes' || sub === 'balance') return canViewReports;
+
+    // 6. Ventas y POS: supervisor no puede vender
     if (sub === 'ventas' || sub === 'caja' || sub === 'pos') {
-      if (act === 'view' || act === 'read' || act === 'consultar') return canViewReports || canSell;
+      if (act === 'view' || act === 'read' || act === 'consultar') return canViewReports;
       return canSell;
     }
 
@@ -118,11 +148,14 @@ export const AuthProvider = ({ children }) => {
     isCajero,
     canManageUsers,
     canManageInventory,
+    canViewInventory,
     canSell,
     canViewReports,
     canManageSuppliers,
+    canViewSuppliers,
     canManagePurchases,
     canViewPurchases,
+    canViewNotifications,
     hasAnyRole,
     hasPermission,
     login,

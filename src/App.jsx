@@ -7,6 +7,7 @@ import CajeroPosView from './views/dashboard/CajeroPosView';
 import AdminDashboardView from './views/dashboard/AdminDashboardView';
 import FacturaModal from './components/FacturaModal';
 import NotificationBell from './components/NotificationBell';
+import ActiveTabLock from './components/ActiveTabLock';
 import { useAuth } from './context/AuthContext';
 import { ROLES, ROLE_BADGES } from './constants/roles';
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -37,6 +38,9 @@ function App() {
 
   return (
     <>
+      {/* Control de sesión única de pestaña estilo WhatsApp Web */}
+      <ActiveTabLock onLogout={handleLogout} />
+
       {/* Notificaciones globales */}
       <Toaster position="top-right" richColors />
 
@@ -68,12 +72,14 @@ function App() {
               <NotificationBell />
             )}
 
-            <button
-              onClick={() => setModalFacturaAbierto(true)}
-              className="app-navbar-btn-pdf"
-            >
-              Factura PDF
-            </button>
+            {activeRole !== ROLES.SUPERVISOR && (
+              <button
+                onClick={() => setModalFacturaAbierto(true)}
+                className="app-navbar-btn-pdf"
+              >
+                Factura PDF
+              </button>
+            )}
 
             {user && (
               <div className="app-navbar-user-box">
@@ -105,7 +111,7 @@ function App() {
           <Route path="/login" element={<LoginView />} />
           
           <Route path="/cajero" element={
-            <ProtectedRoute allowedRoles={[ROLES.CAJERO, ROLES.SUPERVISOR, ROLES.ADMIN]}>
+            <ProtectedRoute allowedRoles={[ROLES.CAJERO, ROLES.ADMIN]}>
               <CajeroPosView user={user} />
             </ProtectedRoute>
           } />
