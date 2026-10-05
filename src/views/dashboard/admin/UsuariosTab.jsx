@@ -85,9 +85,10 @@ export const UsuariosTab = ({
     try {
       await usuariosService.eliminarUsuario(id);
       toast.success(`Usuario "${nombre}" eliminado`);
-      if (onRecargar) onRecargar();
+      if (onRecargar) await onRecargar();
     } catch (err) {
-      toast.error('Error al eliminar usuario');
+      const msg = err.response?.data?.message || err.message || 'Error al eliminar usuario en la BD';
+      toast.error(`Error: ${Array.isArray(msg) ? msg.join(', ') : msg}`);
     }
   };
 
@@ -205,7 +206,6 @@ export const UsuariosTab = ({
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
               <tr style={{ background: 'rgba(30, 39, 61, 0.4)', color: '#94a3b8', textAlign: 'left' }}>
-                <th style={{ padding: '12px 14px', width: '50px', fontWeight: 700 }}># ID</th>
                 <th style={{ padding: '12px 14px', fontWeight: 700 }}>Nombre</th>
                 <th style={{ padding: '12px 14px', fontWeight: 700 }}>Correo Electrónico</th>
                 <th style={{ padding: '12px 14px', fontWeight: 700 }}>Rol</th>
@@ -216,13 +216,13 @@ export const UsuariosTab = ({
             <tbody>
               {cargando ? (
                 <tr>
-                  <td colSpan="6" style={{ padding: '2.5rem', textAlign: 'center', color: '#c4b5fd' }}>
+                  <td colSpan="5" style={{ padding: '2.5rem', textAlign: 'center', color: '#c4b5fd' }}>
                     Consultando usuarios en la base de datos...
                   </td>
                 </tr>
               ) : usuariosFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan="6" style={{ padding: '2.5rem', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan="5" style={{ padding: '2.5rem', textAlign: 'center', color: '#64748b' }}>
                     No se encontraron usuarios.
                   </td>
                 </tr>
@@ -240,7 +240,6 @@ export const UsuariosTab = ({
                         borderBottom: '1px solid rgba(255,255,255,0.03)',
                       }}
                     >
-                      <td style={{ padding: '12px 14px', color: '#c4b5fd', fontWeight: 800 }}>#{u.id}</td>
                       <td style={{ padding: '12px 14px', fontWeight: 700, color: '#f8fafc' }}>
                         {u.nombre || u.email || 'Sin nombre'}
                       </td>

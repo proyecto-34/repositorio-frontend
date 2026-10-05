@@ -219,8 +219,8 @@ export const DashboardKpis = ({
             {cargandoUsuarios ? '...' : usuariosCount}
           </h3>
           <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-            Admin: {rolesCounts.admins} &middot; Contador: {rolesCounts.contadores} &middot; Supervisor:{' '}
-            {rolesCounts.supervisores} &middot; Cajero: {rolesCounts.cajeros}
+            Admin: {rolesCounts.admins} &middot; Cajero: {rolesCounts.cajeros} &middot; Supervisor:{' '}
+            {rolesCounts.supervisores} &middot; Contador: {rolesCounts.contadores}
           </span>
         </div>
       )}

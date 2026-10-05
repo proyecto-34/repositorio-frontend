@@ -203,10 +203,10 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
   const valorTotalInventario = productos.reduce((acc, p) => acc + (Number(p.precio) || 0) * (Number(p.stock) || 0), 0);
 
   const rolesCounts = {
-    admins: usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.ADMIN).length,
-    contadores: usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.CONTADOR).length,
-    supervisores: usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.SUPERVISOR).length,
-    cajeros: usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.CAJERO).length,
+    admins: usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol?.id ?? u.rol) === ROLES.ADMIN).length,
+    cajeros: usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol?.id ?? u.rol) === ROLES.CAJERO).length,
+    supervisores: usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol?.id ?? u.rol) === ROLES.SUPERVISOR).length,
+    contadores: usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol?.id ?? u.rol) === ROLES.CONTADOR).length,
   };
 
   return (
