@@ -86,8 +86,10 @@ function App() {
 
           {/* Acciones y Perfil */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            {/* Centro de Notificaciones de la BD */}
-            <NotificationBell />
+            {/* Centro de Notificaciones de la BD (Solo Admin y Supervisor) */}
+            {(activeRole === ROLES.ADMIN || activeRole === ROLES.SUPERVISOR) && (
+              <NotificationBell />
+            )}
 
             <button
               onClick={() => setModalFacturaAbierto(true)}
@@ -178,7 +180,7 @@ function App() {
           } />
           
           <Route path="/admin" element={
-            <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.INVENTARIO, ROLES.CONTADOR]}>
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CONTADOR]}>
               <AdminDashboardView
                 user={user}
                 onOpenFactura={() => setModalFacturaAbierto(true)}

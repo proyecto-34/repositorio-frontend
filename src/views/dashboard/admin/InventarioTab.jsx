@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { productosService } from '../../../services/productosService';
+import { CATEGORIAS_DEFAULT } from '../../../services/categoriasService';
 import WeatherWidget from '../../../components/WeatherWidget';
 import Can from '../../../components/Can';
 
@@ -55,8 +56,8 @@ export const InventarioTab = ({
     setProductoEditando(prod);
     setFormularioProducto({
       nombre: prod.nombre || '',
-      id_categoria: Number(prod.id_categoria ?? 1),
-      categoria: prod.categoria || 'Granos',
+      id_categoria: Number(prod.id_categoria ?? prod.categoria?.id ?? 1),
+      categoria: prod.categoria?.nombre || prod.categoria || 'Granos',
       precio: prod.precio || prod.precio_venta || '',
       stock: prod.stock !== undefined && prod.stock !== null ? prod.stock : (prod.cantidad ?? ''),
       stock_minimo: prod.stock_minimo || '5',
@@ -586,10 +587,11 @@ export const InventarioTab = ({
                       outline: 'none',
                     }}
                   >
-                    <option value={1}>1 - Granos</option>
-                    <option value={2}>2 - Pasta</option>
-                    <option value={3}>3 - Salsas</option>
-                    <option value={4}>4 - Lácteos</option>
+                    {CATEGORIAS_DEFAULT.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.id} - {cat.nombre}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>

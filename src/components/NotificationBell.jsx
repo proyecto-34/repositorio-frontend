@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 
 export const NotificationBell = () => {
-  const { activeRole } = useAuth();
+  const { activeRole, user, isAuthenticated } = useAuth();
   const [notificaciones, setNotificaciones] = useState([]);
   const [abierto, setAbierto] = useState(false);
   const [filtro, setFiltro] = useState('todas'); // 'todas' | 'mi_rol' | 'alertas' | 'no_leidas' | 'eventos' | 'info'
@@ -16,13 +16,19 @@ export const NotificationBell = () => {
   const avisadasToastRef = useRef(new Set());
 
   useEffect(() => {
+    // Si no está autenticado o es un rol sin gestión de inventario/notificaciones (cajero, contador), no cargar
+    if (!isAuthenticated || !user || (activeRole !== 'admin' && activeRole !== 'supervisor')) {
+      setNotificaciones([]);
+      return;
+    }
+
     cargarNotificaciones(true);
     // Polling ligero cada 60s
     const interval = setInterval(() => {
       cargarNotificaciones(false);
     }, 60000);
     return () => clearInterval(interval);
-  }, [activeRole]);
+  }, [activeRole, isAuthenticated, user]);
 
   // Cerrar al hacer clic fuera
   useEffect(() => {
@@ -47,13 +53,15 @@ export const NotificationBell = () => {
         const dataFiltradaRol = notificacionesService.filtrarPorRol(data, activeRole);
         setNotificaciones(dataFiltradaRol);
 
-        // 2. Notificaciones Toast Proactivas (Sonner)
+        // 2. Notificaciones Toast Proactivas (Sonner) - Solo para Admin y Supervisor
         if (esPrimerCargue && primerCargueRef.current) {
-          const alertasSinLeer = dataFiltradaRol.filter((n) => !n.leida && n.tipo === 'ALERTA');
-          if (alertasSinLeer.length > 0) {
-            toast.warning(`⚠️ Inventario: Tienes ${alertasSinLeer.length} alerta(s) de stock pendientes.`, {
-              duration: 4500,
-            });
+          if (activeRole === 'admin' || activeRole === 'supervisor') {
+            const alertasSinLeer = dataFiltradaRol.filter((n) => !n.leida && n.tipo === 'ALERTA');
+            if (alertasSinLeer.length > 0) {
+              toast.warning(`⚠️ Inventario: Tienes ${alertasSinLeer.length} alerta(s) de stock pendientes.`, {
+                duration: 4500,
+              });
+            }
           }
           // Registrar IDs existentes para no spammear
           dataFiltradaRol.forEach((n) => avisadasToastRef.current.add(n.id));

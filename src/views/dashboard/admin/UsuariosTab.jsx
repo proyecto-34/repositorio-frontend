@@ -19,7 +19,7 @@ export const UsuariosTab = ({
     nombre: '',
     correo: '',
     contraseña: '',
-    id_rol: 5,
+    id_rol: 2,
     id_estado: 1,
   });
 
@@ -29,7 +29,7 @@ export const UsuariosTab = ({
       nombre: '',
       correo: '',
       contraseña: '',
-      id_rol: 5,
+      id_rol: 2,
       id_estado: 1,
     });
     setModalAbierto(true);
@@ -41,7 +41,7 @@ export const UsuariosTab = ({
       nombre: u.nombre || '',
       correo: u.correo || u.email || '',
       contraseña: '',
-      id_rol: Number(u.id_rol ?? u.rol?.id ?? 5),
+      id_rol: Number(u.id_rol ?? u.rol?.id ?? 2),
       id_estado: Number(u.id_estado ?? u.estado?.id ?? 1),
     });
     setModalAbierto(true);
@@ -228,7 +228,7 @@ export const UsuariosTab = ({
                 </tr>
               ) : (
                 usuariosFiltrados.map((u, idx) => {
-                  const idRolNum = Number(u.id_rol ?? u.rol?.id ?? (typeof u.rol === 'number' ? u.rol : 5));
+                  const idRolNum = Number(u.id_rol ?? u.rol?.id ?? (typeof u.rol === 'number' ? u.rol : 2));
                   const idEstadoNum = Number(u.id_estado ?? u.estado?.id ?? (typeof u.estado === 'number' ? u.estado : 1));
                   const infoRol = obtenerInfoRol(idRolNum);
 

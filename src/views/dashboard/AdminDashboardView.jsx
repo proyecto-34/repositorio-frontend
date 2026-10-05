@@ -44,14 +44,12 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     canManagePurchases,
     isAdmin,
     isContador,
-    isInventario,
     isSupervisor,
   } = useAuth();
 
   // Pestaña inicial según rol
   const [tabActiva, setTabActiva] = useState(() => {
     if (isContador) return 'reportes';
-    if (isInventario) return 'inventario';
     return 'inventario';
   });
 
@@ -87,8 +85,7 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
   // Sincronizar pestaña si el rol cambia
   useEffect(() => {
     if (isContador) setTabActiva('reportes');
-    else if (isInventario) setTabActiva('inventario');
-  }, [activeRole, isContador, isInventario]);
+  }, [activeRole, isContador]);
 
   // Consultas a los servicios
   const cargarProveedores = async () => {
@@ -152,10 +149,28 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
   const cargarVentas = async () => {
     setCargandoVentas(true);
     try {
-      const data = await facturacionService.obtenerVentas();
-      if (Array.isArray(data) && data.length > 0) setVentas(data);
+      const response = await facturacionService.obtenerVentas();
+      let rawList = [];
+      if (Array.isArray(response)) rawList = response;
+      else if (response && Array.isArray(response.data)) rawList = response.data;
+      else if (response && Array.isArray(response.ventas)) rawList = response.ventas;
+
+      if (rawList.length > 0) {
+        setVentas(
+          rawList.map((v) => ({
+            id: v.id,
+            fecha: v.fecha || new Date().toISOString(),
+            cliente: v.cliente || 'Consumidor Final',
+            documento: v.documento || '222222222',
+            cajero: v.cajero?.nombre || v.cajero || 'Cajero POS',
+            total: Number(v.total) || 0,
+            metodo: v.metodo || 'Efectivo',
+            items: v.detalles || v.items || [],
+          }))
+        );
+      }
     } catch (err) {
-      // Mantiene ventas iniciales
+      console.warn('Error al cargar ventas de la BD:', err.message);
     } finally {
       setCargandoVentas(false);
     }
@@ -189,7 +204,6 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
   const rolesCounts = {
     admins: usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.ADMIN).length,
     contadores: usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.CONTADOR).length,
-    inventarios: usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.INVENTARIO).length,
     supervisores: usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.SUPERVISOR).length,
     cajeros: usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol ?? u.role) === ROLES.CAJERO).length,
   };

@@ -127,7 +127,9 @@ export const CajeroPosView = ({ user }) => {
   const subtotal = totalPagar - iva;
   const cambio = Math.max(0, (Number(montoRecibido) || 0) - totalPagar);
 
-  const handleFinalizarVenta = () => {
+  const [guardandoVenta, setGuardandoVenta] = useState(false);
+
+  const handleFinalizarVenta = async () => {
     if (carrito.length === 0) {
       toast.error('El ticket de venta está vacío');
       return;
@@ -138,40 +140,59 @@ export const CajeroPosView = ({ user }) => {
       return;
     }
 
-    const numFactura = `FAC-${Math.floor(1000 + Math.random() * 9000)}`;
+    setGuardandoVenta(true);
 
     try {
-      facturacionService.generarTicketPDF({
-        numeroFactura: numFactura,
-        cajero: user?.nombre || user?.email || 'Cajero de Turno',
-        cliente: { nombre: clienteNombre, documento: clienteDoc },
-        productos: carrito,
-        metodoPago,
-        montoRecibido: Number(montoRecibido) || totalPagar,
-      });
+      // 1. Preparar el payload exacto según CreateVentaDto de NestJS
+      const ventaPayload = {
+        total: Number(totalPagar) || 0,
+        cliente: (clienteNombre || '').trim() || 'Consumidor Final',
+        detalles: carrito.map((item) => ({
+          id_producto: Number(item.id),
+          cantidad: Number(item.cantidad),
+          subtotal: Number(item.total || (item.precio * item.cantidad)),
+        })),
+      };
 
+      // 2. Enviar a NestJS (POST /ventas): inserta en ventas, detalle_venta y descuenta stock en MySQL
+      const ventaGuardada = await facturacionService.registrarVenta(ventaPayload);
+
+      const nroFactura = ventaGuardada?.id 
+        ? `FAC-${String(ventaGuardada.id).padStart(4, '0')}` 
+        : `FAC-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      // 3. Generar y descargar el comprobante PDF oficial
+      try {
+        facturacionService.generarTicketPDF({
+          numeroFactura: nroFactura,
+          cajero: user?.nombre || user?.email || 'Cajero de Turno',
+          cliente: { nombre: clienteNombre, documento: clienteDoc },
+          productos: carrito,
+          metodoPago,
+          montoRecibido: Number(montoRecibido) || totalPagar,
+        });
+      } catch (pdfErr) {
+        console.warn('No se pudo generar el PDF pero la venta fue guardada en BD:', pdfErr);
+      }
+
+      // 4. Actualizar estadísticas del turno en pantalla
       setVentasTurno((prev) => ({
         total: prev.total + totalPagar,
         transacciones: prev.transacciones + 1,
       }));
 
-      setCatalogo((prevCatalogo) =>
-        prevCatalogo.map((prod) => {
-          const itemVendido = carrito.find((c) => c.id === prod.id);
-          if (itemVendido) {
-            const nuevoStock = Math.max(0, prod.stock - itemVendido.cantidad);
-            productosService.actualizarProducto(prod.id, { stock: nuevoStock }).catch(() => {});
-            return { ...prod, stock: nuevoStock };
-          }
-          return prod;
-        })
-      );
+      // 5. Recargar catálogo para refrescar el stock real descontado de la BD
+      await cargarCatalogo();
 
+      // 6. Limpiar carrito y campos
       setCarrito([]);
       setMontoRecibido('');
-      toast.success(`¡Venta #${numFactura} registrada y ticket PDF descargado!`);
-    } catch {
-      toast.error('Error al generar comprobante de venta');
+      toast.success(`¡Venta #${nroFactura} registrada exitosamente en la BD!`);
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Error al procesar la venta en la BD';
+      toast.error(`Error: ${Array.isArray(msg) ? msg.join(', ') : msg}`);
+    } finally {
+      setGuardandoVenta(false);
     }
   };
 
@@ -658,27 +679,27 @@ export const CajeroPosView = ({ user }) => {
 
         <button
           onClick={handleFinalizarVenta}
-          disabled={carrito.length === 0}
+          disabled={carrito.length === 0 || guardandoVenta}
           style={{
-            background: carrito.length === 0 ? '#1e273d' : '#8b5cf6',
+            background: carrito.length === 0 || guardandoVenta ? '#1e273d' : '#8b5cf6',
             color: '#fff',
             border: 'none',
             padding: '14px',
             borderRadius: '12px',
-            cursor: carrito.length === 0 ? 'not-allowed' : 'pointer',
+            cursor: carrito.length === 0 || guardandoVenta ? 'not-allowed' : 'pointer',
             fontWeight: 800,
             fontSize: '0.95rem',
             transition: 'background 0.2s ease',
-            boxShadow: carrito.length > 0 ? '0 4px 20px rgba(139, 92, 246, 0.4)' : 'none'
+            boxShadow: carrito.length > 0 && !guardandoVenta ? '0 4px 20px rgba(139, 92, 246, 0.4)' : 'none'
           }}
           onMouseEnter={(e) => {
-            if (carrito.length > 0) e.currentTarget.style.background = '#7c3aed';
+            if (carrito.length > 0 && !guardandoVenta) e.currentTarget.style.background = '#7c3aed';
           }}
           onMouseLeave={(e) => {
-            if (carrito.length > 0) e.currentTarget.style.background = '#8b5cf6';
+            if (carrito.length > 0 && !guardandoVenta) e.currentTarget.style.background = '#8b5cf6';
           }}
         >
-          Cobrar y Emitir Factura PDF
+          {guardandoVenta ? 'Procesando y Guardando en BD...' : 'Cobrar y Emitir Factura PDF'}
         </button>
       </section>
     </div>

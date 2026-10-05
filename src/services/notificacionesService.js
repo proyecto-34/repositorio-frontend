@@ -233,17 +233,6 @@ export const notificacionesService = {
         );
       }
 
-      if (rol === 'inventario') {
-        // Inventario: Todas las alertas de stock, compras a proveedores y productos
-        return (
-          tipo === 'ALERTA' ||
-          msg.includes('stock') ||
-          msg.includes('producto') ||
-          msg.includes('proveedor') ||
-          msg.includes('compra')
-        );
-      }
-
       if (rol === 'contador') {
         // Contador: Ventas, facturación, compras, balance
         return (

@@ -19,7 +19,7 @@ export const DashboardKpis = ({
   cargandoProveedores = false,
   usuariosCount = 0,
   cargandoUsuarios = false,
-  rolesCounts = { admins: 0, contadores: 0, inventarios: 0, supervisores: 0, cajeros: 0 },
+  rolesCounts = { admins: 0, contadores: 0, supervisores: 0, cajeros: 0 },
 }) => {
   return (
     <div
@@ -219,8 +219,8 @@ export const DashboardKpis = ({
             {cargandoUsuarios ? '...' : usuariosCount}
           </h3>
           <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-            Admin: {rolesCounts.admins} &middot; Contador: {rolesCounts.contadores} &middot; Bodega:{' '}
-            {rolesCounts.inventarios} &middot; Cajero: {rolesCounts.cajeros}
+            Admin: {rolesCounts.admins} &middot; Contador: {rolesCounts.contadores} &middot; Supervisor:{' '}
+            {rolesCounts.supervisores} &middot; Cajero: {rolesCounts.cajeros}
           </span>
         </div>
       )}
