@@ -63,6 +63,7 @@ function App() {
   };
 
   const isPublicPage = location.pathname === '/' || location.pathname === '/login';
+  const isAdminPage = location.pathname.startsWith('/admin');
   const roleInfo = ROLE_BADGES[activeRole] || ROLE_BADGES[ROLES.ADMIN];
 
   return (
@@ -84,8 +85,8 @@ function App() {
         />
       </Suspense>
 
-      {/* Barra superior de navegación */}
-      {!isPublicPage && (
+      {/* Barra superior de navegación para vistas privadas estándar (en admin se usa su propia barra integrada) */}
+      {!isPublicPage && !isAdminPage && (
         <nav className="app-navbar">
           {/* Marca */}
           <div 
@@ -102,27 +103,29 @@ function App() {
 
           {/* Acciones y Perfil */}
           <div className="app-navbar-actions">
-            {/* Bloqueo Manual de Pantalla por Seguridad */}
-            <button
-              type="button"
-              onClick={() => window.dispatchEvent(new CustomEvent('tc_lock_screen'))}
-              className="app-navbar-btn-lock"
-              title="Bloquear pantalla ahora (Seguridad de Caja)"
-              aria-label="Bloquear pantalla"
-            >
-              <Lock size={15} />
-            </button>
+            <div className="app-navbar-utilities">
+              {/* Bloqueo Manual de Pantalla por Seguridad */}
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('tc_lock_screen'))}
+                className="app-navbar-btn-lock"
+                title="Bloquear pantalla ahora (Seguridad de Caja)"
+                aria-label="Bloquear pantalla"
+              >
+                <Lock size={15} />
+              </button>
 
-            {/* Selector de Accesibilidad: Tamaño de Texto (WCAG) */}
-            <FontSizeToggle />
+              {/* Selector de Accesibilidad: Tamaño de Texto (WCAG) */}
+              <FontSizeToggle />
 
-            {/* Alternador de Modo Claro / Modo Oscuro */}
-            <ThemeToggle />
+              {/* Alternador de Modo Claro / Modo Oscuro */}
+              <ThemeToggle />
 
-            {/* Centro de Notificaciones de la BD (Solo Admin y Supervisor) */}
-            {(activeRole === ROLES.ADMIN || activeRole === ROLES.SUPERVISOR) && (
-              <NotificationBell />
-            )}
+              {/* Centro de Notificaciones de la BD (Solo Admin y Supervisor) */}
+              {(activeRole === ROLES.ADMIN || activeRole === ROLES.SUPERVISOR) && (
+                <NotificationBell />
+              )}
+            </div>
 
             {activeRole !== ROLES.SUPERVISOR && (
               <button
@@ -154,7 +157,7 @@ function App() {
       )}
 
       {/* Cuerpo principal de la aplicación */}
-      <main className={`app-main-layout ${isPublicPage ? 'public' : 'private'}`}>
+      <main className={`app-main-layout ${isPublicPage ? 'public' : 'private'} ${isAdminPage ? 'admin-layout-root' : ''}`}>
         <Suspense fallback={<ModuleLoader />}>
           <Routes>
             {/* Ruta principal: Presentación del proyecto */}
@@ -175,6 +178,7 @@ function App() {
                   user={user}
                   onOpenFactura={() => setModalFacturaAbierto(true)}
                   onAbrirPos={() => navigate('/cajero')}
+                  onLogout={handleLogout}
                 />
               </ProtectedRoute>
             } />

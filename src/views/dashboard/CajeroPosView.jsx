@@ -1,5 +1,21 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
+import {
+  Search,
+  RefreshCw,
+  Trash2,
+  Plus,
+  Minus,
+  User as UserIcon,
+  DollarSign,
+  Receipt,
+  CreditCard,
+  Smartphone,
+  Banknote,
+  ShoppingBag,
+  CheckCircle2,
+  X,
+} from 'lucide-react';
 import { facturacionService } from '../../services/facturacionService';
 import { productosService } from '../../services/productosService';
 import pagosService from '../../services/pagosService';
@@ -47,10 +63,25 @@ export const CajeroPosView = ({ user }) => {
     }
   };
 
-  // Categorías dinámicas memoizadas
+  // Categorías con conteo de productos para píldoras dinámicas
   const categorias = useMemo(() => {
-    return ['Todas', ...new Set(catalogo.map((p) => p.categoria || 'General'))];
+    const conteo = {};
+    catalogo.forEach((p) => {
+      const cat = p.categoria || 'General';
+      conteo[cat] = (conteo[cat] || 0) + 1;
+    });
+    return [
+      { nombre: 'Todas', total: catalogo.length },
+      ...Object.keys(conteo).map((nombre) => ({ nombre, total: conteo[nombre] })),
+    ];
   }, [catalogo]);
+
+  // Mapa rápido de productos en carrito para feedback visual en las tarjetas
+  const carritoMap = useMemo(() => {
+    const map = new Map();
+    carrito.forEach((item) => map.set(item.id, item));
+    return map;
+  }, [carrito]);
 
   // Filtro de productos optimizado
   const productosFiltrados = useMemo(() => {
@@ -257,31 +288,67 @@ export const CajeroPosView = ({ user }) => {
     }
   };
 
+  const totalUnidadesCarrito = useMemo(() => {
+    return carrito.reduce((acc, it) => acc + (Number(it.cantidad) || 0), 0);
+  }, [carrito]);
+
+  // Sugerencias de efectivo redondeado
+  const sugerenciasEfectivo = useMemo(() => {
+    if (totalPagar <= 0) return [];
+    const list = [totalPagar];
+    const red10 = Math.ceil(totalPagar / 10000) * 10000;
+    if (red10 > totalPagar && !list.includes(red10)) list.push(red10);
+    const red20 = Math.ceil(totalPagar / 20000) * 20000;
+    if (red20 > totalPagar && !list.includes(red20)) list.push(red20);
+    const red50 = Math.ceil(totalPagar / 50000) * 50000;
+    if (red50 > totalPagar && !list.includes(red50)) list.push(red50);
+    return list.slice(0, 4);
+  }, [totalPagar]);
+
   return (
     <div className="pos-container">
       {/* Columna Izquierda: Catálogo y Búsqueda */}
       <section className="pos-catalog-section">
         {/* Cabecera del POS */}
         <div className="pos-header-card">
-          <div>
+          <div className="pos-header-left">
+            <span className="pos-header-status-badge">
+              <span className="pos-header-status-dot" />
+              Terminal en Línea · BD Sincronizada
+            </span>
             <div className="pos-header-title-row">
-              <span className="pos-header-dot" />
               <h2 className="pos-header-title">Punto de Venta (POS)</h2>
             </div>
             <p className="pos-header-subtitle">
-              Atención en caja &middot; Cajero: <strong>{user?.nombre || user?.email || 'Cajero'}</strong>
+              <UserIcon size={14} style={{ color: 'var(--text-muted)' }} />
+              Atención en caja &middot; Cajero: <strong>{user?.nombre || user?.email || 'Cajero de Turno'}</strong>
             </p>
           </div>
 
-          {/* Resumen del Turno */}
+          {/* Resumen del Turno con Micro-Tarjetas */}
           <div className="pos-turn-summary">
-            <div>
-              <span className="pos-turn-stat-label">Ventas del Turno</span>
-              <strong className="pos-turn-stat-value-green notranslate" translate="no">{formatearCOP(ventasTurno.total)}</strong>
+            <div className="pos-turn-stat-card">
+              <div className="pos-turn-stat-icon green">
+                <DollarSign size={18} />
+              </div>
+              <div>
+                <span className="pos-turn-stat-label">Ventas del Turno</span>
+                <strong className="pos-turn-stat-value-green notranslate" translate="no">
+                  {formatearCOP(ventasTurno.total)}
+                </strong>
+              </div>
             </div>
-            <div style={{ paddingLeft: '14px', borderLeft: '1px solid var(--border-color)' }}>
-              <span className="pos-turn-stat-label">Tickets</span>
-              <strong className="pos-turn-stat-value-purple">{ventasTurno.transacciones}</strong>
+
+            <div className="pos-turn-stat-card">
+              <div className="pos-turn-stat-icon blue">
+                <Receipt size={18} />
+              </div>
+              <div>
+                <span className="pos-turn-stat-label">Tickets Emitidos</span>
+                <strong className="pos-turn-stat-value-purple">
+                  {ventasTurno.transacciones}
+                </strong>
+              </div>
             </div>
           </div>
         </div>
@@ -290,6 +357,7 @@ export const CajeroPosView = ({ user }) => {
         <div className="pos-search-card">
           <div className="pos-search-row">
             <div className="pos-search-input-wrapper">
+              <Search size={18} className="pos-search-input-icon" />
               <input
                 type="text"
                 placeholder="Buscar por nombre o código de barras..."
@@ -297,6 +365,17 @@ export const CajeroPosView = ({ user }) => {
                 onChange={(e) => setBusqueda(e.target.value)}
                 className="pos-search-input"
               />
+              {busqueda && (
+                <button
+                  type="button"
+                  onClick={() => setBusqueda('')}
+                  className="pos-search-clear-btn"
+                  title="Limpiar búsqueda"
+                  aria-label="Limpiar búsqueda"
+                >
+                  <X size={15} />
+                </button>
+              )}
             </div>
 
             <button
@@ -304,21 +383,24 @@ export const CajeroPosView = ({ user }) => {
               onClick={cargarCatalogo}
               disabled={cargandoCatalogo}
               className="pos-btn-reload"
+              title="Recargar catálogo desde la base de datos"
             >
-              {cargandoCatalogo ? 'Cargando...' : 'Actualizar'}
+              <RefreshCw size={15} style={{ animation: cargandoCatalogo ? 'posPulse 1s linear infinite' : 'none' }} />
+              <span>{cargandoCatalogo ? 'Cargando...' : 'Actualizar'}</span>
             </button>
           </div>
 
-          {/* Categorías */}
+          {/* Categorías con Contador */}
           <div className="pos-categories-pill-list">
             {categorias.map((cat) => (
               <button
-                key={cat}
+                key={cat.nombre}
                 type="button"
-                onClick={() => setCategoriaSeleccionada(cat)}
-                className={`pos-category-pill ${categoriaSeleccionada === cat ? 'active' : ''}`}
+                onClick={() => setCategoriaSeleccionada(cat.nombre)}
+                className={`pos-category-pill ${categoriaSeleccionada === cat.nombre ? 'active' : ''}`}
               >
-                {cat}
+                <span>{cat.nombre}</span>
+                <span className="pos-category-pill-count">{cat.total}</span>
               </button>
             ))}
           </div>
@@ -328,26 +410,45 @@ export const CajeroPosView = ({ user }) => {
         <div className="pos-products-grid">
           {productosFiltrados.map((prod) => {
             const agotado = prod.stock <= 0;
-            const stockClase = agotado ? 'agotado' : prod.stock < 10 ? 'bajo' : 'normal';
+            const bajo = prod.stock < 10 && !agotado;
+            const stockClase = agotado ? 'agotado' : bajo ? 'bajo' : 'normal';
+            const itemInCart = carritoMap.get(prod.id);
 
             return (
               <div
                 key={prod.id}
                 onClick={() => !agotado && agregarAlCarrito(prod)}
-                className={`pos-product-card ${agotado ? 'agotado' : ''}`}
+                className={`pos-product-card ${agotado ? 'agotado' : ''} ${itemInCart ? 'in-cart' : ''}`}
+                title={agotado ? 'Producto agotado' : `Clic para agregar al ticket (Stock: ${prod.stock})`}
               >
+                {itemInCart && (
+                  <span className="pos-in-cart-indicator">
+                    <ShoppingBag size={11} /> {itemInCart.cantidad}
+                  </span>
+                )}
+
                 <div className="pos-product-card-top">
                   <span className="pos-category-badge">{prod.categoria}</span>
                   <span className={`pos-stock-badge ${stockClase}`}>
+                    <span className="pos-stock-dot" />
                     {agotado ? 'Agotado' : `${prod.stock} un.`}
                   </span>
                 </div>
 
                 <div className="pos-product-name">{prod.nombre}</div>
 
+                <span className="pos-card-sku">
+                  Cód: {prod.codigo_barras || `ID-${prod.id}`}
+                </span>
+
                 <div className="pos-product-bottom">
-                  <strong className="pos-product-price notranslate" translate="no">{formatearCOP(prod.precio)}</strong>
-                  <div className="pos-btn-add">+ Agregar</div>
+                  <strong className="pos-product-price notranslate" translate="no">
+                    {formatearCOP(prod.precio)}
+                  </strong>
+                  <div className="pos-btn-add">
+                    <Plus size={13} />
+                    <span>{itemInCart ? 'Sumar' : 'Agregar'}</span>
+                  </div>
                 </div>
               </div>
             );
@@ -359,24 +460,44 @@ export const CajeroPosView = ({ user }) => {
       <section className="pos-ticket-panel">
         {/* Encabezado del Ticket */}
         <div className="pos-ticket-header">
-          <div>
-            <h3 className="pos-ticket-title">Ticket de Venta</h3>
-            <span className="pos-ticket-subtitle">
-              {carrito.length} {carrito.length === 1 ? 'producto' : 'productos'} agregados
-            </span>
+          <div className="pos-ticket-title-row">
+            <Receipt size={22} style={{ color: 'var(--accent-primary)' }} />
+            <div>
+              <h3 className="pos-ticket-title">Ticket de Venta</h3>
+              <span className="pos-ticket-subtitle">
+                {totalUnidadesCarrito} {totalUnidadesCarrito === 1 ? 'unidad' : 'unidades'} · {carrito.length} {carrito.length === 1 ? 'producto' : 'productos'}
+              </span>
+            </div>
           </div>
+
           {carrito.length > 0 && (
-            <button type="button" onClick={vaciarCarrito} className="pos-btn-vaciar">
-              Vaciar
+            <button
+              type="button"
+              onClick={vaciarCarrito}
+              className="pos-btn-vaciar"
+              title="Vaciar ticket completo"
+            >
+              <Trash2 size={13} />
+              <span>Vaciar</span>
             </button>
           )}
         </div>
 
         {/* Documento del Cliente (C.C. / NIT) */}
         <div className="pos-customer-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <label className="pos-field-label">C.C. / NIT del Cliente</label>
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>222222222222 = Consumidor Final</span>
+          <div className="pos-customer-header">
+            <label className="pos-field-label">
+              <UserIcon size={13} />
+              C.C. / NIT del Cliente
+            </label>
+            <button
+              type="button"
+              onClick={() => setClienteDoc('222222222222')}
+              className="pos-quick-consumer-btn"
+              title="Usar documento de Consumidor Final predeterminado"
+            >
+              Consumidor Final
+            </button>
           </div>
           <input
             type="text"
@@ -391,14 +512,24 @@ export const CajeroPosView = ({ user }) => {
         <div className="pos-cart-list">
           {carrito.length === 0 ? (
             <div className="pos-cart-empty">
-              <p style={{ margin: 0, fontSize: '0.88rem' }}>Selecciona productos del catálogo para agregarlos al ticket.</p>
+              <ShoppingBag size={34} className="pos-cart-empty-icon" />
+              <p style={{ margin: 0, fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.92rem' }}>
+                El ticket está vacío
+              </p>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Selecciona productos del catálogo para comenzar a facturar.
+              </span>
             </div>
           ) : (
             carrito.map((item) => (
               <div key={item.id} className="pos-cart-item">
                 <div className="pos-cart-item-info">
-                  <div className="pos-cart-item-name">{item.nombre}</div>
-                  <span className="pos-cart-item-price notranslate" translate="no">{formatearCOP(item.precio)} c/u</span>
+                  <div className="pos-cart-item-name" title={item.nombre}>
+                    {item.nombre}
+                  </div>
+                  <span className="pos-cart-item-price notranslate" translate="no">
+                    {formatearCOP(item.precio)} c/u
+                  </span>
                 </div>
 
                 <div className="pos-cart-item-actions">
@@ -408,8 +539,9 @@ export const CajeroPosView = ({ user }) => {
                       onClick={() => actualizarCantidad(item.id, -1)}
                       className="pos-btn-step"
                       title="Disminuir cantidad"
+                      aria-label="Disminuir cantidad"
                     >
-                      -
+                      <Minus size={13} />
                     </button>
                     <input
                       type="number"
@@ -419,26 +551,31 @@ export const CajeroPosView = ({ user }) => {
                       onChange={(e) => establecerCantidadDirecta(item.id, e.target.value)}
                       onBlur={() => handleBlurCantidad(item.id)}
                       className="pos-qty-input"
-                      title="Escribe la cantidad directamente o usa +/-"
+                      title="Escribe la cantidad directamente"
                     />
                     <button
                       type="button"
                       onClick={() => actualizarCantidad(item.id, 1)}
                       className="pos-btn-step"
                       title="Aumentar cantidad"
+                      aria-label="Aumentar cantidad"
                     >
-                      +
+                      <Plus size={13} />
                     </button>
                   </div>
 
-                  <strong className="pos-cart-item-total notranslate" translate="no">{formatearCOP(item.total)}</strong>
+                  <strong className="pos-cart-item-total notranslate" translate="no">
+                    {formatearCOP(item.total)}
+                  </strong>
 
                   <button
                     type="button"
                     onClick={() => eliminarDelCarrito(item.id)}
                     className="pos-btn-quitar"
+                    title="Quitar este producto"
+                    aria-label="Quitar producto"
                   >
-                    Quitar
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </div>
@@ -448,37 +585,72 @@ export const CajeroPosView = ({ user }) => {
 
         {/* Selector de Método de Pago */}
         <div className="pos-payment-section">
-          <label className="pos-field-label" style={{ marginBottom: '8px' }}>Método de Pago</label>
+          <label className="pos-field-label">Método de Pago</label>
           <div className="pos-payment-grid">
-            {['Efectivo', 'Nequi', 'Tarjeta'].map((metodo) => (
-              <button
-                key={metodo}
-                type="button"
-                onClick={() => setMetodoPago(metodo)}
-                className={`pos-payment-btn ${metodoPago === metodo ? 'active' : ''}`}
-              >
-                {metodo}
-              </button>
-            ))}
+            <button
+              type="button"
+              onClick={() => setMetodoPago('Efectivo')}
+              className={`pos-payment-btn ${metodoPago === 'Efectivo' ? 'active' : ''}`}
+            >
+              <Banknote size={18} />
+              <span>Efectivo</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMetodoPago('Nequi')}
+              className={`pos-payment-btn ${metodoPago === 'Nequi' ? 'active' : ''}`}
+            >
+              <Smartphone size={18} />
+              <span>Nequi</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMetodoPago('Tarjeta')}
+              className={`pos-payment-btn ${metodoPago === 'Tarjeta' ? 'active' : ''}`}
+            >
+              <CreditCard size={18} />
+              <span>Tarjeta</span>
+            </button>
           </div>
         </div>
 
         {/* Monto Recibido y Cambio */}
         {metodoPago === 'Efectivo' && (
           <div className="pos-cash-calculator">
-            <div>
-              <label className="pos-field-label">Recibido ($)</label>
-              <input
-                type="number"
-                placeholder={totalPagar.toString()}
-                value={montoRecibido}
-                onChange={(e) => setMontoRecibido(e.target.value)}
-                className="pos-cash-input"
-              />
-            </div>
-            <div>
-              <span className="pos-field-label">Cambio / Vueltas</span>
-              <strong className="pos-cash-change notranslate" translate="no">{formatearCOP(cambio)}</strong>
+            {totalPagar > 0 && (
+              <div className="pos-cash-quick-chips">
+                {sugerenciasEfectivo.map((monto, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setMontoRecibido(monto.toString())}
+                    className="pos-quick-chip"
+                  >
+                    {idx === 0 ? 'Exacto' : formatearCOP(monto)}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="pos-cash-inputs-grid">
+              <div>
+                <label className="pos-field-label">Recibido ($)</label>
+                <input
+                  type="number"
+                  placeholder={totalPagar.toString()}
+                  value={montoRecibido}
+                  onChange={(e) => setMontoRecibido(e.target.value)}
+                  className="pos-cash-input"
+                />
+              </div>
+              <div>
+                <span className="pos-field-label">Cambio / Vueltas</span>
+                <strong className="pos-cash-change notranslate" translate="no">
+                  {formatearCOP(cambio)}
+                </strong>
+              </div>
             </div>
           </div>
         )}
@@ -504,7 +676,17 @@ export const CajeroPosView = ({ user }) => {
           disabled={carrito.length === 0 || guardandoVenta}
           className="pos-btn-checkout"
         >
-          {guardandoVenta ? 'Procesando y Guardando en BD...' : 'Cobrar y Emitir Factura PDF'}
+          {guardandoVenta ? (
+            <>
+              <RefreshCw size={18} style={{ animation: 'posPulse 1s linear infinite' }} />
+              <span>Procesando y Guardando en BD...</span>
+            </>
+          ) : (
+            <>
+              <CheckCircle2 size={20} />
+              <span>Cobrar y Emitir Factura PDF</span>
+            </>
+          )}
         </button>
       </section>
     </div>

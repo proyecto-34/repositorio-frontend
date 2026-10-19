@@ -58,8 +58,9 @@ export const AuthProvider = ({ children }) => {
   // 1. Usuarios: Ninguno para supervisor (solo ADMIN)
   const canManageUsers = isAdmin;
 
-  // 2. Inventario/Productos: Supervisor solo puede VER
+  // 2. Inventario/Productos: Supervisor puede VER y CREAR/AGREGAR productos
   const canManageInventory = isAdmin;
+  const canCreateProducts = isAdmin || isSupervisor;
   const canViewInventory = isAdmin || isSupervisor;
 
   // 3. Punto de Venta (POS): Supervisor Ninguno (solo Admin y Cajero)
@@ -107,9 +108,10 @@ export const AuthProvider = ({ children }) => {
     // 1. Usuarios: solo admin
     if (sub === 'usuarios') return canManageUsers;
 
-    // 2. Inventario y productos: supervisor solo ver
+    // 2. Inventario y productos: supervisor puede ver y agregar/crear productos y categorías
     if (sub === 'inventario' || sub === 'productos' || sub === 'categorias') {
       if (act === 'view' || act === 'read' || act === 'consultar') return canViewInventory;
+      if (act === 'create' || act === 'crear' || act === 'agregar') return canCreateProducts;
       return canManageInventory;
     }
 
@@ -148,6 +150,7 @@ export const AuthProvider = ({ children }) => {
     isCajero,
     canManageUsers,
     canManageInventory,
+    canCreateProducts,
     canViewInventory,
     canSell,
     canViewReports,

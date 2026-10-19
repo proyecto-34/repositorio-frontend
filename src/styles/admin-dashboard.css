@@ -1,67 +1,394 @@
 /* ==========================================================================
-   PANEL ADMINISTRATIVO (DASHBOARD) - ADAPTABLE (CLARO / OSCURO)
+   PANEL ADMINISTRATIVO (DASHBOARD) - DISEÑO PROFESIONAL CON SIDEBAR
    ========================================================================== */
 
-.admin-dashboard-container {
-  max-width: 100%;
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
   width: 100%;
-  margin: 0;
+  background-color: var(--bg-main);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ==========================================
+   SIDEBAR LATERAL OSCURO (DESPLEGABLE)
+   ========================================== */
+.admin-sidebar {
+  width: 250px;
+  min-width: 250px;
+  background-color: #0c1322;
+  color: #f8fafc;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s ease;
+  z-index: 100;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  user-select: none;
 }
 
-/* Selector de Pestañas Adaptable */
-.admin-tabs-bar {
+.admin-shell.sidebar-collapsed .admin-sidebar {
+  width: 76px;
+  min-width: 76px;
+}
+
+/* Encabezado del Sidebar (Logo + Marca) */
+.admin-sidebar-header {
+  height: 64px;
   display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.75rem;
-  transition: border-color 0.25s ease;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.admin-tab-btn {
-  border: 1px solid var(--border-color);
-  padding: 8px 18px;
-  border-radius: 8px;
+.admin-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #ffffff;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.admin-brand-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #3b82f6;
+  box-shadow: 0 0 10px #3b82f6;
+  flex-shrink: 0;
+}
+
+.admin-brand-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: #ffffff;
+  transition: opacity 0.2s ease;
+}
+
+.admin-shell.sidebar-collapsed .admin-brand-title {
+  display: none;
+}
+
+.admin-sidebar-toggle-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
   cursor: pointer;
-  font-weight: 700;
-  font-size: 0.88rem;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s ease;
-  background: var(--bg-surface);
-  color: var(--text-secondary);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
-.admin-tab-btn:hover:not(.active) {
+.admin-sidebar-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+/* Navegación del Sidebar */
+.admin-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 1.25rem 0.75rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.admin-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: #94a3b8;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: left;
+  width: 100%;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.admin-sidebar-item:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f1f5f9;
+}
+
+.admin-sidebar-item.active {
+  background: #1d4ed8;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(29, 78, 216, 0.4);
+}
+
+.admin-sidebar-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-sidebar-label {
+  transition: opacity 0.2s ease;
+}
+
+.admin-shell.sidebar-collapsed .admin-sidebar-label {
+  display: none;
+}
+
+.admin-shell.sidebar-collapsed .admin-sidebar-item {
+  justify-content: center;
+  padding: 12px;
+}
+
+/* Pie del Sidebar */
+.admin-sidebar-footer {
+  padding: 1rem 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ==========================================
+   ÁREA PRINCIPAL Y BARRA SUPERIOR
+   ========================================== */
+.admin-main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background-color: var(--bg-main);
+  transition: all 0.25s ease;
+}
+
+.admin-top-bar {
+  height: 64px;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.75rem;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.admin-top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  max-width: 600px;
+}
+
+.admin-pos-badge {
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--accent-primary);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.admin-global-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 360px;
+}
+
+.admin-global-search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.admin-global-search-box input {
+  width: 100%;
+  background: var(--bg-subtle) !important;
+  border: 1px solid var(--border-color) !important;
+  padding: 8px 14px 8px 36px !important;
+  border-radius: 10px !important;
+  font-size: 0.88rem !important;
+  color: var(--text-primary) !important;
+  transition: all 0.2s ease !important;
+}
+
+.admin-global-search-box input:focus {
+  border-color: var(--accent-primary) !important;
+  background: var(--bg-surface) !important;
+  box-shadow: 0 0 0 3px var(--accent-primary-subtle) !important;
+}
+
+.admin-top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.admin-utilities-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 0.75rem;
+  border-right: 1px solid var(--border-color);
+}
+
+.admin-btn-lock {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-btn-lock:hover {
   background: var(--accent-primary-subtle);
-  color: var(--accent-text);
+  color: var(--accent-primary);
   border-color: var(--accent-primary-border);
 }
 
-.admin-tab-btn.active,
-.admin-tab-btn.active.purple,
-.admin-tab-btn.active.green,
-.admin-tab-btn.active.blue {
-  background: var(--accent-primary);
-  color: #ffffff;
-  border-color: var(--accent-primary-hover);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+.admin-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 
-/* Tablas Administrativas */
+.admin-btn-logout {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-btn-logout:hover {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+}
+
+/* ==========================================
+   CONTENIDO INTERNO DEL DASHBOARD
+   ========================================== */
+.admin-body-content {
+  padding: 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  max-width: 1720px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Grid de Inventario de 2 Columnas (Estilo Referencia) */
+.inventario-layout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1200px) {
+  .inventario-layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-mobile-menu-trigger {
+  display: none;
+}
+
+/* Mobile drawer y backdrop */
+.admin-sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .admin-mobile-menu-trigger {
+    display: flex;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+  }
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .admin-shell.mobile-open .admin-sidebar {
+    transform: translateX(0);
+  }
+
+  .admin-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 90;
+    backdrop-filter: blur(2px);
+  }
+
+  .admin-body-content {
+    padding: 1.25rem 1rem;
+  }
+}
+
+/* Contenedores de Tablas Administrativas con marco limpio */
 .admin-dashboard-container table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .admin-dashboard-container th {
   background-color: var(--bg-subtle) !important;
   color: var(--text-secondary) !important;
   font-weight: 700 !important;
+  font-size: 0.78rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
   border-bottom: 1px solid var(--border-color) !important;
-  padding: 10px 14px !important;
+  padding: 14px 18px !important;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
@@ -81,22 +408,26 @@
 .admin-dashboard-container td {
   border-bottom: 1px solid var(--border-subtle) !important;
   color: var(--text-primary) !important;
-  padding: 10px 14px !important;
-  transition: color 0.25s ease;
+  padding: 15px 18px !important;
+  font-size: 0.89rem !important;
+  line-height: 1.45 !important;
+  transition: background-color 0.2s ease, color 0.25s ease;
 }
 
 .admin-dashboard-container tr:hover td {
   background-color: var(--bg-surface-elevated) !important;
 }
 
-/* Inputs, Selects y Textareas */
+/* Inputs, Selects y Textareas con padding cómodo */
 .admin-dashboard-container input:not([type="checkbox"]):not([type="radio"]),
 .admin-dashboard-container select,
 .admin-dashboard-container textarea {
   background-color: var(--bg-input) !important;
   border: 1px solid var(--border-input) !important;
   color: var(--text-primary) !important;
-  border-radius: 8px !important;
+  border-radius: 10px !important;
+  padding: 11px 16px !important;
+  font-size: 0.9rem !important;
   transition: all 0.2s ease !important;
 }
 
@@ -107,3 +438,4 @@
   box-shadow: 0 0 0 3px var(--accent-primary-subtle) !important;
   outline: none !important;
 }
+
