@@ -311,7 +311,7 @@ export const ComprasTab = ({
       {/* Cabecera del Módulo */}
       <div
         style={{
-          background: '#151c2c',
+          background: 'var(--bg-surface)',
           borderRadius: '16px',
           padding: '1.4rem 1.6rem',
           display: 'flex',
@@ -319,17 +319,17 @@ export const ComprasTab = ({
           alignItems: 'center',
           flexWrap: 'wrap',
           gap: '1rem',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)',
+          boxShadow: 'var(--card-shadow)',
         }}
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
-            <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.3px' }}>
+            <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
               Entradas de Mercancía & Compras a Proveedores
             </h2>
           </div>
-          <p style={{ margin: '6px 0 0 0', color: '#94a3b8', fontSize: '0.85rem' }}>
+          <p style={{ margin: '6px 0 0 0', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
             {canManage
               ? 'Registra abastecimientos, actualiza el stock automáticamente y controla los costos de adquisición'
               : 'Consulta de abastecimientos, historial de facturas de compras y control de costos de adquisición'}
@@ -343,7 +343,7 @@ export const ComprasTab = ({
               onClick={() => handleAbrirNuevaCompra()}
               style={{
                 background: '#22c55e',
-                color: '#0b0f19',
+                color: 'var(--text-primary)',
                 border: 'none',
                 padding: '10px 20px',
                 borderRadius: '10px',
@@ -374,7 +374,7 @@ export const ComprasTab = ({
       >
         <div
           style={{
-            background: '#151c2c',
+            background: 'var(--bg-surface)',
             borderRadius: '14px',
             padding: '1.25rem 1.4rem',
             display: 'flex',
@@ -382,7 +382,7 @@ export const ComprasTab = ({
             gap: '6px',
           }}
         >
-          <span style={{ fontSize: '0.78rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
             Total Invertido en Compras
           </span>
           <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#38bdf8', fontWeight: 800 }}>
@@ -393,7 +393,7 @@ export const ComprasTab = ({
 
         <div
           style={{
-            background: '#151c2c',
+            background: 'var(--bg-surface)',
             borderRadius: '14px',
             padding: '1.25rem 1.4rem',
             display: 'flex',
@@ -401,18 +401,18 @@ export const ComprasTab = ({
             gap: '6px',
           }}
         >
-          <span style={{ fontSize: '0.78rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
             Órdenes de Compra
           </span>
-          <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#c4b5fd', fontWeight: 800 }}>
+          <h3 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--accent-primary)', fontWeight: 800 }}>
             {compras.length}
           </h3>
-          <span style={{ fontSize: '0.75rem', color: '#a78bfa' }}>Facturas de compras procesadas</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--accent-primary)' }}>Facturas de compras procesadas</span>
         </div>
 
         <div
           style={{
-            background: '#151c2c',
+            background: 'var(--bg-surface)',
             borderRadius: '14px',
             padding: '1.25rem 1.4rem',
             display: 'flex',
@@ -420,7 +420,7 @@ export const ComprasTab = ({
             gap: '6px',
           }}
         >
-          <span style={{ fontSize: '0.78rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
             Unidades Ingresadas
           </span>
           <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#4ade80', fontWeight: 800 }}>
@@ -433,7 +433,7 @@ export const ComprasTab = ({
       {/* Barra de Búsqueda */}
       <div
         style={{
-          background: '#151c2c',
+          background: 'var(--bg-surface)',
           borderRadius: '14px',
           padding: '1rem 1.25rem',
           display: 'flex',
@@ -442,8 +442,8 @@ export const ComprasTab = ({
           justifyContent: 'space-between',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, maxWidth: '500px' }}>
-          <Search size={18} color="#94a3b8" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, maxWidth: '500px', background: 'var(--bg-surface)', borderRadius: '8px', padding: '0 12px', border: '1px solid var(--border-input)' }}>
+          <Search size={18} color="#64748b" />
           <input
             type="text"
             placeholder="Buscar por factura, proveedor, NIT o método de pago..."
@@ -451,18 +451,17 @@ export const ComprasTab = ({
             onChange={(e) => setBusqueda(e.target.value)}
             style={{
               width: '100%',
-              background: '#0b0f19',
+              background: 'transparent',
               border: 'none',
-              color: '#f8fafc',
-              padding: '9px 14px',
-              borderRadius: '10px',
+              color: 'var(--text-primary)',
+              padding: '9px 0',
               fontSize: '0.88rem',
               outline: 'none',
             }}
           />
         </div>
 
-        <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
           Mostrando <strong>{comprasFiltradas.length}</strong> compras
         </span>
       </div>
@@ -470,16 +469,16 @@ export const ComprasTab = ({
       {/* Tabla de Historial de Compras */}
       <div
         style={{
-          background: '#151c2c',
+          background: 'var(--bg-surface)',
           borderRadius: '16px',
           overflow: 'hidden',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+          boxShadow: 'var(--card-shadow)',
         }}
       >
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem', textAlign: 'left' }}>
             <thead>
-              <tr style={{ background: '#1e273d', color: '#94a3b8', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <tr style={{ background: 'var(--bg-surface-elevated)', color: 'var(--text-muted)', borderBottom: '1px solid var(--border-color)' }}>
                 <th style={{ padding: '14px 16px', fontWeight: 700 }}>Comprobante / Factura</th>
                 <th style={{ padding: '14px 16px', fontWeight: 700 }}>Fecha y Hora</th>
                 <th style={{ padding: '14px 16px', fontWeight: 700 }}>Proveedor</th>
@@ -493,13 +492,13 @@ export const ComprasTab = ({
             <tbody>
               {cargando ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: '2.5rem', textAlign: 'center', color: '#94a3b8' }}>
+                  <td colSpan={8} style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                     Cargando historial de compras...
                   </td>
                 </tr>
               ) : comprasFiltradas.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: '2.5rem', textAlign: 'center', color: '#94a3b8' }}>
+                  <td colSpan={8} style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                     No hay compras registradas en este período.
                   </td>
                 </tr>
@@ -514,28 +513,28 @@ export const ComprasTab = ({
                     <tr
                       key={c.id}
                       style={{
-                        background: idx % 2 === 0 ? 'transparent' : 'rgba(255, 255, 255, 0.015)',
-                        borderBottom: '1px solid rgba(255,255,255,0.03)',
+                        background: idx % 2 === 0 ? 'var(--bg-surface)' : 'var(--bg-subtle)',
+                        borderBottom: '1px solid var(--border-subtle)',
                       }}
                     >
                       <td style={{ padding: '14px 16px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <FileText size={16} color="#38bdf8" />
-                          <strong style={{ color: '#f8fafc', fontFamily: 'monospace' }}>
+                          <FileText size={16} color="#1e5bb8" />
+                          <strong style={{ color: 'var(--text-primary)', fontFamily: 'monospace' }}>
                             {c.nro_factura || `COMPRA-${c.id}`}
                           </strong>
                         </div>
                       </td>
 
-                      <td style={{ padding: '14px 16px', color: '#cbd5e1', fontSize: '0.85rem' }}>
+                      <td style={{ padding: '14px 16px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                         {fechaStr}
                       </td>
 
                       <td style={{ padding: '14px 16px' }}>
                         <div>
-                          <strong style={{ color: '#f8fafc', display: 'block' }}>{provNombre}</strong>
+                          <strong style={{ color: 'var(--text-primary)', display: 'block' }}>{provNombre}</strong>
                           {typeof c.proveedor === 'object' && c.proveedor?.contacto && (
-                            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Tel: {c.proveedor.contacto}</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Tel: {c.proveedor.contacto}</span>
                           )}
                         </div>
                       </td>
@@ -543,8 +542,9 @@ export const ComprasTab = ({
                       <td style={{ padding: '14px 16px' }}>
                         <span
                           style={{
-                            background: 'rgba(255, 255, 255, 0.06)',
-                            color: '#cbd5e1',
+                            background: 'var(--bg-surface-elevated)',
+                            color: '#334155',
+                            border: '1px solid var(--border-color)',
                             padding: '3px 8px',
                             borderRadius: '6px',
                             fontSize: '0.78rem',
@@ -554,19 +554,20 @@ export const ComprasTab = ({
                         </span>
                       </td>
 
-                      <td style={{ padding: '14px 16px', textAlign: 'center', color: '#c4b5fd', fontWeight: 700 }}>
+                      <td style={{ padding: '14px 16px', textAlign: 'center', color: 'var(--accent-primary)', fontWeight: 700 }}>
                         {itemsCount} productos
                       </td>
 
-                      <td style={{ padding: '14px 16px', textAlign: 'right', color: '#4ade80', fontWeight: 800, fontSize: '0.95rem' }}>
+                      <td style={{ padding: '14px 16px', textAlign: 'right', color: '#16a34a', fontWeight: 800, fontSize: '0.95rem' }}>
                         ${Number(c.total || 0).toLocaleString('es-CO')}
                       </td>
 
                       <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                         <span
                           style={{
-                            background: 'rgba(34, 197, 94, 0.15)',
-                            color: '#4ade80',
+                            background: 'var(--color-success-subtle)',
+                            color: 'var(--color-success)',
+                            border: '1px solid var(--color-success-border)',
                             padding: '4px 10px',
                             borderRadius: '8px',
                             fontSize: '0.75rem',
@@ -587,8 +588,8 @@ export const ComprasTab = ({
                           onClick={() => handleVerDetalle(c)}
                           title="Ver Detalle de Compra"
                           style={{
-                            background: 'rgba(139, 92, 246, 0.15)',
-                            color: '#c4b5fd',
+                            background: 'var(--accent-primary-subtle)',
+                            color: 'var(--accent-primary)',
                             border: 'none',
                             padding: '6px 12px',
                             borderRadius: '8px',
@@ -618,7 +619,7 @@ export const ComprasTab = ({
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(11, 15, 25, 0.85)',
+            backgroundColor: 'var(--bg-modal-overlay)',
             backdropFilter: 'blur(6px)',
             display: 'flex',
             alignItems: 'center',
@@ -629,15 +630,15 @@ export const ComprasTab = ({
         >
           <div
             style={{
-              backgroundColor: '#151c2c',
+              backgroundColor: 'var(--bg-surface)',
               borderRadius: '20px',
               padding: '1.75rem',
               width: '100%',
               maxWidth: '750px',
               maxHeight: '92vh',
               overflowY: 'auto',
-              color: '#f8fafc',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)',
+              color: 'var(--text-primary)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.12)',
               display: 'flex',
               flexDirection: 'column',
               gap: '1.25rem',
@@ -651,14 +652,14 @@ export const ComprasTab = ({
                   <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>
                     Registrar Entrada de Mercancía (Compra)
                   </h3>
-                  <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                     Aumenta automáticamente el stock del catálogo en tiempo real
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => setModalNuevaCompra(false)}
-                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}
               >
                 ✕
               </button>
@@ -666,21 +667,21 @@ export const ComprasTab = ({
 
             <form onSubmit={handleGuardarCompra} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {/* Sección 1: Datos Generales */}
-              <div style={{ background: '#0b0f19', padding: '14px 16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <span style={{ fontSize: '0.78rem', color: '#38bdf8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div style={{ background: 'var(--bg-subtle)', padding: '14px 16px', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--accent-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   1. Información de la Factura de Compra
                 </span>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: '10px' }}>
                   <div>
-                    <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                    <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                       Proveedor *
                     </label>
                     <select
                       value={idProveedor}
                       onChange={(e) => setIdProveedor(e.target.value)}
                       required
-                      style={{ width: '100%', background: '#151c2c', border: 'none', color: '#fff', padding: '9px 12px', borderRadius: '8px', fontSize: '0.85rem', outline: 'none' }}
+                      style={{ width: '100%', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', color: 'var(--text-primary)', padding: '9px 12px', borderRadius: '8px', fontSize: '0.85rem', outline: 'none' }}
                     >
                       {proveedores.map((p) => (
                         <option key={p.id} value={p.id}>
@@ -691,7 +692,7 @@ export const ComprasTab = ({
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                    <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                       N° Factura / Remisión
                     </label>
                     <input
@@ -700,18 +701,18 @@ export const ComprasTab = ({
                       value={nroFactura}
                       onChange={(e) => setNroFactura(e.target.value)}
                       required
-                      style={{ width: '100%', background: '#151c2c', border: 'none', color: '#fff', padding: '9px 12px', borderRadius: '8px', fontSize: '0.85rem', outline: 'none' }}
+                      style={{ width: '100%', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', color: 'var(--text-primary)', padding: '9px 12px', borderRadius: '8px', fontSize: '0.85rem', outline: 'none' }}
                     />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                    <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                       Método de Pago
                     </label>
                     <select
                       value={metodoPago}
                       onChange={(e) => setMetodoPago(e.target.value)}
-                      style={{ width: '100%', background: '#151c2c', border: 'none', color: '#fff', padding: '9px 12px', borderRadius: '8px', fontSize: '0.85rem', outline: 'none' }}
+                      style={{ width: '100%', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', color: 'var(--text-primary)', padding: '9px 12px', borderRadius: '8px', fontSize: '0.85rem', outline: 'none' }}
                     >
                       <option value="Transferencia Bancaria">Transferencia Bancaria</option>
                       <option value="Efectivo">Efectivo</option>
@@ -724,24 +725,24 @@ export const ComprasTab = ({
               </div>
 
               {/* Sección 2: Agregar Ítems al Pedido */}
-              <div style={{ background: '#0b0f19', padding: '14px 16px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <span style={{ fontSize: '0.78rem', color: '#22c55e', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div style={{ background: 'var(--bg-subtle)', padding: '14px 16px', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <span style={{ fontSize: '0.78rem', color: '#16a34a', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   2. Agregar Productos a la Entrada
                 </span>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr 1.2fr auto', gap: '10px', alignItems: 'flex-end' }}>
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <label style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600 }}>
+                      <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
                         Producto del Catálogo
                       </label>
                       <button
                         type="button"
                         onClick={handleAbrirModalNuevoProducto}
                         style={{
-                          background: 'rgba(56, 189, 248, 0.15)',
-                          border: '1px solid rgba(56, 189, 248, 0.35)',
-                          color: '#38bdf8',
+                          background: 'var(--accent-primary-subtle)',
+                          border: '1px solid var(--accent-primary-border)',
+                          color: 'var(--accent-primary)',
                           borderRadius: '6px',
                           padding: '2px 8px',
                           fontSize: '0.74rem',
@@ -760,7 +761,7 @@ export const ComprasTab = ({
                     <select
                       value={idProductoSeleccionado}
                       onChange={(e) => handleSeleccionarProductoParaItem(e.target.value)}
-                      style={{ width: '100%', background: '#151c2c', border: 'none', color: '#fff', padding: '9px 12px', borderRadius: '8px', fontSize: '0.85rem', outline: 'none' }}
+                      style={{ width: '100%', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', color: 'var(--text-primary)', padding: '9px 12px', borderRadius: '8px', fontSize: '0.85rem', outline: 'none' }}
                     >
                       <option value="">-- Selecciona producto --</option>
                       {productos.map((p) => (
@@ -772,7 +773,7 @@ export const ComprasTab = ({
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                    <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                       Cantidad a Ingresar
                     </label>
                     <input
@@ -781,12 +782,12 @@ export const ComprasTab = ({
                       placeholder="10"
                       value={cantidadItem}
                       onChange={(e) => setCantidadItem(e.target.value)}
-                      style={{ width: '100%', background: '#151c2c', border: 'none', color: '#fff', padding: '9px 12px', borderRadius: '8px', fontSize: '0.85rem', outline: 'none' }}
+                      style={{ width: '100%', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', color: 'var(--text-primary)', padding: '9px 12px', borderRadius: '8px', fontSize: '0.85rem', outline: 'none' }}
                     />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                    <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                       Costo Unitario ($ COP)
                     </label>
                     <input
@@ -795,7 +796,7 @@ export const ComprasTab = ({
                       placeholder="3500"
                       value={costoUnitarioItem}
                       onChange={(e) => setCostoUnitarioItem(e.target.value)}
-                      style={{ width: '100%', background: '#151c2c', border: 'none', color: '#fff', padding: '9px 12px', borderRadius: '8px', fontSize: '0.85rem', outline: 'none' }}
+                      style={{ width: '100%', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', color: 'var(--text-primary)', padding: '9px 12px', borderRadius: '8px', fontSize: '0.85rem', outline: 'none' }}
                     />
                   </div>
 
@@ -803,7 +804,7 @@ export const ComprasTab = ({
                     type="button"
                     onClick={handleAgregarItemACompra}
                     style={{
-                      background: '#8b5cf6',
+                      background: '#1e5bb8',
                       color: '#ffffff',
                       border: 'none',
                       padding: '9px 16px',
@@ -822,10 +823,10 @@ export const ComprasTab = ({
                 </div>
 
                 {/* Lista de Ítems Agregados */}
-                <div style={{ marginTop: '8px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ marginTop: '8px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', textAlign: 'left' }}>
                     <thead>
-                      <tr style={{ background: '#151c2c', color: '#94a3b8' }}>
+                      <tr style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)', borderBottom: '1px solid var(--border-color)' }}>
                         <th style={{ padding: '8px 12px' }}>Producto</th>
                         <th style={{ padding: '8px 12px', textAlign: 'center' }}>Stock Previo</th>
                         <th style={{ padding: '8px 12px', textAlign: 'center' }}>Ingreso (+)</th>
@@ -838,36 +839,36 @@ export const ComprasTab = ({
                     <tbody>
                       {itemsCompra.length === 0 ? (
                         <tr>
-                          <td colSpan={7} style={{ padding: '1.25rem', textAlign: 'center', color: '#64748b' }}>
+                          <td colSpan={7} style={{ padding: '1.25rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                             Aún no has agregado productos a esta orden de compra.
                           </td>
                         </tr>
                       ) : (
                         itemsCompra.map((it) => (
-                          <tr key={it.id_producto} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                            <td style={{ padding: '8px 12px', fontWeight: 600, color: '#f8fafc' }}>
+                          <tr key={it.id_producto} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                            <td style={{ padding: '8px 12px', fontWeight: 600, color: 'var(--text-primary)' }}>
                               {it.producto_nombre}
                             </td>
-                            <td style={{ padding: '8px 12px', textAlign: 'center', color: '#94a3b8' }}>
+                            <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--text-muted)' }}>
                               {it.stock_actual}
                             </td>
-                            <td style={{ padding: '8px 12px', textAlign: 'center', color: '#22c55e', fontWeight: 700 }}>
+                            <td style={{ padding: '8px 12px', textAlign: 'center', color: '#16a34a', fontWeight: 700 }}>
                               +{it.cantidad}
                             </td>
-                            <td style={{ padding: '8px 12px', textAlign: 'center', color: '#38bdf8', fontWeight: 700 }}>
+                            <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--accent-primary)', fontWeight: 700 }}>
                               {it.stock_actual + it.cantidad}
                             </td>
-                            <td style={{ padding: '8px 12px', textAlign: 'right', color: '#cbd5e1' }}>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-secondary)' }}>
                               ${it.costo_unitario.toLocaleString('es-CO')}
                             </td>
-                            <td style={{ padding: '8px 12px', textAlign: 'right', color: '#4ade80', fontWeight: 700 }}>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', color: '#16a34a', fontWeight: 700 }}>
                               ${it.total.toLocaleString('es-CO')}
                             </td>
                             <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                               <button
                                 type="button"
                                 onClick={() => handleEliminarItemCompra(it.id_producto)}
-                                style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer' }}
+                                style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}
                               >
                                 <Trash2 size={14} />
                               </button>
@@ -881,10 +882,10 @@ export const ComprasTab = ({
               </div>
 
               {/* Total y Botones de Acción */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0b0f19', padding: '14px 18px', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-subtle)', padding: '14px 18px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
                 <div>
-                  <span style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block' }}>Total de la Orden de Compra:</span>
-                  <strong style={{ fontSize: '1.4rem', color: '#4ade80', fontWeight: 800 }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block' }}>Total de la Orden de Compra:</span>
+                  <strong style={{ fontSize: '1.4rem', color: '#16a34a', fontWeight: 800 }}>
                     ${totalCompraActual.toLocaleString('es-CO')} COP
                   </strong>
                 </div>
@@ -893,7 +894,7 @@ export const ComprasTab = ({
                   <button
                     type="button"
                     onClick={() => setModalNuevaCompra(false)}
-                    style={{ background: '#1e273d', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '10px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
+                    style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)', border: '1px solid var(--border-input)', padding: '10px 18px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
                   >
                     Cancelar
                   </button>
@@ -901,15 +902,14 @@ export const ComprasTab = ({
                     type="submit"
                     disabled={guardando || itemsCompra.length === 0}
                     style={{
-                      background: '#22c55e',
-                      color: '#0b0f19',
+                      background: '#16a34a',
+                      color: '#ffffff',
                       border: 'none',
                       padding: '10px 24px',
-                      borderRadius: '10px',
+                      borderRadius: '8px',
                       cursor: 'pointer',
                       fontWeight: 800,
                       fontSize: '0.88rem',
-                      boxShadow: '0 4px 14px rgba(34, 197, 94, 0.35)',
                     }}
                   >
                     {guardando ? 'Guardando Entrada...' : 'Confirmar e Incrementar Stock'}
@@ -927,7 +927,7 @@ export const ComprasTab = ({
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(11, 15, 25, 0.85)',
+            backgroundColor: 'var(--bg-modal-overlay)',
             backdropFilter: 'blur(6px)',
             display: 'flex',
             alignItems: 'center',
@@ -938,13 +938,13 @@ export const ComprasTab = ({
         >
           <div
             style={{
-              backgroundColor: '#151c2c',
+              backgroundColor: 'var(--bg-surface)',
               borderRadius: '20px',
               padding: '1.75rem',
               width: '100%',
               maxWidth: '600px',
-              color: '#f8fafc',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)',
+              color: 'var(--text-primary)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.12)',
               display: 'flex',
               flexDirection: 'column',
               gap: '1.25rem',
@@ -955,46 +955,46 @@ export const ComprasTab = ({
                 <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>
                   Detalle de Compra #{compraSeleccionada.nro_factura || compraSeleccionada.id}
                 </h3>
-                <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Comprobante de entrada a bodega</span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Comprobante de entrada a bodega</span>
               </div>
               <button
                 onClick={() => setModalDetalle(false)}
-                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}
               >
                 ✕
               </button>
             </div>
 
-            <div style={{ background: '#0b0f19', padding: '12px 16px', borderRadius: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.85rem' }}>
+            <div style={{ background: 'var(--bg-subtle)', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.85rem' }}>
               <div>
-                <strong style={{ color: '#94a3b8' }}>Proveedor:</strong>{' '}
-                <span style={{ color: '#f8fafc' }}>
+                <strong style={{ color: 'var(--text-muted)' }}>Proveedor:</strong>{' '}
+                <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
                   {typeof compraSeleccionada.proveedor === 'object' ? compraSeleccionada.proveedor?.nombre : compraSeleccionada.proveedor}
                 </span>
               </div>
               <div>
-                <strong style={{ color: '#94a3b8' }}>Contacto:</strong>{' '}
-                <span style={{ color: '#cbd5e1' }}>
+                <strong style={{ color: 'var(--text-muted)' }}>Contacto:</strong>{' '}
+                <span style={{ color: 'var(--text-secondary)' }}>
                   {typeof compraSeleccionada.proveedor === 'object' ? (compraSeleccionada.proveedor?.contacto || 'N/A') : 'N/A'}
                 </span>
               </div>
               <div>
-                <strong style={{ color: '#94a3b8' }}>Fecha:</strong>{' '}
-                <span style={{ color: '#f8fafc' }}>
+                <strong style={{ color: 'var(--text-muted)' }}>Fecha:</strong>{' '}
+                <span style={{ color: 'var(--text-primary)' }}>
                   {compraSeleccionada.fecha ? new Date(compraSeleccionada.fecha).toLocaleString('es-CO') : 'N/A'}
                 </span>
               </div>
               <div>
-                <strong style={{ color: '#94a3b8' }}>Método de Pago:</strong>{' '}
-                <span style={{ color: '#f8fafc' }}>{compraSeleccionada.metodo_pago || 'Efectivo'}</span>
+                <strong style={{ color: 'var(--text-muted)' }}>Método de Pago:</strong>{' '}
+                <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{compraSeleccionada.metodo_pago || 'Efectivo'}</span>
               </div>
             </div>
 
             {/* Tabla de Items */}
-            <div style={{ borderRadius: '12px', overflow: 'hidden', background: '#0b0f19' }}>
+            <div style={{ borderRadius: '12px', overflow: 'hidden', background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', textAlign: 'left' }}>
                 <thead>
-                  <tr style={{ background: '#1e273d', color: '#94a3b8' }}>
+                  <tr style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)', borderBottom: '1px solid var(--border-color)' }}>
                     <th style={{ padding: '10px 12px' }}>Producto</th>
                     <th style={{ padding: '10px 12px', textAlign: 'center' }}>Cant.</th>
                     <th style={{ padding: '10px 12px', textAlign: 'right' }}>Costo Unit.</th>
@@ -1003,17 +1003,17 @@ export const ComprasTab = ({
                 </thead>
                 <tbody>
                   {(compraSeleccionada.items || []).map((it, idx) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                      <td style={{ padding: '10px 12px', color: '#f8fafc', fontWeight: 600 }}>
+                    <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                      <td style={{ padding: '10px 12px', color: 'var(--text-primary)', fontWeight: 600 }}>
                         {it.producto_nombre || it.nombre || 'Producto'}
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'center', color: '#38bdf8', fontWeight: 700 }}>
+                      <td style={{ padding: '10px 12px', textAlign: 'center', color: 'var(--accent-primary)', fontWeight: 700 }}>
                         {it.cantidad}
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#cbd5e1' }}>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', color: 'var(--text-secondary)' }}>
                         ${Number(it.costo_unitario || it.precio || 0).toLocaleString('es-CO')}
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#4ade80', fontWeight: 700 }}>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#16a34a', fontWeight: 700 }}>
                         ${Number(it.total || (it.cantidad * (it.costo_unitario || it.precio || 0))).toLocaleString('es-CO')}
                       </td>
                     </tr>
@@ -1023,9 +1023,9 @@ export const ComprasTab = ({
             </div>
 
             {/* Total */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0b0f19', padding: '12px 16px', borderRadius: '12px' }}>
-              <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>Total de la Factura:</span>
-              <span style={{ fontSize: '1.35rem', fontWeight: 800, color: '#4ade80' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-subtle)', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+              <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Total de la Factura:</span>
+              <span style={{ fontSize: '1.35rem', fontWeight: 800, color: '#16a34a' }}>
                 ${Number(compraSeleccionada.total || 0).toLocaleString('es-CO')} COP
               </span>
             </div>
@@ -1034,7 +1034,7 @@ export const ComprasTab = ({
               <button
                 type="button"
                 onClick={() => setModalDetalle(false)}
-                style={{ background: '#1e273d', color: '#fff', border: 'none', padding: '9px 20px', borderRadius: '10px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
+                style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)', border: '1px solid var(--border-input)', padding: '9px 20px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
               >
                 Cerrar
               </button>
@@ -1060,12 +1060,12 @@ export const ComprasTab = ({
         >
           <div
             style={{
-              backgroundColor: '#151c2c',
+              backgroundColor: 'var(--bg-surface)',
               borderRadius: '18px',
               padding: '1.5rem',
               width: '100%',
               maxWidth: '520px',
-              color: '#f8fafc',
+              color: 'var(--text-primary)',
               boxShadow: '0 25px 60px rgba(0, 0, 0, 0.85)',
               display: 'flex',
               flexDirection: 'column',
@@ -1081,7 +1081,7 @@ export const ComprasTab = ({
                   <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>
                     Crear Nuevo Producto en Catálogo
                   </h3>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     Se guardará en la BD e iniciará con stock 0 para ingresar su compra
                   </span>
                 </div>
@@ -1089,7 +1089,7 @@ export const ComprasTab = ({
               <button
                 onClick={() => setModalNuevoProducto(false)}
                 type="button"
-                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}
               >
                 ✕
               </button>
@@ -1098,7 +1098,7 @@ export const ComprasTab = ({
             {/* Formulario */}
             <form onSubmit={handleGuardarNuevoProducto} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                   Nombre del Producto *
                 </label>
                 <input
@@ -1110,9 +1110,9 @@ export const ComprasTab = ({
                   autoFocus
                   style={{
                     width: '100%',
-                    background: '#0b0f19',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#fff',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-input)',
+                    color: 'var(--text-primary)',
                     padding: '9px 12px',
                     borderRadius: '8px',
                     fontSize: '0.85rem',
@@ -1124,7 +1124,7 @@ export const ComprasTab = ({
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                     Categoría *
                   </label>
                   <select
@@ -1136,9 +1136,9 @@ export const ComprasTab = ({
                     }}
                     style={{
                       width: '100%',
-                      background: '#0b0f19',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#fff',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-input)',
+                      color: 'var(--text-primary)',
                       padding: '9px 12px',
                       borderRadius: '8px',
                       fontSize: '0.85rem',
@@ -1155,7 +1155,7 @@ export const ComprasTab = ({
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                     Precio Venta Público ($) *
                   </label>
                   <input
@@ -1167,9 +1167,9 @@ export const ComprasTab = ({
                     required
                     style={{
                       width: '100%',
-                      background: '#0b0f19',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#fff',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-input)',
+                      color: 'var(--text-primary)',
                       padding: '9px 12px',
                       borderRadius: '8px',
                       fontSize: '0.85rem',
@@ -1182,7 +1182,7 @@ export const ComprasTab = ({
 
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '10px' }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                     Código de Barras
                   </label>
                   <input
@@ -1192,9 +1192,9 @@ export const ComprasTab = ({
                     onChange={(e) => setNuevoProdForm({ ...nuevoProdForm, codigo_barras: e.target.value })}
                     style={{
                       width: '100%',
-                      background: '#0b0f19',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#fff',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-input)',
+                      color: 'var(--text-primary)',
                       padding: '9px 12px',
                       borderRadius: '8px',
                       fontSize: '0.85rem',
@@ -1205,7 +1205,7 @@ export const ComprasTab = ({
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                     Stock Inicial
                   </label>
                   <input
@@ -1216,9 +1216,9 @@ export const ComprasTab = ({
                     onChange={(e) => setNuevoProdForm({ ...nuevoProdForm, cantidad: e.target.value })}
                     style={{
                       width: '100%',
-                      background: '#0b0f19',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#fff',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-input)',
+                      color: 'var(--text-primary)',
                       padding: '9px 12px',
                       borderRadius: '8px',
                       fontSize: '0.85rem',
@@ -1229,7 +1229,7 @@ export const ComprasTab = ({
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                     Stock Mín. Alerta
                   </label>
                   <input
@@ -1240,9 +1240,9 @@ export const ComprasTab = ({
                     onChange={(e) => setNuevoProdForm({ ...nuevoProdForm, stock_minimo: e.target.value })}
                     style={{
                       width: '100%',
-                      background: '#0b0f19',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#fff',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-input)',
+                      color: 'var(--text-primary)',
                       padding: '9px 12px',
                       borderRadius: '8px',
                       fontSize: '0.85rem',
@@ -1258,9 +1258,9 @@ export const ComprasTab = ({
                   type="button"
                   onClick={() => setModalNuevoProducto(false)}
                   style={{
-                    background: '#1e273d',
-                    color: '#94a3b8',
-                    border: 'none',
+                    background: 'var(--bg-subtle)',
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border-input)',
                     padding: '9px 16px',
                     borderRadius: '8px',
                     cursor: 'pointer',
@@ -1274,8 +1274,8 @@ export const ComprasTab = ({
                   type="submit"
                   disabled={guardandoNuevoProd}
                   style={{
-                    background: '#38bdf8',
-                    color: '#0b0f19',
+                    background: '#1e5bb8',
+                    color: '#ffffff',
                     border: 'none',
                     padding: '9px 18px',
                     borderRadius: '8px',

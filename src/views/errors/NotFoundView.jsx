@@ -33,11 +33,12 @@ export const NotFoundView = () => {
       <div style={{
         maxWidth: '500px',
         width: '100%',
-        backgroundColor: '#151c2c',
+        backgroundColor: 'var(--bg-surface)',
+        border: '1px solid var(--border-color)',
         borderRadius: '20px',
         padding: '2.5rem',
         textAlign: 'center',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.45)',
+        boxShadow: 'var(--card-shadow)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -48,11 +49,11 @@ export const NotFoundView = () => {
           width: '72px',
           height: '72px',
           borderRadius: '50%',
-          backgroundColor: 'rgba(139, 92, 246, 0.15)',
+          backgroundColor: 'var(--accent-primary-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#8b5cf6'
+          color: 'var(--accent-primary)'
         }}>
           <FileQuestion size={40} />
         </div>
@@ -62,7 +63,7 @@ export const NotFoundView = () => {
           <span style={{
             fontSize: '0.85rem',
             fontWeight: 700,
-            color: '#8b5cf6',
+            color: 'var(--accent-primary)',
             textTransform: 'uppercase',
             letterSpacing: '1px'
           }}>
@@ -72,7 +73,7 @@ export const NotFoundView = () => {
             margin: '0.5rem 0 0.25rem 0',
             fontSize: '1.75rem',
             fontWeight: 800,
-            color: '#f8fafc',
+            color: 'var(--text-primary)',
             letterSpacing: '-0.5px'
           }}>
             Página No Encontrada
@@ -80,7 +81,7 @@ export const NotFoundView = () => {
           <p style={{
             margin: 0,
             fontSize: '0.92rem',
-            color: '#94a3b8',
+            color: 'var(--text-muted)',
             lineHeight: 1.5
           }}>
             La ruta que buscas no existe o ha sido movida a otra dirección.
@@ -99,7 +100,7 @@ export const NotFoundView = () => {
             onClick={handleGoHome}
             style={{
               flex: 1,
-              backgroundColor: '#8b5cf6',
+              backgroundColor: '#1e5bb8',
               color: '#ffffff',
               border: 'none',
               padding: '12px 18px',
@@ -113,8 +114,8 @@ export const NotFoundView = () => {
               gap: '6px',
               transition: 'background 0.2s ease'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#7c3aed'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#8b5cf6'}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#174993'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1e5bb8'}
           >
             <Home size={16} />
             {isAuthenticated ? 'Ir al Inicio' : 'Ir al Login'}
@@ -124,9 +125,9 @@ export const NotFoundView = () => {
             type="button"
             onClick={() => navigate(-1)}
             style={{
-              backgroundColor: '#1e273d',
-              color: '#cbd5e1',
-              border: 'none',
+              backgroundColor: 'var(--bg-surface-elevated)',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border-color)',
               padding: '12px 16px',
               borderRadius: '10px',
               fontWeight: 600,
@@ -138,8 +139,8 @@ export const NotFoundView = () => {
               gap: '6px',
               transition: 'background 0.2s ease'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2d3748'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1e273d'}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e2e8f0'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
           >
             <ArrowLeft size={16} />
             Regresar

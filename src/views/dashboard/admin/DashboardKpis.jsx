@@ -30,7 +30,7 @@ export const DashboardKpis = ({
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-        gap: '1.25rem',
+        gap: '1rem',
       }}
     >
       {/* KPI 1: Finanzas / Ventas */}
@@ -38,33 +38,33 @@ export const DashboardKpis = ({
         <div
           onClick={() => setTabActiva('reportes')}
           style={{
-            background: tabActiva === 'reportes' ? '#1e273d' : '#151c2c',
-            borderRadius: '16px',
-            padding: '1.4rem',
+            background: 'var(--bg-surface)',
+            borderRadius: '12px',
+            padding: '1.25rem',
             display: 'flex',
             flexDirection: 'column',
             gap: '6px',
             cursor: 'pointer',
             transition: 'all 0.2s ease',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
-            border: 'none',
+            boxShadow: 'var(--card-shadow)',
+            border: tabActiva === 'reportes' ? '2px solid var(--accent-primary)' : '1px solid var(--border-color)',
           }}
         >
           <span
             style={{
-              fontSize: '0.78rem',
-              color: '#94a3b8',
+              fontSize: '0.75rem',
+              color: 'var(--text-muted)',
               textTransform: 'uppercase',
               letterSpacing: '0.5px',
-              fontWeight: 600,
+              fontWeight: 700,
             }}
           >
             Ingresos Totales (Ventas)
           </span>
-          <h3 style={{ margin: 0, fontSize: '1.65rem', color: '#22c55e', fontWeight: 800 }}>
+          <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#16a34a', fontWeight: 800 }}>
             ${totalVentasBrutas.toLocaleString('es-CO')}
           </h3>
-          <span style={{ fontSize: '0.75rem', color: '#86efac' }}>
+          <span style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: 600 }}>
             {ventasCount} facturas emitidas
           </span>
         </div>
@@ -78,33 +78,33 @@ export const DashboardKpis = ({
             if (onSeleccionarFiltroStock) onSeleccionarFiltroStock('todos');
           }}
           style={{
-            background: tabActiva === 'inventario' && filtroStock === 'todos' ? '#1e273d' : '#151c2c',
-            borderRadius: '16px',
-            padding: '1.4rem',
+            background: 'var(--bg-surface)',
+            borderRadius: '12px',
+            padding: '1.25rem',
             display: 'flex',
             flexDirection: 'column',
             gap: '6px',
             cursor: 'pointer',
             transition: 'all 0.2s ease',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
-            border: 'none',
+            boxShadow: 'var(--card-shadow)',
+            border: tabActiva === 'inventario' && filtroStock === 'todos' ? '2px solid var(--accent-primary)' : '1px solid var(--border-color)',
           }}
         >
           <span
             style={{
-              fontSize: '0.78rem',
-              color: '#94a3b8',
+              fontSize: '0.75rem',
+              color: 'var(--text-muted)',
               textTransform: 'uppercase',
               letterSpacing: '0.5px',
-              fontWeight: 600,
+              fontWeight: 700,
             }}
           >
             Catálogo de Productos
           </span>
-          <h3 style={{ margin: 0, fontSize: '1.65rem', color: '#8b5cf6', fontWeight: 800 }}>
+          <h3 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--accent-primary)', fontWeight: 800 }}>
             {cargandoProductos ? '...' : totalProductos}
           </h3>
-          <span style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
             Valor: ${valorTotalInventario.toLocaleString('es-CO')}
           </span>
         </div>
@@ -129,25 +129,27 @@ export const DashboardKpis = ({
             }
           }}
           style={{
-            background: tabActiva === 'inventario' && filtroStock === 'bajo' ? '#271f38' : '#151c2c',
-            border: tabActiva === 'inventario' && filtroStock === 'bajo' ? '1px solid #f59e0b' : 'none',
-            borderRadius: '16px',
-            padding: '1.4rem',
+            background: 'var(--bg-surface)',
+            border: tabActiva === 'inventario' && filtroStock === 'bajo' 
+              ? '2px solid #d97706' 
+              : (productosBajoStock > 0 ? '1px solid #fde68a' : '1px solid var(--border-color)'),
+            borderRadius: '12px',
+            padding: '1.25rem',
             display: 'flex',
             flexDirection: 'column',
             gap: '6px',
             cursor: 'pointer',
             transition: 'all 0.2s ease',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
+            boxShadow: 'var(--card-shadow)',
           }}
         >
           <span
             style={{
-              fontSize: '0.78rem',
-              color: '#94a3b8',
+              fontSize: '0.75rem',
+              color: 'var(--text-muted)',
               textTransform: 'uppercase',
               letterSpacing: '0.5px',
-              fontWeight: 600,
+              fontWeight: 700,
             }}
           >
             Alertas de Stock
@@ -155,14 +157,14 @@ export const DashboardKpis = ({
           <h3
             style={{
               margin: 0,
-              fontSize: '1.65rem',
-              color: productosBajoStock > 0 ? '#f59e0b' : '#22c55e',
+              fontSize: '1.5rem',
+              color: productosBajoStock > 0 ? '#d97706' : '#16a34a',
               fontWeight: 800,
             }}
           >
             {productosBajoStock}
           </h3>
-          <span style={{ fontSize: '0.75rem', color: productosBajoStock > 0 ? '#fbbf24' : '#86efac' }}>
+          <span style={{ fontSize: '0.75rem', color: productosBajoStock > 0 ? '#b45309' : '#15803d', fontWeight: 600 }}>
             {productosBajoStock > 0 ? `${productosBajoStock} requieren reposición` : 'Stock en nivel óptimo'}
           </span>
         </div>
@@ -173,34 +175,34 @@ export const DashboardKpis = ({
         <div
           onClick={() => setTabActiva('proveedores')}
           style={{
-            background: tabActiva === 'proveedores' ? '#1e273d' : '#151c2c',
-            borderRadius: '16px',
-            padding: '1.4rem',
+            background: 'var(--bg-surface)',
+            borderRadius: '12px',
+            padding: '1.25rem',
             display: 'flex',
             flexDirection: 'column',
             gap: '6px',
             cursor: 'pointer',
             transition: 'all 0.2s ease',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
-            border: 'none',
+            boxShadow: 'var(--card-shadow)',
+            border: tabActiva === 'proveedores' ? '2px solid var(--accent-primary)' : '1px solid var(--border-color)',
           }}
         >
           <span
             style={{
-              fontSize: '0.78rem',
-              color: '#94a3b8',
+              fontSize: '0.75rem',
+              color: 'var(--text-muted)',
               textTransform: 'uppercase',
               letterSpacing: '0.5px',
-              fontWeight: 600,
+              fontWeight: 700,
             }}
           >
             Proveedores
           </span>
-          <h3 style={{ margin: 0, fontSize: '1.65rem', color: '#38bdf8', fontWeight: 800 }}>
+          <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#0284c7', fontWeight: 800 }}>
             {cargandoProveedores ? '...' : proveedoresCount}
           </h3>
-          <span style={{ fontSize: '0.75rem', color: '#7dd3fc' }}>
-            {proveedoresActivosCount} aliados activos
+          <span style={{ fontSize: '0.75rem', color: '#0369a1', fontWeight: 600 }}>
+            {proveedoresActivosCount} aliados comerciales
           </span>
         </div>
       )}
@@ -210,35 +212,35 @@ export const DashboardKpis = ({
         <div
           onClick={() => setTabActiva('usuarios')}
           style={{
-            background: tabActiva === 'usuarios' ? '#1e273d' : '#151c2c',
-            borderRadius: '16px',
-            padding: '1.4rem',
+            background: 'var(--bg-surface)',
+            borderRadius: '12px',
+            padding: '1.25rem',
             display: 'flex',
             flexDirection: 'column',
             gap: '6px',
             cursor: 'pointer',
             transition: 'all 0.2s ease',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
-            border: 'none',
+            boxShadow: 'var(--card-shadow)',
+            border: tabActiva === 'usuarios' ? '2px solid var(--accent-primary)' : '1px solid var(--border-color)',
           }}
         >
           <span
             style={{
-              fontSize: '0.78rem',
-              color: '#94a3b8',
+              fontSize: '0.75rem',
+              color: 'var(--text-muted)',
               textTransform: 'uppercase',
               letterSpacing: '0.5px',
-              fontWeight: 600,
+              fontWeight: 700,
             }}
           >
-            Usuarios en BD
+            Usuarios en Sistema
           </span>
-          <h3 style={{ margin: 0, fontSize: '1.65rem', color: '#c4b5fd', fontWeight: 800 }}>
+          <h3 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--text-secondary)', fontWeight: 800 }}>
             {cargandoUsuarios ? '...' : usuariosCount}
           </h3>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-            Admin: {rolesCounts.admins} &middot; Cajero: {rolesCounts.cajeros} &middot; Supervisor:{' '}
-            {rolesCounts.supervisores} &middot; Contador: {rolesCounts.contadores}
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+            Admin: {rolesCounts.admins} &middot; Cajero: {rolesCounts.cajeros} &middot; Sup:{' '}
+            {rolesCounts.supervisores} &middot; Cont: {rolesCounts.contadores}
           </span>
         </div>
       )}

@@ -10,6 +10,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ROLES, normalizarRol } from '../../constants/roles';
 import MotivationalQuote from '../../components/MotivationalQuote';
+import ThemeToggle from '../../components/ThemeToggle';
 import './LoginView.css';
 
 /**
@@ -82,26 +83,25 @@ export const LoginView = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        {/* Enlace para volver a la presentación */}
-        <div style={{ marginBottom: '1rem' }}>
+        {/* Enlace para volver a la presentación y selector de tema */}
+        <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Link 
             to="/" 
             style={{ 
               display: 'inline-flex', 
               alignItems: 'center', 
               gap: '0.4rem', 
-              color: '#94a3b8', 
+              color: 'var(--text-muted, #94a3b8)', 
               textDecoration: 'none', 
               fontSize: '0.82rem',
-              fontWeight: 500,
+              fontWeight: 600,
               transition: 'color 0.2s ease'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#c4b5fd'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
           >
             <ArrowLeft size={16} />
             <span>Volver a la portada</span>
           </Link>
+          <ThemeToggle />
         </div>
 
         {/* Cabecera limpia y tipográfica */}

@@ -109,7 +109,7 @@ export const ProveedoresTab = ({
       {/* Cabecera del Módulo */}
       <div
         style={{
-          background: '#151c2c',
+          background: 'var(--bg-surface)',
           borderRadius: '16px',
           padding: '1.4rem 1.6rem',
           display: 'flex',
@@ -117,17 +117,17 @@ export const ProveedoresTab = ({
           alignItems: 'center',
           flexWrap: 'wrap',
           gap: '1rem',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)',
+          boxShadow: 'var(--card-shadow)',
         }}
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#38bdf8' }} />
-            <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.3px' }}>
+            <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
               Directorio de Proveedores
             </h2>
           </div>
-          <p style={{ margin: '6px 0 0 0', color: '#94a3b8', fontSize: '0.85rem' }}>
+          <p style={{ margin: '6px 0 0 0', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
             Proveedores y contactos registrados en la base de datos (tienda_comunitaria.proveedores)
           </p>
         </div>
@@ -138,7 +138,7 @@ export const ProveedoresTab = ({
             onClick={handleAbrirNuevo}
             style={{
               background: '#38bdf8',
-              color: '#0b0f19',
+              color: 'var(--text-primary)',
               border: 'none',
               padding: '10px 18px',
               borderRadius: '10px',
@@ -161,7 +161,7 @@ export const ProveedoresTab = ({
       {/* Barra de Búsqueda */}
       <div
         style={{
-          background: '#151c2c',
+          background: 'var(--bg-surface)',
           borderRadius: '14px',
           padding: '1rem 1.25rem',
           display: 'flex',
@@ -171,7 +171,7 @@ export const ProveedoresTab = ({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, maxWidth: '450px' }}>
-          <Search size={18} color="#94a3b8" />
+          <Search size={18} color="#64748b" />
           <input
             type="text"
             placeholder="Buscar por nombre, contacto o dirección..."
@@ -179,9 +179,9 @@ export const ProveedoresTab = ({
             onChange={(e) => setBusqueda(e.target.value)}
             style={{
               width: '100%',
-              background: '#0b0f19',
-              border: 'none',
-              color: '#f8fafc',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-input)',
+              color: 'var(--text-primary)',
               padding: '9px 14px',
               borderRadius: '10px',
               fontSize: '0.88rem',
@@ -190,24 +190,25 @@ export const ProveedoresTab = ({
           />
         </div>
 
-        <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
-          Total proveedores: <strong style={{ color: '#38bdf8' }}>{proveedores.length}</strong>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+          Total proveedores: <strong style={{ color: 'var(--accent-primary)' }}>{proveedores.length}</strong>
         </span>
       </div>
 
       {/* Tabla de Proveedores (id, nombre, contacto, direccion) */}
       <div
         style={{
-          background: '#151c2c',
+          background: 'var(--bg-surface)',
           borderRadius: '16px',
           overflow: 'hidden',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+          border: '1px solid var(--border-color)',
         }}
       >
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem', textAlign: 'left' }}>
             <thead>
-              <tr style={{ background: '#1e273d', color: '#94a3b8', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <tr style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)', borderBottom: '1px solid var(--border-color)' }}>
                 <th style={{ padding: '14px 16px', fontWeight: 700, width: '70px' }}># ID</th>
                 <th style={{ padding: '14px 16px', fontWeight: 700 }}>Nombre</th>
                 <th style={{ padding: '14px 16px', fontWeight: 700 }}>Contacto</th>
@@ -218,13 +219,13 @@ export const ProveedoresTab = ({
             <tbody>
               {cargando ? (
                 <tr>
-                  <td colSpan={5} style={{ padding: '2.5rem', textAlign: 'center', color: '#94a3b8' }}>
+                  <td colSpan={5} style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                     Cargando proveedores desde la base de datos...
                   </td>
                 </tr>
               ) : proveedoresFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ padding: '2.5rem', textAlign: 'center', color: '#94a3b8' }}>
+                  <td colSpan={5} style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                     No se encontraron proveedores.
                   </td>
                 </tr>
@@ -233,8 +234,8 @@ export const ProveedoresTab = ({
                   <tr
                     key={p.id}
                     style={{
-                      background: idx % 2 === 0 ? 'transparent' : 'rgba(255, 255, 255, 0.015)',
-                      borderBottom: '1px solid rgba(255,255,255,0.03)',
+                      background: idx % 2 === 0 ? 'var(--bg-surface)' : 'var(--bg-subtle)',
+                      borderBottom: '1px solid var(--border-subtle)',
                     }}
                   >
                     <td style={{ padding: '14px 16px', color: '#38bdf8', fontWeight: 800 }}>
@@ -258,20 +259,20 @@ export const ProveedoresTab = ({
                         >
                           <Building2 size={16} />
                         </div>
-                        <strong style={{ color: '#f8fafc', fontSize: '0.92rem' }}>
+                        <strong style={{ color: 'var(--text-primary)', fontSize: '0.92rem' }}>
                           {p.nombre}
                         </strong>
                       </div>
                     </td>
 
                     <td style={{ padding: '14px 16px' }}>
-                      <span style={{ color: '#cbd5e1', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                         <Phone size={13} color="#38bdf8" /> {p.contacto || 'Sin contacto'}
                       </span>
                     </td>
 
                     <td style={{ padding: '14px 16px' }}>
-                      <span style={{ color: '#94a3b8', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                         <MapPin size={14} color="#f59e0b" /> {p.direccion || 'Sin dirección'}
                       </span>
                     </td>
@@ -310,8 +311,8 @@ export const ProveedoresTab = ({
                               onClick={() => handleAbrirEditar(p)}
                               title="Editar Proveedor"
                               style={{
-                                background: 'rgba(139, 92, 246, 0.15)',
-                                color: '#c4b5fd',
+                                background: 'var(--accent-primary-subtle)',
+                                color: 'var(--accent-primary)',
                                 border: 'none',
                                 padding: '6px 10px',
                                 borderRadius: '8px',
@@ -356,7 +357,7 @@ export const ProveedoresTab = ({
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(11, 15, 25, 0.8)',
+            backgroundColor: 'var(--bg-modal-overlay)',
             backdropFilter: 'blur(6px)',
             display: 'flex',
             alignItems: 'center',
@@ -367,14 +368,14 @@ export const ProveedoresTab = ({
         >
           <div
             style={{
-              backgroundColor: '#151c2c',
+              backgroundColor: 'var(--bg-surface)',
               border: 'none',
               borderRadius: '18px',
               padding: '1.75rem',
               width: '100%',
               maxWidth: '480px',
-              color: '#f8fafc',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)',
+              color: 'var(--text-primary)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.12)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.4rem' }}>
@@ -384,7 +385,7 @@ export const ProveedoresTab = ({
               </div>
               <button
                 onClick={() => setModalNuevo(false)}
-                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}
               >
                 ✕
               </button>
@@ -392,7 +393,7 @@ export const ProveedoresTab = ({
 
             <form onSubmit={handleGuardarNuevo} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                   Nombre del Proveedor *
                 </label>
                 <input
@@ -401,12 +402,12 @@ export const ProveedoresTab = ({
                   placeholder="Ej. Distribuidora S.A."
                   value={formProveedor.nombre}
                   onChange={(e) => setFormProveedor({ ...formProveedor, nombre: e.target.value })}
-                  style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
+                  style={{ width: '100%', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', color: 'var(--text-primary)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                   Contacto (Teléfono / Celular)
                 </label>
                 <input
@@ -414,12 +415,12 @@ export const ProveedoresTab = ({
                   placeholder="Ej. 3001234567"
                   value={formProveedor.contacto}
                   onChange={(e) => setFormProveedor({ ...formProveedor, contacto: e.target.value })}
-                  style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
+                  style={{ width: '100%', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', color: 'var(--text-primary)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                   Dirección
                 </label>
                 <input
@@ -427,7 +428,7 @@ export const ProveedoresTab = ({
                   placeholder="Ej. Calle 123 #45-67"
                   value={formProveedor.direccion}
                   onChange={(e) => setFormProveedor({ ...formProveedor, direccion: e.target.value })}
-                  style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
+                  style={{ width: '100%', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', color: 'var(--text-primary)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
                 />
               </div>
 
@@ -435,14 +436,14 @@ export const ProveedoresTab = ({
                 <button
                   type="button"
                   onClick={() => setModalNuevo(false)}
-                  style={{ background: '#1e273d', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '10px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
+                  style={{ background: 'var(--bg-surface-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', padding: '10px 18px', borderRadius: '10px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={guardando}
-                  style={{ background: '#38bdf8', color: '#0b0f19', border: 'none', padding: '10px 22px', borderRadius: '10px', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem' }}
+                  style={{ background: 'var(--accent-primary)', color: '#ffffff', border: 'none', padding: '10px 22px', borderRadius: '10px', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem' }}
                 >
                   {guardando ? 'Guardando...' : 'Guardar Proveedor'}
                 </button>
@@ -458,7 +459,7 @@ export const ProveedoresTab = ({
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(11, 15, 25, 0.8)',
+            backgroundColor: 'var(--bg-modal-overlay)',
             backdropFilter: 'blur(6px)',
             display: 'flex',
             alignItems: 'center',
@@ -469,24 +470,24 @@ export const ProveedoresTab = ({
         >
           <div
             style={{
-              backgroundColor: '#151c2c',
+              backgroundColor: 'var(--bg-surface)',
               border: 'none',
               borderRadius: '18px',
               padding: '1.75rem',
               width: '100%',
               maxWidth: '480px',
-              color: '#f8fafc',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)',
+              color: 'var(--text-primary)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.12)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.4rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Edit2 size={20} color="#c4b5fd" />
+                <Edit2 size={20} color="#1e5bb8" />
                 <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>Editar Proveedor</h3>
               </div>
               <button
                 onClick={() => setModalEditar(false)}
-                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 700 }}
               >
                 ✕
               </button>
@@ -494,7 +495,7 @@ export const ProveedoresTab = ({
 
             <form onSubmit={handleGuardarEdicion} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                   Nombre del Proveedor *
                 </label>
                 <input
@@ -502,31 +503,31 @@ export const ProveedoresTab = ({
                   required
                   value={formProveedor.nombre}
                   onChange={(e) => setFormProveedor({ ...formProveedor, nombre: e.target.value })}
-                  style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
+                  style={{ width: '100%', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', color: 'var(--text-primary)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                   Contacto (Teléfono / Celular)
                 </label>
                 <input
                   type="text"
                   value={formProveedor.contacto}
                   onChange={(e) => setFormProveedor({ ...formProveedor, contacto: e.target.value })}
-                  style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
+                  style={{ width: '100%', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', color: 'var(--text-primary)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                   Dirección
                 </label>
                 <input
                   type="text"
                   value={formProveedor.direccion}
                   onChange={(e) => setFormProveedor({ ...formProveedor, direccion: e.target.value })}
-                  style={{ width: '100%', background: '#0b0f19', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
+                  style={{ width: '100%', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', color: 'var(--text-primary)', padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem', outline: 'none' }}
                 />
               </div>
 
@@ -534,14 +535,14 @@ export const ProveedoresTab = ({
                 <button
                   type="button"
                   onClick={() => setModalEditar(false)}
-                  style={{ background: '#1e273d', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '10px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
+                  style={{ background: 'var(--bg-surface-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', padding: '10px 18px', borderRadius: '10px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={guardando}
-                  style={{ background: '#8b5cf6', color: '#fff', border: 'none', padding: '10px 22px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}
+                  style={{ background: '#1e5bb8', color: '#fff', border: 'none', padding: '10px 22px', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}
                 >
                   {guardando ? 'Guardando...' : 'Guardar Cambios'}
                 </button>

@@ -12,8 +12,7 @@ export const CajeroPosView = ({ user }) => {
   const [busqueda, setBusqueda] = useState('');
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
   const [carrito, setCarrito] = useState([]);
-  const [clienteNombre, setClienteNombre] = useState('Consumidor Final');
-  const [clienteDoc, setClienteDoc] = useState('222222222');
+  const [clienteDoc, setClienteDoc] = useState('222222222222');
   const [metodoPago, setMetodoPago] = useState('Efectivo');
   const [montoRecibido, setMontoRecibido] = useState('');
   const [ventasTurno, setVentasTurno] = useState({ total: 0, transacciones: 0 });
@@ -248,6 +247,7 @@ export const CajeroPosView = ({ user }) => {
       // 7. Limpiar carrito y campos
       setCarrito([]);
       setMontoRecibido('');
+      setClienteDoc('222222222222');
       toast.success(`¡Venta #${nroFactura} registrada exitosamente en la BD!`);
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Error al procesar la venta en la BD';
@@ -279,7 +279,7 @@ export const CajeroPosView = ({ user }) => {
               <span className="pos-turn-stat-label">Ventas del Turno</span>
               <strong className="pos-turn-stat-value-green">{formatearCOP(ventasTurno.total)}</strong>
             </div>
-            <div style={{ paddingLeft: '14px' }}>
+            <div style={{ paddingLeft: '14px', borderLeft: '1px solid var(--border-color)' }}>
               <span className="pos-turn-stat-label">Tickets</span>
               <strong className="pos-turn-stat-value-purple">{ventasTurno.transacciones}</strong>
             </div>
@@ -372,26 +372,19 @@ export const CajeroPosView = ({ user }) => {
           )}
         </div>
 
-        {/* Datos del Cliente */}
+        {/* Documento del Cliente (C.C. / NIT) */}
         <div className="pos-customer-card">
-          <div>
-            <label className="pos-field-label">Cliente</label>
-            <input
-              type="text"
-              value={clienteNombre}
-              onChange={(e) => setClienteNombre(e.target.value)}
-              className="pos-field-input"
-            />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <label className="pos-field-label">C.C. / NIT del Cliente</label>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>222222222222 = Consumidor Final</span>
           </div>
-          <div>
-            <label className="pos-field-label">C.C. / NIT</label>
-            <input
-              type="text"
-              value={clienteDoc}
-              onChange={(e) => setClienteDoc(e.target.value)}
-              className="pos-field-input purple"
-            />
-          </div>
+          <input
+            type="text"
+            value={clienteDoc}
+            onChange={(e) => setClienteDoc(e.target.value)}
+            placeholder="222222222222"
+            className="pos-field-input"
+          />
         </div>
 
         {/* Lista de Items del Carrito */}

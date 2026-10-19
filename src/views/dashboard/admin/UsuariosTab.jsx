@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { usuariosService } from '../../../services/usuariosService';
 import { ROLES_DB, obtenerInfoRol } from '../../../constants/roles';
-import WeatherWidget from '../../../components/WeatherWidget';
 import Can from '../../../components/Can';
 
 export const UsuariosTab = ({
@@ -102,25 +101,18 @@ export const UsuariosTab = ({
   });
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'minmax(0, 2.3fr) minmax(320px, 1fr)',
-        gap: '1.75rem',
-        alignItems: 'start',
-      }}
-    >
+    <div style={{ width: '100%' }}>
       {/* Contenedor de la Tabla de Usuarios */}
       <div
         style={{
-          background: '#151c2c',
+          background: 'var(--bg-surface)',
           borderRadius: '18px',
           padding: '1.5rem',
           display: 'flex',
           flexDirection: 'column',
           gap: '1.25rem',
-          border: 'none',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)',
+          border: '1px solid var(--border-color)',
+          boxShadow: 'var(--card-shadow)',
         }}
       >
         <div
@@ -133,10 +125,10 @@ export const UsuariosTab = ({
           }}
         >
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#f8fafc', fontWeight: 800 }}>
+            <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: 800 }}>
               Usuarios Registrados en la Base de Datos
             </h3>
-            <p style={{ margin: '4px 0 0 0', color: '#94a3b8', fontSize: '0.82rem' }}>
+            <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
               Gestión y roles de usuarios ({usuarios.length} registros)
             </p>
           </div>
@@ -147,8 +139,8 @@ export const UsuariosTab = ({
               onClick={onRecargar}
               disabled={cargando}
               style={{
-                background: '#1e273d',
-                color: '#cbd5e1',
+                background: 'var(--bg-surface-elevated)',
+                color: 'var(--text-secondary)',
                 border: 'none',
                 padding: '8px 14px',
                 borderRadius: '10px',
@@ -165,7 +157,7 @@ export const UsuariosTab = ({
                 type="button"
                 onClick={handleAbrirCrear}
                 style={{
-                  background: '#8b5cf6',
+                  background: '#1e5bb8',
                   color: '#fff',
                   border: 'none',
                   padding: '8px 16px',
@@ -183,7 +175,7 @@ export const UsuariosTab = ({
         </div>
 
         {/* Buscador */}
-        <div style={{ background: '#0b0f19', borderRadius: '10px', padding: '0 14px', border: 'none' }}>
+        <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', padding: '0 14px', border: '1px solid var(--border-input)' }}>
           <input
             type="text"
             placeholder="Buscar usuario por nombre o correo..."
@@ -192,7 +184,7 @@ export const UsuariosTab = ({
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#fff',
+              color: 'var(--text-primary)',
               padding: '10px 0',
               width: '100%',
               outline: 'none',
@@ -202,10 +194,10 @@ export const UsuariosTab = ({
         </div>
 
         {/* Tabla de Usuarios */}
-        <div style={{ borderRadius: '12px', overflowX: 'auto', background: '#0b0f19', border: 'none' }}>
+        <div style={{ borderRadius: '12px', overflowX: 'auto', background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
-              <tr style={{ background: 'rgba(30, 39, 61, 0.4)', color: '#94a3b8', textAlign: 'left' }}>
+              <tr style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)', textAlign: 'left', borderBottom: '1px solid var(--border-color)' }}>
                 <th style={{ padding: '12px 14px', fontWeight: 700 }}>Nombre</th>
                 <th style={{ padding: '12px 14px', fontWeight: 700 }}>Correo Electrónico</th>
                 <th style={{ padding: '12px 14px', fontWeight: 700 }}>Rol</th>
@@ -216,13 +208,13 @@ export const UsuariosTab = ({
             <tbody>
               {cargando ? (
                 <tr>
-                  <td colSpan="5" style={{ padding: '2.5rem', textAlign: 'center', color: '#c4b5fd' }}>
+                  <td colSpan="5" style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--accent-primary)' }}>
                     Consultando usuarios en la base de datos...
                   </td>
                 </tr>
               ) : usuariosFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan="5" style={{ padding: '2.5rem', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan="5" style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                     No se encontraron usuarios.
                   </td>
                 </tr>
@@ -236,18 +228,19 @@ export const UsuariosTab = ({
                     <tr
                       key={u.id || u.correo}
                       style={{
-                        background: idx % 2 === 0 ? 'transparent' : 'rgba(21, 28, 44, 0.4)',
-                        borderBottom: '1px solid rgba(255,255,255,0.03)',
+                        background: idx % 2 === 0 ? 'var(--bg-surface)' : 'var(--bg-subtle)',
+                        borderBottom: '1px solid var(--border-subtle)',
                       }}
                     >
-                      <td style={{ padding: '12px 14px', fontWeight: 700, color: '#f8fafc' }}>
+                      <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                         {u.nombre || u.email || 'Sin nombre'}
                       </td>
-                      <td style={{ padding: '12px 14px', color: '#94a3b8' }}>
+                      <td style={{ padding: '12px 14px', color: 'var(--text-muted)' }}>
                         <span
                           style={{
-                            color: '#c4b5fd',
-                            background: 'rgba(139, 92, 246, 0.1)',
+                            color: 'var(--accent-primary)',
+                            background: 'var(--accent-primary-subtle)',
+                            border: '1px solid var(--accent-primary-border)',
                             padding: '3px 8px',
                             borderRadius: '4px',
                             fontFamily: 'monospace',
@@ -260,8 +253,9 @@ export const UsuariosTab = ({
                       <td style={{ padding: '12px 14px' }}>
                         <span
                           style={{
-                            background: 'rgba(139, 92, 246, 0.18)',
-                            color: '#c4b5fd',
+                            background: 'var(--bg-surface-elevated)',
+                            color: 'var(--accent-primary)',
+                            border: '1px solid var(--border-color)',
                             padding: '4px 10px',
                             borderRadius: '10px',
                             fontSize: '0.75rem',
@@ -277,8 +271,9 @@ export const UsuariosTab = ({
                       <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                         <span
                           style={{
-                            background: idEstadoNum === 1 ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                            color: idEstadoNum === 1 ? '#4ade80' : '#f87171',
+                            background: idEstadoNum === 1 ? 'var(--color-success-subtle)' : 'var(--color-danger-subtle)',
+                            color: idEstadoNum === 1 ? 'var(--color-success)' : 'var(--color-danger)',
+                            border: `1px solid ${idEstadoNum === 1 ? 'var(--color-success-border)' : 'var(--color-danger-border)'}`,
                             padding: '3px 9px',
                             borderRadius: '8px',
                             fontSize: '0.75rem',
@@ -295,9 +290,9 @@ export const UsuariosTab = ({
                               type="button"
                               onClick={() => handleAbrirEditar(u)}
                               style={{
-                                background: '#1e273d',
-                                color: '#c4b5fd',
-                                border: 'none',
+                                background: 'var(--bg-subtle)',
+                                color: 'var(--accent-primary)',
+                                border: '1px solid var(--border-input)',
                                 padding: '6px 10px',
                                 borderRadius: '6px',
                                 cursor: 'pointer',
@@ -313,9 +308,9 @@ export const UsuariosTab = ({
                               type="button"
                               onClick={() => handleEliminar(u.id, u.nombre)}
                               style={{
-                                background: 'rgba(239, 68, 68, 0.15)',
-                                color: '#f87171',
-                                border: 'none',
+                                background: 'var(--color-danger-subtle)',
+                                color: 'var(--color-danger)',
+                                border: '1px solid var(--color-danger-border)',
                                 padding: '6px 10px',
                                 borderRadius: '6px',
                                 cursor: 'pointer',
@@ -337,17 +332,13 @@ export const UsuariosTab = ({
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <WeatherWidget />
-      </div>
-
       {/* MODAL UNIFICADO: Crear / Editar Usuario */}
       {modalAbierto && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(11, 15, 25, 0.8)',
+            backgroundColor: 'var(--bg-modal-overlay)',
             backdropFilter: 'blur(6px)',
             display: 'flex',
             alignItems: 'center',
@@ -358,14 +349,14 @@ export const UsuariosTab = ({
         >
           <div
             style={{
-              backgroundColor: '#151c2c',
+              backgroundColor: 'var(--bg-surface)',
               border: 'none',
               borderRadius: '18px',
               padding: '1.75rem',
               width: '100%',
               maxWidth: '460px',
-              color: '#f8fafc',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)',
+              color: 'var(--text-primary)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.12)',
             }}
           >
             <div
@@ -380,7 +371,7 @@ export const UsuariosTab = ({
                 <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>
                   {usuarioEditando ? `Editar Usuario #${usuarioEditando.id}` : 'Registrar Usuario en BD'}
                 </h3>
-                <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                   {usuarioEditando ? 'Modificar rol, estado o datos' : 'tienda_comunitaria.usuarios'}
                 </span>
               </div>
@@ -389,7 +380,7 @@ export const UsuariosTab = ({
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: '#94a3b8',
+                  color: 'var(--text-muted)',
                   cursor: 'pointer',
                   fontSize: '1.2rem',
                   fontWeight: 700,
@@ -400,7 +391,7 @@ export const UsuariosTab = ({
             </div>
             <form onSubmit={handleGuardar} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                   Nombre *
                 </label>
                 <input
@@ -411,18 +402,18 @@ export const UsuariosTab = ({
                   required
                   style={{
                     width: '100%',
-                    background: '#0b0f19',
-                    border: 'none',
-                    color: '#fff',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-input)',
+                    color: 'var(--text-primary)',
                     padding: '10px 14px',
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     fontSize: '0.9rem',
                     outline: 'none',
                   }}
                 />
               </div>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                   Correo Electrónico *
                 </label>
                 <input
@@ -433,18 +424,18 @@ export const UsuariosTab = ({
                   required
                   style={{
                     width: '100%',
-                    background: '#0b0f19',
-                    border: 'none',
-                    color: '#fff',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-input)',
+                    color: 'var(--text-primary)',
                     padding: '10px 14px',
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     fontSize: '0.9rem',
                     outline: 'none',
                   }}
                 />
               </div>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                   Contraseña {usuarioEditando ? '(Opcional al editar)' : '*'}
                 </label>
                 <input
@@ -455,11 +446,11 @@ export const UsuariosTab = ({
                   required={!usuarioEditando}
                   style={{
                     width: '100%',
-                    background: '#0b0f19',
-                    border: 'none',
-                    color: '#fff',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-input)',
+                    color: 'var(--text-primary)',
                     padding: '10px 14px',
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     fontSize: '0.9rem',
                     outline: 'none',
                   }}
@@ -467,7 +458,7 @@ export const UsuariosTab = ({
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '10px' }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                     Rol
                   </label>
                   <select
@@ -475,11 +466,11 @@ export const UsuariosTab = ({
                     onChange={(e) => setFormUsuario({ ...formUsuario, id_rol: Number(e.target.value) })}
                     style={{
                       width: '100%',
-                      background: '#0b0f19',
-                      border: 'none',
-                      color: '#fff',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-input)',
+                      color: 'var(--text-primary)',
                       padding: '10px 14px',
-                      borderRadius: '10px',
+                      borderRadius: '8px',
                       fontSize: '0.9rem',
                       outline: 'none',
                     }}
@@ -492,7 +483,7 @@ export const UsuariosTab = ({
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                     Estado
                   </label>
                   <select
@@ -500,11 +491,11 @@ export const UsuariosTab = ({
                     onChange={(e) => setFormUsuario({ ...formUsuario, id_estado: Number(e.target.value) })}
                     style={{
                       width: '100%',
-                      background: '#0b0f19',
-                      border: 'none',
-                      color: '#fff',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-input)',
+                      color: 'var(--text-primary)',
                       padding: '10px 14px',
-                      borderRadius: '10px',
+                      borderRadius: '8px',
                       fontSize: '0.9rem',
                       outline: 'none',
                     }}
@@ -519,11 +510,11 @@ export const UsuariosTab = ({
                   type="button"
                   onClick={() => setModalAbierto(false)}
                   style={{
-                    background: '#1e273d',
-                    color: '#fff',
-                    border: 'none',
+                    background: 'var(--bg-subtle)',
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border-input)',
                     padding: '9px 16px',
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     cursor: 'pointer',
                     fontSize: '0.85rem',
                     fontWeight: 600,
@@ -535,7 +526,7 @@ export const UsuariosTab = ({
                   type="submit"
                   disabled={guardando}
                   style={{
-                    background: '#8b5cf6',
+                    background: '#1e5bb8',
                     color: '#fff',
                     border: 'none',
                     padding: '9px 20px',

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { facturacionService } from '../../../services/facturacionService';
-import WeatherWidget from '../../../components/WeatherWidget';
 
 export const ReportesTab = ({
   ventas = [],
@@ -67,14 +66,14 @@ export const ReportesTab = ({
       {/* Historial de Facturas */}
       <div
         style={{
-          background: '#151c2c',
+          background: 'var(--bg-surface)',
           borderRadius: '18px',
           padding: '1.5rem',
           display: 'flex',
           flexDirection: 'column',
           gap: '1.25rem',
-          border: 'none',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)',
+          border: '1px solid var(--border-color)',
+          boxShadow: 'var(--card-shadow)',
         }}
       >
         <div
@@ -87,10 +86,10 @@ export const ReportesTab = ({
           }}
         >
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#f8fafc', fontWeight: 800 }}>
+            <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: 800 }}>
               Registro Contable y Facturación
             </h3>
-            <p style={{ margin: '4px 0 0 0', color: '#94a3b8', fontSize: '0.82rem' }}>
+            <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
               Detalle de ingresos brutos, IVA recaudado y comprobantes emitidos
             </p>
           </div>
@@ -108,7 +107,7 @@ export const ReportesTab = ({
               }}
               disabled={ventas.length === 0}
               style={{
-                background: '#8b5cf6',
+                background: '#1e5bb8',
                 color: '#fff',
                 border: 'none',
                 padding: '8px 16px',
@@ -127,8 +126,8 @@ export const ReportesTab = ({
               onClick={onRecargar}
               disabled={cargando}
               style={{
-                background: '#1e273d',
-                color: '#cbd5e1',
+                background: 'var(--bg-surface-elevated)',
+                color: 'var(--text-secondary)',
                 border: 'none',
                 padding: '8px 16px',
                 borderRadius: '10px',
@@ -151,51 +150,54 @@ export const ReportesTab = ({
             gap: '12px',
           }}
         >
-          <div style={{ background: '#0b0f19', padding: '14px', borderRadius: '12px', border: 'none' }}>
+          <div style={{ background: 'var(--bg-subtle)', padding: '14px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
             <span
               style={{
                 fontSize: '0.72rem',
-                color: '#94a3b8',
+                color: 'var(--text-muted)',
                 display: 'block',
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
+                fontWeight: 700,
               }}
             >
               Ventas Netas
             </span>
-            <strong style={{ color: '#8b5cf6', fontSize: '1.2rem', fontWeight: 800 }}>
+            <strong style={{ color: 'var(--accent-primary)', fontSize: '1.2rem', fontWeight: 800 }}>
               ${totalVentasNetas.toLocaleString('es-CO')}
             </strong>
           </div>
-          <div style={{ background: '#0b0f19', padding: '14px', borderRadius: '12px', border: 'none' }}>
+          <div style={{ background: 'var(--bg-subtle)', padding: '14px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
             <span
               style={{
                 fontSize: '0.72rem',
-                color: '#94a3b8',
+                color: 'var(--text-muted)',
                 display: 'block',
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
+                fontWeight: 700,
               }}
             >
               IVA Recaudado (19%)
             </span>
-            <strong style={{ color: '#f59e0b', fontSize: '1.2rem', fontWeight: 800 }}>
+            <strong style={{ color: '#d97706', fontSize: '1.2rem', fontWeight: 800 }}>
               ${totalIvaRecaudado.toLocaleString('es-CO')}
             </strong>
           </div>
-          <div style={{ background: '#0b0f19', padding: '14px', borderRadius: '12px', border: 'none' }}>
+          <div style={{ background: 'var(--bg-subtle)', padding: '14px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
             <span
               style={{
                 fontSize: '0.72rem',
-                color: '#94a3b8',
+                color: 'var(--text-muted)',
                 display: 'block',
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
+                fontWeight: 700,
               }}
             >
               Total Facturado
             </span>
-            <strong style={{ color: '#22c55e', fontSize: '1.2rem', fontWeight: 800 }}>
+            <strong style={{ color: '#16a34a', fontSize: '1.2rem', fontWeight: 800 }}>
               ${totalVentasBrutas.toLocaleString('es-CO')}
             </strong>
           </div>
@@ -204,10 +206,10 @@ export const ReportesTab = ({
         {/* Buscador de Facturas */}
         <div
           style={{
-            background: '#0b0f19',
-            borderRadius: '10px',
+            background: 'var(--bg-surface)',
+            borderRadius: '8px',
             padding: '0 14px',
-            border: 'none',
+            border: '1px solid var(--border-input)',
           }}
         >
           <input
@@ -218,7 +220,7 @@ export const ReportesTab = ({
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#fff',
+              color: 'var(--text-primary)',
               padding: '12px 0',
               width: '100%',
               outline: 'none',
@@ -228,16 +230,16 @@ export const ReportesTab = ({
         </div>
 
         {/* Tabla de Facturas */}
-        <div style={{ borderRadius: '12px', overflowX: 'auto', background: '#0b0f19', border: 'none' }}>
+        <div style={{ borderRadius: '12px', overflowX: 'auto', background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
-              <tr style={{ background: 'rgba(30, 39, 61, 0.4)', color: '#94a3b8', textAlign: 'left' }}>
-                <th style={{ padding: '12px 14px', fontWeight: 600 }}>Nro. Factura</th>
-                <th style={{ padding: '12px 14px', fontWeight: 600 }}>Fecha</th>
-                <th style={{ padding: '12px 14px', fontWeight: 600 }}>C.C. / NIT</th>
-                <th style={{ padding: '12px 14px', fontWeight: 600 }}>Método</th>
-                <th style={{ padding: '12px 14px', fontWeight: 600 }}>Total</th>
-                <th style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 600 }}>
+              <tr style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)', textAlign: 'left', borderBottom: '1px solid var(--border-color)' }}>
+                <th style={{ padding: '12px 14px', fontWeight: 700 }}>Nro. Factura</th>
+                <th style={{ padding: '12px 14px', fontWeight: 700 }}>Fecha</th>
+                <th style={{ padding: '12px 14px', fontWeight: 700 }}>C.C. / NIT</th>
+                <th style={{ padding: '12px 14px', fontWeight: 700 }}>Método</th>
+                <th style={{ padding: '12px 14px', fontWeight: 700 }}>Total</th>
+                <th style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 700 }}>
                   Comprobante
                 </th>
               </tr>
@@ -245,7 +247,7 @@ export const ReportesTab = ({
             <tbody>
               {ventasFiltradas.length === 0 ? (
                 <tr>
-                  <td colSpan="6" style={{ padding: '2.5rem', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan="6" style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                     No hay facturas registradas.
                   </td>
                 </tr>
@@ -253,25 +255,28 @@ export const ReportesTab = ({
                 ventasFiltradas.map((v, idx) => (
                   <tr
                     key={v.id}
-                    style={{ background: idx % 2 === 0 ? 'transparent' : 'rgba(21, 28, 44, 0.4)' }}
+                    style={{
+                      background: idx % 2 === 0 ? 'var(--bg-surface)' : 'var(--bg-subtle)',
+                      borderBottom: '1px solid var(--border-subtle)',
+                    }}
                   >
-                    <td style={{ padding: '12px 14px', fontWeight: 700, color: '#c4b5fd' }}>
+                    <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--accent-primary)' }}>
                       FAC-{v.id}
                     </td>
-                    <td style={{ padding: '12px 14px', color: '#94a3b8', fontSize: '0.8rem' }}>
+                    <td style={{ padding: '12px 14px', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                       {new Date(v.fecha).toLocaleString('es-CO', {
                         dateStyle: 'short',
                         timeStyle: 'short',
                       })}
                     </td>
-                    <td style={{ padding: '12px 14px', color: '#f8fafc', fontWeight: 600 }}>
+                    <td style={{ padding: '12px 14px', color: 'var(--text-primary)', fontWeight: 600 }}>
                       {v.documento || (typeof v.cliente === 'string' && v.cliente !== 'Consumidor Final' ? v.cliente : '222222222222')}
                     </td>
                     <td style={{ padding: '12px 14px' }}>
                       <span
                         style={{
-                          background: 'rgba(139, 92, 246, 0.15)',
-                          color: '#c4b5fd',
+                          background: 'var(--accent-primary-subtle)',
+                          color: 'var(--accent-primary)',
                           padding: '3px 9px',
                           borderRadius: '6px',
                           fontSize: '0.75rem',
@@ -281,7 +286,7 @@ export const ReportesTab = ({
                         {v.metodo || 'Efectivo'}
                       </span>
                     </td>
-                    <td style={{ padding: '12px 14px', fontWeight: 800, color: '#22c55e' }}>
+                    <td style={{ padding: '12px 14px', fontWeight: 800, color: '#16a34a' }}>
                       ${Number(v.total).toLocaleString('es-CO')}
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'right' }}>
@@ -289,9 +294,9 @@ export const ReportesTab = ({
                         type="button"
                         onClick={() => handleDescargarFacturaPDF(v)}
                         style={{
-                          background: '#1e273d',
-                          color: '#c4b5fd',
-                          border: 'none',
+                          background: 'var(--bg-subtle)',
+                          color: 'var(--accent-primary)',
+                          border: '1px solid var(--border-input)',
                           padding: '5px 12px',
                           borderRadius: '6px',
                           cursor: 'pointer',
@@ -310,21 +315,21 @@ export const ReportesTab = ({
         </div>
       </div>
 
-      {/* Columna Derecha: Métodos de Pago & Clima */}
+      {/* Columna Derecha: Métodos de Pago */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div
           style={{
-            background: '#151c2c',
-            borderRadius: '18px',
+            background: 'var(--bg-surface)',
+            borderRadius: '16px',
             padding: '1.4rem',
             display: 'flex',
             flexDirection: 'column',
             gap: '1rem',
-            border: 'none',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)',
+            border: '1px solid var(--border-color)',
+            boxShadow: 'var(--card-shadow)',
           }}
         >
-          <h4 style={{ margin: 0, fontSize: '1rem', color: '#f8fafc', fontWeight: 800 }}>
+          <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)', fontWeight: 800 }}>
             Desglose por Método de Pago
           </h4>
 
@@ -334,13 +339,14 @@ export const ReportesTab = ({
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: '#0b0f19',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-color)',
                 padding: '12px 14px',
                 borderRadius: '10px',
               }}
             >
-              <strong style={{ color: '#22c55e' }}>Efectivo</strong>
-              <span style={{ fontWeight: 800, color: '#f8fafc' }}>
+              <strong style={{ color: '#16a34a' }}>Efectivo</strong>
+              <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>
                 ${ventasEfectivo.toLocaleString('es-CO')}
               </span>
             </div>
@@ -350,13 +356,14 @@ export const ReportesTab = ({
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: '#0b0f19',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-color)',
                 padding: '12px 14px',
                 borderRadius: '10px',
               }}
             >
-              <strong style={{ color: '#c4b5fd' }}>Nequi / Transferencia</strong>
-              <span style={{ fontWeight: 800, color: '#f8fafc' }}>
+              <strong style={{ color: 'var(--accent-primary)' }}>Nequi / Transferencia</strong>
+              <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>
                 ${ventasNequi.toLocaleString('es-CO')}
               </span>
             </div>
@@ -366,20 +373,19 @@ export const ReportesTab = ({
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: '#0b0f19',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-color)',
                 padding: '12px 14px',
                 borderRadius: '10px',
               }}
             >
-              <strong style={{ color: '#38bdf8' }}>Tarjeta Débito/Crédito</strong>
-              <span style={{ fontWeight: 800, color: '#f8fafc' }}>
+              <strong style={{ color: '#0284c7' }}>Tarjeta Débito/Crédito</strong>
+              <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>
                 ${ventasTarjeta.toLocaleString('es-CO')}
               </span>
             </div>
           </div>
         </div>
-
-        <WeatherWidget />
       </div>
     </div>
   );
