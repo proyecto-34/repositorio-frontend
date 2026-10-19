@@ -277,7 +277,7 @@ export const CajeroPosView = ({ user }) => {
           <div className="pos-turn-summary">
             <div>
               <span className="pos-turn-stat-label">Ventas del Turno</span>
-              <strong className="pos-turn-stat-value-green">{formatearCOP(ventasTurno.total)}</strong>
+              <strong className="pos-turn-stat-value-green notranslate" translate="no">{formatearCOP(ventasTurno.total)}</strong>
             </div>
             <div style={{ paddingLeft: '14px', borderLeft: '1px solid var(--border-color)' }}>
               <span className="pos-turn-stat-label">Tickets</span>
@@ -346,7 +346,7 @@ export const CajeroPosView = ({ user }) => {
                 <div className="pos-product-name">{prod.nombre}</div>
 
                 <div className="pos-product-bottom">
-                  <strong className="pos-product-price">{formatearCOP(prod.precio)}</strong>
+                  <strong className="pos-product-price notranslate" translate="no">{formatearCOP(prod.precio)}</strong>
                   <div className="pos-btn-add">+ Agregar</div>
                 </div>
               </div>
@@ -398,7 +398,7 @@ export const CajeroPosView = ({ user }) => {
               <div key={item.id} className="pos-cart-item">
                 <div className="pos-cart-item-info">
                   <div className="pos-cart-item-name">{item.nombre}</div>
-                  <span className="pos-cart-item-price">{formatearCOP(item.precio)} c/u</span>
+                  <span className="pos-cart-item-price notranslate" translate="no">{formatearCOP(item.precio)} c/u</span>
                 </div>
 
                 <div className="pos-cart-item-actions">
@@ -431,7 +431,7 @@ export const CajeroPosView = ({ user }) => {
                     </button>
                   </div>
 
-                  <strong className="pos-cart-item-total">{formatearCOP(item.total)}</strong>
+                  <strong className="pos-cart-item-total notranslate" translate="no">{formatearCOP(item.total)}</strong>
 
                   <button
                     type="button"
@@ -478,13 +478,13 @@ export const CajeroPosView = ({ user }) => {
             </div>
             <div>
               <span className="pos-field-label">Cambio / Vueltas</span>
-              <strong className="pos-cash-change">{formatearCOP(cambio)}</strong>
+              <strong className="pos-cash-change notranslate" translate="no">{formatearCOP(cambio)}</strong>
             </div>
           </div>
         )}
 
         {/* Totales y Botón de Cobro */}
-        <div className="pos-totals-card">
+        <div className="pos-totals-card notranslate" translate="no">
           <div className="pos-totals-row">
             <span>Subtotal</span>
             <span>{formatearCOP(subtotal)}</span>

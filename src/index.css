@@ -1,3 +1,23 @@
+/* ==========================================================================
+   ESCALA DE ACCESIBILIDAD TIPOGRÁFICA (WCAG 2.1)
+   ========================================================================== */
+html,
+html[data-font-size='normal'] {
+  font-size: 100%; /* 16px base estándar */
+}
+
+html[data-font-size='large'] {
+  font-size: 112.5%; /* 18px base (+12.5%) */
+}
+
+html[data-font-size='xlarge'] {
+  font-size: 125%; /* 20px base (+25%) */
+}
+
+html {
+  transition: font-size 0.2s ease-in-out;
+}
+
 :root, [data-theme='light'] {
   color-scheme: light;
 
@@ -126,7 +146,7 @@ html, body {
   min-height: 100vh;
   background-color: var(--bg-main);
   color: var(--text-primary);
-  overflow-x: hidden;
+  overflow-x: clip;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 

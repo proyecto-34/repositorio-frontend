@@ -8,7 +8,7 @@
  */
 export const formatearCOP = (valor) => {
   const num = Number(valor) || 0;
-  return `$${num.toLocaleString('es-CO')}`;
+  return `$ ${num.toLocaleString('es-CO')}`;
 };
 
 /**
