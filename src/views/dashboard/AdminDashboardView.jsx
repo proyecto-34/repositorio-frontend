@@ -138,57 +138,52 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
       else if (response && Array.isArray(response.data)) rawList = response.data;
       else if (response && Array.isArray(response.ventas)) rawList = response.ventas;
 
-      // Obtener el método de pago real desde la tabla de pagos para cada venta
-      const ventasConMetodo = await Promise.all(
-        rawList.map(async (v) => {
-          let metodo = v.metodo;
-          if (!metodo) {
-            try {
-              const pagos = await pagosService.obtenerPagosPorVenta(v.id);
-              if (Array.isArray(pagos) && pagos.length > 0) {
-                metodo = pagos[0].metodo;
-              }
-            } catch {
-              metodo = 'EFECTIVO';
-            }
-          }
-          let docCliente = '222222222222';
-          if (v.documento && typeof v.documento === 'string' && v.documento.trim()) {
-            docCliente = v.documento.trim();
-          } else if (typeof v.cliente === 'string' && v.cliente.trim() && !v.cliente.includes('[object Object]')) {
-            docCliente = v.cliente.trim();
-          } else if (v.cliente && typeof v.cliente === 'object') {
-            docCliente = v.cliente.documento || v.cliente.cedula || v.cliente.nit || '222222222222';
-          }
-          if (docCliente === 'Consumidor Final') {
-            docCliente = '222222222222';
-          }
+      // Mapeo optimizado en memoria O(N): sin disparar peticiones HTTP N+1
+      const ventasConMetodo = rawList.map((v) => {
+        let metodo = v.metodo || v.medio_pago || v.pago?.metodo;
+        if (!metodo && Array.isArray(v.pagos) && v.pagos.length > 0) {
+          metodo = v.pagos[0].metodo;
+        }
+        if (!metodo) {
+          metodo = 'EFECTIVO';
+        }
 
-          let nomCajero = 'Cajero POS';
-          if (typeof v.cajero === 'string' && v.cajero.trim()) {
-            nomCajero = v.cajero.trim();
-          } else if (v.cajero && typeof v.cajero === 'object') {
-            nomCajero = v.cajero.nombre || v.cajero.name || v.cajero.email || 'Cajero POS';
-          }
+        let docCliente = '222222222222';
+        if (v.documento && typeof v.documento === 'string' && v.documento.trim()) {
+          docCliente = v.documento.trim();
+        } else if (typeof v.cliente === 'string' && v.cliente.trim() && !v.cliente.includes('[object Object]')) {
+          docCliente = v.cliente.trim();
+        } else if (v.cliente && typeof v.cliente === 'object') {
+          docCliente = v.cliente.documento || v.cliente.cedula || v.cliente.nit || '222222222222';
+        }
+        if (docCliente === 'Consumidor Final') {
+          docCliente = '222222222222';
+        }
 
-          return {
-            id: v.id,
-            fecha: v.fecha || new Date().toISOString(),
-            cliente: docCliente,
-            documento: docCliente,
-            cajero: nomCajero,
-            total: Number(v.total) || 0,
-            metodo: metodo || 'EFECTIVO',
-            items: (v.detalles || v.items || []).map((d) => ({
-              id: d.id,
-              nombre: d.producto?.nombre || d.producto || d.nombre || 'Producto',
-              cantidad: Number(d.cantidad) || 1,
-              precio: Number(d.producto?.precio || d.precio_unitario || d.precio || 0),
-              total: Number(d.subtotal || d.total || 0),
-            })),
-          };
-        })
-      );
+        let nomCajero = 'Cajero POS';
+        if (typeof v.cajero === 'string' && v.cajero.trim()) {
+          nomCajero = v.cajero.trim();
+        } else if (v.cajero && typeof v.cajero === 'object') {
+          nomCajero = v.cajero.nombre || v.cajero.name || v.cajero.email || 'Cajero POS';
+        }
+
+        return {
+          id: v.id,
+          fecha: v.fecha || new Date().toISOString(),
+          cliente: docCliente,
+          documento: docCliente,
+          cajero: nomCajero,
+          total: Number(v.total) || 0,
+          metodo: metodo || 'EFECTIVO',
+          items: (v.detalles || v.items || []).map((d) => ({
+            id: d.id,
+            nombre: d.producto?.nombre || d.producto || d.nombre || 'Producto',
+            cantidad: Number(d.cantidad) || 1,
+            precio: Number(d.producto?.precio || d.precio_unitario || d.precio || 0),
+            total: Number(d.subtotal || d.total || 0),
+          })),
+        };
+      });
 
       setVentas(ventasConMetodo);
     } catch (err) {

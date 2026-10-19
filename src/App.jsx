@@ -1,20 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Toaster, toast } from 'sonner';
 import HomeView from './views/home/HomeView';
 import LoginView from './views/auth/LoginView';
-import CajeroPosView from './views/dashboard/CajeroPosView';
-import AdminDashboardView from './views/dashboard/AdminDashboardView';
-import FacturaModal from './components/FacturaModal';
+import { Lock } from 'lucide-react';
 import NotificationBell from './components/NotificationBell';
 import ThemeToggle from './components/ThemeToggle';
+import FontSizeToggle from './components/FontSizeToggle';
 import ActiveTabLock from './components/ActiveTabLock';
+import AutoLockGuard from './components/AutoLockGuard';
 import { useAuth } from './context/AuthContext';
 import { ROLES, ROLE_BADGES } from './constants/roles';
 import ProtectedRoute from './routes/ProtectedRoute';
-import ForbiddenView from './views/errors/ForbiddenView';
-import NotFoundView from './views/errors/NotFoundView';
 import './styles/navbar.css';
+
+// Code-Splitting (Lazy Loading) para optimizar el bundle de carga inicial
+const CajeroPosView = lazy(() => import('./views/dashboard/CajeroPosView'));
+const AdminDashboardView = lazy(() => import('./views/dashboard/AdminDashboardView'));
+const FacturaModal = lazy(() => import('./components/FacturaModal'));
+const ForbiddenView = lazy(() => import('./views/errors/ForbiddenView'));
+const NotFoundView = lazy(() => import('./views/errors/NotFoundView'));
+
+const ModuleLoader = () => (
+  <div style={{
+    minHeight: '60vh',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '12px',
+    color: 'var(--text-muted)'
+  }}>
+    <div style={{
+      width: '38px',
+      height: '38px',
+      borderRadius: '50%',
+      border: '3px solid var(--border-color)',
+      borderTopColor: 'var(--accent-primary)',
+      animation: 'appSpin 0.75s linear infinite'
+    }} />
+    <span style={{ fontSize: '0.88rem', fontWeight: 600 }}>Cargando módulo...</span>
+    <style>{`@keyframes appSpin { to { transform: rotate(360deg); } }`}</style>
+  </div>
+);
 
 function App() {
   const { 
@@ -42,14 +70,19 @@ function App() {
       {/* Control de sesión única de pestaña estilo WhatsApp Web */}
       <ActiveTabLock onLogout={handleLogout} />
 
-      {/* Notificaciones globales */}
-      <Toaster position="top-right" richColors />
+      {/* Bloqueo automático por inactividad y seguridad (Auto-Lock) */}
+      <AutoLockGuard onLogout={handleLogout} />
 
-      {/* Modal de Facturación Rápida */}
-      <FacturaModal
-        isOpen={modalFacturaAbierto}
-        onClose={() => setModalFacturaAbierto(false)}
-      />
+      {/* Notificaciones globales en la esquina inferior */}
+      <Toaster position="bottom-right" richColors closeButton />
+
+      {/* Modal de Facturación Rápida (Cargado diferido) */}
+      <Suspense fallback={null}>
+        <FacturaModal
+          isOpen={modalFacturaAbierto}
+          onClose={() => setModalFacturaAbierto(false)}
+        />
+      </Suspense>
 
       {/* Barra superior de navegación */}
       {!isPublicPage && (
@@ -69,6 +102,20 @@ function App() {
 
           {/* Acciones y Perfil */}
           <div className="app-navbar-actions">
+            {/* Bloqueo Manual de Pantalla por Seguridad */}
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('tc_lock_screen'))}
+              className="app-navbar-btn-lock"
+              title="Bloquear pantalla ahora (Seguridad de Caja)"
+              aria-label="Bloquear pantalla"
+            >
+              <Lock size={15} />
+            </button>
+
+            {/* Selector de Accesibilidad: Tamaño de Texto (WCAG) */}
+            <FontSizeToggle />
+
             {/* Alternador de Modo Claro / Modo Oscuro */}
             <ThemeToggle />
 
@@ -108,38 +155,40 @@ function App() {
 
       {/* Cuerpo principal de la aplicación */}
       <main className={`app-main-layout ${isPublicPage ? 'public' : 'private'}`}>
-        <Routes>
-          {/* Ruta principal: Presentación del proyecto */}
-          <Route path="/" element={<HomeView />} />
-          
-          {/* Ruta de autenticación */}
-          <Route path="/login" element={<LoginView />} />
-          
-          <Route path="/cajero" element={
-            <ProtectedRoute allowedRoles={[ROLES.CAJERO, ROLES.ADMIN]}>
-              <CajeroPosView user={user} />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/admin" element={
-            <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CONTADOR]}>
-              <AdminDashboardView
-                user={user}
-                onOpenFactura={() => setModalFacturaAbierto(true)}
-                onAbrirPos={() => navigate('/cajero')}
-              />
-            </ProtectedRoute>
-          } />
+        <Suspense fallback={<ModuleLoader />}>
+          <Routes>
+            {/* Ruta principal: Presentación del proyecto */}
+            <Route path="/" element={<HomeView />} />
+            
+            {/* Ruta de autenticación */}
+            <Route path="/login" element={<LoginView />} />
+            
+            <Route path="/cajero" element={
+              <ProtectedRoute allowedRoles={[ROLES.CAJERO, ROLES.ADMIN]}>
+                <CajeroPosView user={user} />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admin" element={
+              <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CONTADOR]}>
+                <AdminDashboardView
+                  user={user}
+                  onOpenFactura={() => setModalFacturaAbierto(true)}
+                  onAbrirPos={() => navigate('/cajero')}
+                />
+              </ProtectedRoute>
+            } />
 
-          {/* Ruta de Acceso Denegado (403) */}
-          <Route path="/forbidden" element={<ForbiddenView />} />
-          
-          {/* Ruta pública 404 explícita */}
-          <Route path="/not-found" element={<NotFoundView />} />
+            {/* Ruta de Acceso Denegado (403) */}
+            <Route path="/forbidden" element={<ForbiddenView />} />
+            
+            {/* Ruta pública 404 explícita */}
+            <Route path="/not-found" element={<NotFoundView />} />
 
-          {/* Cualquier otra ruta no coincidente muestra Error 404 */}
-          <Route path="*" element={<NotFoundView />} />
-        </Routes>
+            {/* Cualquier otra ruta no coincidente muestra Error 404 */}
+            <Route path="*" element={<NotFoundView />} />
+          </Routes>
+        </Suspense>
       </main>
     </>
   );

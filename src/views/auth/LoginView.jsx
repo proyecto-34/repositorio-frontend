@@ -11,6 +11,7 @@ import { useAuth } from '../../context/AuthContext';
 import { ROLES, normalizarRol } from '../../constants/roles';
 import MotivationalQuote from '../../components/MotivationalQuote';
 import ThemeToggle from '../../components/ThemeToggle';
+import FontSizeToggle from '../../components/FontSizeToggle';
 import './LoginView.css';
 
 /**
@@ -101,7 +102,10 @@ export const LoginView = () => {
             <ArrowLeft size={16} />
             <span>Volver a la portada</span>
           </Link>
-          <ThemeToggle />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FontSizeToggle />
+            <ThemeToggle />
+          </div>
         </div>
 
         {/* Cabecera limpia y tipográfica */}

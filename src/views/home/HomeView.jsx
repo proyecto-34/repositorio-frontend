@@ -1,35 +1,49 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ShoppingCart, 
   Package, 
   Truck, 
   BarChart3, 
-  FileText, 
   ShieldCheck, 
   ArrowRight, 
   CheckCircle2, 
-  Layers, 
-  Database, 
-  Cpu, 
   Sparkles,
-  Users,
   LogIn,
-  Store,
   Receipt,
   TrendingUp,
   Clock,
-  Shield,
-  KeyRound
+  HeartHandshake,
+  BadgeCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { ROLES_DB } from '../../constants/roles';
 import ThemeToggle from '../../components/ThemeToggle';
+import FontSizeToggle from '../../components/FontSizeToggle';
 import './HomeView.css';
 
 export const HomeView = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isCajero, user } = useAuth();
+  const heroRef = useRef(null);
+
+  useEffect(() => {
+    const heroEl = heroRef.current;
+    if (!heroEl) return;
+
+    const handleMouseMove = (e) => {
+      const rect = heroEl.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      heroEl.style.setProperty('--mouse-x', `${x}px`);
+      heroEl.style.setProperty('--mouse-y', `${y}px`);
+    };
+
+    heroEl.addEventListener('mousemove', handleMouseMove, { passive: true });
+
+    return () => {
+      heroEl.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
 
   const handleCtaClick = () => {
     if (isAuthenticated) {
@@ -48,72 +62,63 @@ export const HomeView = () => {
       icon: <ShoppingCart className="feature-icon text-emerald" size={28} />,
       title: 'Punto de Venta (POS)',
       description: 'Caja rápida optimizada para ventas fluidas, lector de código de barras, calculadora de cambio y múltiples medios de pago (Efectivo, Tarjeta, Nequi).',
-      badge: 'Cajero / POS',
+      badge: 'Cajero / Ventas',
       color: 'emerald'
     },
     {
       icon: <Package className="feature-icon text-amber" size={28} />,
       title: 'Control de Inventario',
       description: 'Gestión de existencias en tiempo real con monitoreo de stock mínimo, alertas automáticas de agotamiento y categorización de productos.',
-      badge: 'Bodega / Stock',
+      badge: 'Bodega / Existencias',
       color: 'amber'
     },
     {
       icon: <Truck className="feature-icon text-blue" size={28} />,
-      title: 'Proveedores y Compras',
+      title: 'Proveedores y Abastecimiento',
       description: 'Registro de proveedores comerciales y órdenes de entrada de mercancía para reabastecer el inventario de manera controlada y trazable.',
-      badge: 'Abastecimiento',
+      badge: 'Compras',
       color: 'blue'
     },
     {
       icon: <BarChart3 className="feature-icon text-purple" size={28} />,
-      title: 'Reportes y Analítica',
-      description: 'Métricas de rendimiento, balances de ingresos, ventas diarias/mensuales con gráficos interactivos y desglose financiero de rentabilidad.',
+      title: 'Reportes y Finanzas',
+      description: 'Métricas de rendimiento, balances de ingresos, ventas diarias y mensuales con gráficos claros y desglose financiero de rentabilidad.',
       badge: 'Contabilidad',
       color: 'purple'
     },
     {
       icon: <Receipt className="feature-icon text-violet" size={28} />,
-      title: 'Facturación y PDF',
-      description: 'Generación y exportación de facturas electrónicas y comprobantes de venta oficiales en formato PDF con jsPDF y AutoTable.',
-      badge: 'Comprobantes',
+      title: 'Facturación y Comprobantes',
+      description: 'Generación y descarga de comprobantes de venta oficiales en formato PDF con detalle de productos, IVA y método de pago.',
+      badge: 'Facturas PDF',
       color: 'violet'
     },
     {
       icon: <ShieldCheck className="feature-icon text-indigo" size={28} />,
-      title: 'Seguridad RBAC (4 Roles)',
-      description: 'Control de acceso granular basado en roles (Admin, Contador, Supervisor y Cajero) con autenticación protegida por JWT.',
-      badge: 'Seguridad',
+      title: 'Seguridad Multi-Usuario',
+      description: 'Control de acceso protegido para que el administrador, cajero, supervisor y contador tengan sus propias funciones asignadas.',
+      badge: 'Acceso Protegido',
       color: 'indigo'
     }
   ];
 
-  const techStack = [
-    { name: 'React 19', role: 'Frontend UI Dinámico', icon: <Cpu size={20} /> },
-    { name: 'Vite', role: 'Bundler de Alta Velocidad', icon: <Sparkles size={20} /> },
-    { name: 'NestJS', role: 'Backend Modular & REST API', icon: <Layers size={20} /> },
-    { name: 'MySQL', role: 'Base de Datos Relacional', icon: <Database size={20} /> },
-    { name: 'JWT + RBAC', role: 'Autenticación & Permisos', icon: <KeyRound size={20} /> },
-    { name: 'Recharts', role: 'Analítica Visual', icon: <TrendingUp size={20} /> }
-  ];
-
   return (
     <div className="landing-wrapper">
-      {/* Barra de navegación de la Landing */}
+      {/* Barra de navegación de la Landing (Fijada en la cabecera) */}
       <header className="landing-header">
         <div className="landing-brand">
           <div className="brand-badge-dot"></div>
           <div className="brand-text-block">
             <span className="brand-title">Tienda Comunitaria</span>
-            <span className="brand-subtitle">Software de Gestión & POS</span>
+            <span className="brand-subtitle">Software de Gestión Comercial & POS</span>
           </div>
         </div>
 
         <nav className="landing-nav-actions">
           <a href="#modulos" className="nav-link">Módulos</a>
-          <a href="#roles" className="nav-link">Roles RBAC</a>
-          <a href="#arquitectura" className="nav-link">Arquitectura</a>
+          <a href="#beneficios" className="nav-link">Beneficios</a>
           
+          <FontSizeToggle />
           <ThemeToggle />
 
           {isAuthenticated ? (
@@ -130,12 +135,13 @@ export const HomeView = () => {
         </nav>
       </header>
 
-      {/* Hero Section */}
-      <section className="hero-section">
+      {/* Hero Section con resplandor y cuadrícula interactiva al cursor */}
+      <section ref={heroRef} className="hero-section">
+        <div className="hero-grid-pattern"></div>
         <div className="hero-glow-bg"></div>
         <div className="hero-badge-tag">
           <Sparkles size={15} />
-          <span>Proyecto de Software • Semestre 6</span>
+          <span>Solución Comercial para Tiendas y Negocios</span>
         </div>
 
         <h1 className="hero-title">
@@ -143,8 +149,8 @@ export const HomeView = () => {
         </h1>
 
         <p className="hero-description">
-          Plataforma modular desarrollada para optimizar la operación de tiendas comunitarias y negocios minoristas: 
-          ventas en caja (POS), control de existencias, facturación PDF, abastecimiento con proveedores y reportes contables en tiempo real.
+          Plataforma moderna diseñada para facilitar la operación diaria de tiendas comunitarias y minimercados: 
+          atención ágil en caja (POS), control de existencias en tiempo real, facturación PDF, abastecimiento con proveedores y balances contables claros.
         </p>
 
         <div className="hero-actions">
@@ -157,23 +163,23 @@ export const HomeView = () => {
           </a>
         </div>
 
-        {/* Mini stats cards */}
+        {/* Mini stats comerciales orientados al negocio */}
         <div className="hero-stats-grid">
           <div className="stat-card">
-            <div className="stat-number">4</div>
-            <div className="stat-label">Roles RBAC Especializados</div>
+            <div className="stat-number">⚡ POS</div>
+            <div className="stat-label">Ventas Ágiles en Caja</div>
           </div>
           <div className="stat-card">
             <div className="stat-number">100%</div>
-            <div className="stat-label">Control de Stock en Tiempo Real</div>
+            <div className="stat-label">Stock en Tiempo Real</div>
           </div>
           <div className="stat-card">
             <div className="stat-number">PDF</div>
-            <div className="stat-label">Emisión de Facturas y Reportes</div>
+            <div className="stat-label">Facturas y Comprobantes</div>
           </div>
           <div className="stat-card">
-            <div className="stat-number">REST</div>
-            <div className="stat-label">Arquitectura Fullstack Modular</div>
+            <div className="stat-number">Multi-Rol</div>
+            <div className="stat-label">Caja y Administración</div>
           </div>
         </div>
       </section>
@@ -184,7 +190,7 @@ export const HomeView = () => {
           <span className="section-badge">Capacidades del Sistema</span>
           <h2 className="section-title">Módulos Funcionales Diseñados para la Operación</h2>
           <p className="section-subtitle">
-            Cada área del negocio cuenta con una herramienta especializada para garantizar rapidez, integridad de datos y control financiero.
+            Cada área del negocio cuenta con una herramienta especializada para garantizar rapidez en la atención, inventario exacto y control financiero.
           </p>
         </div>
 
@@ -202,90 +208,59 @@ export const HomeView = () => {
         </div>
       </section>
 
-      {/* Sección: Roles y Permisos (RBAC) */}
-      <section id="roles" className="section-container section-roles">
+      {/* Sección: Beneficios para el Comerciante (Enfoque de Negocio) */}
+      <section id="beneficios" className="section-container">
         <div className="section-header">
-          <span className="section-badge">Control de Acceso</span>
-          <h2 className="section-title">Modelo de Seguridad RBAC (4 Roles)</h2>
+          <span className="section-badge">Ventajas para el Negocio</span>
+          <h2 className="section-title">¿Por qué Elegir este Sistema para tu Tienda?</h2>
           <p className="section-subtitle">
-            Garantiza que cada usuario acceda únicamente a las vistas y funciones acordes a su responsabilidad en la tienda.
+            Beneficios concretos pensados en el tendero, los cajeros y la comunidad de clientes.
           </p>
         </div>
 
-        <div className="roles-grid">
-          {ROLES_DB.map((r) => (
-            <div key={r.id} className="role-card">
-              <div className="role-card-header">
-                <div>
-                  <h4 className="role-name">{r.label}</h4>
-                  <span className="role-tag">Rol #{r.id} ({r.nombre})</span>
-                </div>
-              </div>
-              <ul className="role-features">
-                {r.id === 1 && (
-                  <>
-                    <li><CheckCircle2 size={15} /> Control total de usuarios y roles</li>
-                    <li><CheckCircle2 size={15} /> Gestión completa del inventario y compras</li>
-                    <li><CheckCircle2 size={15} /> Acceso a reportes y auditoría del sistema</li>
-                  </>
-                )}
-                {r.id === 2 && (
-                  <>
-                    <li><CheckCircle2 size={15} /> Terminal de venta rápida POS en caja</li>
-                    <li><CheckCircle2 size={15} /> Búsqueda por código de barras y categorías</li>
-                    <li><CheckCircle2 size={15} /> Registro de pagos y emisión de factura PDF</li>
-                  </>
-                )}
-                {r.id === 3 && (
-                  <>
-                    <li><CheckCircle2 size={15} /> Catálogo de productos y existencias</li>
-                    <li><CheckCircle2 size={15} /> Monitoreo de stock mínimo y alertas</li>
-                    <li><CheckCircle2 size={15} /> Entradas de mercancía con proveedores</li>
-                  </>
-                )}
-                {r.id === 4 && (
-                  <>
-                    <li><CheckCircle2 size={15} /> Balances y métricas financieras en tiempo real</li>
-                    <li><CheckCircle2 size={15} /> Desglose de ingresos por método de pago</li>
-                    <li><CheckCircle2 size={15} /> Exportación de reportes contables en PDF</li>
-                  </>
-                )}
-              </ul>
+        <div className="modules-grid">
+          <div className="module-card card-emerald">
+            <div className="module-card-header">
+              <div className="module-icon-box"><TrendingUp className="feature-icon text-emerald" size={28} /></div>
+              <span className="module-badge">Cero Pérdidas</span>
             </div>
-          ))}
+            <h3 className="module-title">Control Total de Inventario</h3>
+            <p className="module-description">
+              Sabrás con precisión qué productos tienes disponibles, cuáles se están agotando y cuándo hacer pedidos a tus proveedores sin quedarte sin mercancía.
+            </p>
+          </div>
+
+          <div className="module-card card-blue">
+            <div className="module-card-header">
+              <div className="module-icon-box"><Clock className="feature-icon text-blue" size={28} /></div>
+              <span className="module-badge">Atención Rápida</span>
+            </div>
+            <h3 className="module-title">Cobro Ágil y sin Filas</h3>
+            <p className="module-description">
+              Atiende a tus clientes en segundos con búsqueda instantánea, cálculo automático de vueltas y soporte para pagos en efectivo, Nequi o tarjeta.
+            </p>
+          </div>
+
+          <div className="module-card card-purple">
+            <div className="module-card-header">
+              <div className="module-icon-box"><BadgeCheck className="feature-icon text-purple" size={28} /></div>
+              <span className="module-badge">Cuentas Claras</span>
+            </div>
+            <h3 className="module-title">Cierre de Caja y Balances Diarios</h3>
+            <p className="module-description">
+              Consulta al instante los ingresos reales del día, el IVA recaudado y los productos más vendidos sin necesidad de cuadernos ni cálculos manuales.
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* Sección: Arquitectura y Stack Tecnológico */}
-      <section id="arquitectura" className="section-container">
-        <div className="section-header">
-          <span className="section-badge">Stack de Ingeniería</span>
-          <h2 className="section-title">Arquitectura Fullstack Moderna y Desacoplada</h2>
-          <p className="section-subtitle">
-            Construido siguiendo las mejores prácticas de desarrollo web, separación de responsabilidades y escalabilidad.
-          </p>
-        </div>
-
-        <div className="tech-grid">
-          {techStack.map((tech, idx) => (
-            <div key={idx} className="tech-card">
-              <div className="tech-icon">{tech.icon}</div>
-              <div className="tech-info">
-                <h4>{tech.name}</h4>
-                <p>{tech.role}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA Final */}
+      {/* CTA Final Adaptable a Modo Claro y Oscuro */}
       <section className="cta-banner-section">
         <div className="cta-banner">
           <div className="cta-content">
             <h2 className="cta-title">¿Listo para operar el sistema?</h2>
             <p className="cta-desc">
-              Inicia sesión con tus credenciales de usuario o explora los diferentes perfiles del sistema para evaluar el funcionamiento.
+              Inicia sesión con tus credenciales de usuario para comenzar a vender en caja o administrar el inventario de tu tienda.
             </p>
           </div>
           <button onClick={handleCtaClick} className="btn-cta-large">
@@ -300,10 +275,10 @@ export const HomeView = () => {
         <div className="footer-content">
           <div className="footer-left">
             <span className="footer-brand">Tienda Comunitaria</span>
-            <p>Proyecto de Software 3 • Universidad / Semestre 6</p>
+            <p>Sistema POS & Gestión Comercial para Negocios y Minimercados</p>
           </div>
           <div className="footer-right">
-            <span>Sistema POS & Gestión Comercial • Versión 1.0</span>
+            <span>Versión 1.0 • Operación en Tiempo Real</span>
           </div>
         </div>
       </footer>

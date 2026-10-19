@@ -82,6 +82,26 @@
   background: var(--accent-primary-hover);
 }
 
+.app-navbar-btn-lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-surface-elevated, #f1f5f9);
+  color: var(--text-secondary, #475569);
+  border: 1px solid var(--border-color, #e2e8f0);
+  padding: 6px 9px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.app-navbar-btn-lock:hover {
+  background: var(--color-warning-subtle, rgba(245, 158, 11, 0.15));
+  color: var(--color-warning, #f59e0b);
+  border-color: var(--color-warning, #f59e0b);
+  transform: translateY(-1px);
+}
+
 .app-navbar-user-box {
   display: flex;
   align-items: center;
