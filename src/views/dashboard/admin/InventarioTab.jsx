@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { productosService } from '../../../services/productosService';
 import categoriasService, { CATEGORIAS_DEFAULT } from '../../../services/categoriasService';
-import WeatherWidget from '../../../components/WeatherWidget';
 import Can from '../../../components/Can';
 
 export const InventarioTab = ({
@@ -216,14 +215,14 @@ export const InventarioTab = ({
       {/* Tabla de Productos */}
       <div
         style={{
-          background: '#151c2c',
+          background: 'var(--bg-surface)',
           borderRadius: '18px',
           padding: '1.5rem',
           display: 'flex',
           flexDirection: 'column',
           gap: '1.25rem',
-          border: 'none',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)',
+          border: '1px solid var(--border-color)',
+          boxShadow: 'var(--card-shadow)',
         }}
       >
         <div
@@ -236,10 +235,10 @@ export const InventarioTab = ({
           }}
         >
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#f8fafc', fontWeight: 800 }}>
+            <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: 800 }}>
               Catálogo de Productos y Existencias
             </h3>
-            <p style={{ margin: '4px 0 0 0', color: '#94a3b8', fontSize: '0.82rem' }}>
+            <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
               Control de stock, precios y reposición ({productos.length} productos)
             </p>
           </div>
@@ -250,8 +249,8 @@ export const InventarioTab = ({
               onClick={onRecargar}
               disabled={cargando}
               style={{
-                background: '#1e273d',
-                color: '#cbd5e1',
+                background: 'var(--bg-surface-elevated)',
+                color: 'var(--text-secondary)',
                 border: 'none',
                 padding: '8px 14px',
                 borderRadius: '10px',
@@ -268,9 +267,9 @@ export const InventarioTab = ({
                 type="button"
                 onClick={() => setModalCategoriaAbierto(true)}
                 style={{
-                  background: '#1e273d',
-                  color: '#c4b5fd',
-                  border: '1px solid rgba(139, 92, 246, 0.4)',
+                  background: 'var(--bg-surface-elevated)',
+                  color: 'var(--accent-primary)',
+                  border: '1px solid var(--accent-primary-border)',
                   padding: '8px 14px',
                   borderRadius: '10px',
                   cursor: 'pointer',
@@ -285,7 +284,7 @@ export const InventarioTab = ({
                 type="button"
                 onClick={handleAbrirCrearProducto}
                 style={{
-                  background: '#8b5cf6',
+                  background: '#1e5bb8',
                   color: '#fff',
                   border: 'none',
                   padding: '8px 16px',
@@ -308,10 +307,10 @@ export const InventarioTab = ({
             style={{
               flex: 1,
               minWidth: '220px',
-              background: '#0b0f19',
-              borderRadius: '10px',
+              background: 'var(--bg-surface)',
+              borderRadius: '8px',
               padding: '0 14px',
-              border: 'none',
+              border: '1px solid var(--border-input)',
             }}
           >
             <input
@@ -322,7 +321,7 @@ export const InventarioTab = ({
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: '#fff',
+                color: 'var(--text-primary)',
                 padding: '10px 0',
                 width: '100%',
                 outline: 'none',
@@ -335,12 +334,14 @@ export const InventarioTab = ({
             value={filtroCategoria}
             onChange={(e) => setFiltroCategoria(e.target.value)}
             style={{
-              background: '#0b0f19',
-              border: 'none',
-              color: '#cbd5e1',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-input)',
+              color: 'var(--text-primary)',
               padding: '10px 14px',
-              borderRadius: '10px',
+              borderRadius: '8px',
               fontSize: '0.85rem',
+              fontWeight: 600,
+              outline: 'none',
             }}
           >
             {categoriasUnicas.map((cat) => (
@@ -354,13 +355,14 @@ export const InventarioTab = ({
             value={currentFiltroStock}
             onChange={(e) => updateFiltroStock(e.target.value)}
             style={{
-              background: currentFiltroStock !== 'todos' ? '#271f38' : '#0b0f19',
-              border: currentFiltroStock !== 'todos' ? '1px solid #f59e0b' : 'none',
-              color: currentFiltroStock !== 'todos' ? '#fbbf24' : '#cbd5e1',
+              background: currentFiltroStock !== 'todos' ? 'var(--color-warning-subtle)' : 'var(--bg-surface)',
+              border: currentFiltroStock !== 'todos' ? '1px solid var(--color-warning)' : '1px solid var(--border-input)',
+              color: currentFiltroStock !== 'todos' ? 'var(--color-warning)' : 'var(--text-primary)',
               padding: '10px 14px',
-              borderRadius: '10px',
+              borderRadius: '8px',
               fontSize: '0.85rem',
-              fontWeight: currentFiltroStock !== 'todos' ? 700 : 400,
+              fontWeight: currentFiltroStock !== 'todos' ? 700 : 600,
+              outline: 'none',
             }}
           >
             <option value="todos">Todos los niveles</option>
@@ -376,11 +378,11 @@ export const InventarioTab = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              background: 'rgba(245, 158, 11, 0.12)',
-              border: '1px solid rgba(245, 158, 11, 0.35)',
+              background: '#fef3c7',
+              border: '1px solid #fde68a',
               padding: '10px 16px',
-              borderRadius: '12px',
-              color: '#fbbf24',
+              borderRadius: '10px',
+              color: '#92400e',
               fontSize: '0.85rem',
               flexWrap: 'wrap',
               gap: '8px',
@@ -403,7 +405,7 @@ export const InventarioTab = ({
               onClick={() => updateFiltroStock('todos')}
               style={{
                 background: '#f59e0b',
-                color: '#0b0f19',
+                color: '#ffffff',
                 border: 'none',
                 borderRadius: '8px',
                 padding: '6px 14px',
@@ -418,10 +420,10 @@ export const InventarioTab = ({
         )}
 
         {/* Tabla de Productos */}
-        <div style={{ borderRadius: '12px', overflowX: 'auto', background: '#0b0f19', border: 'none' }}>
+        <div style={{ borderRadius: '12px', overflowX: 'auto', background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
-              <tr style={{ background: 'rgba(30, 39, 61, 0.4)', color: '#94a3b8', textAlign: 'left' }}>
+              <tr style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)', textAlign: 'left', borderBottom: '1px solid var(--border-color)' }}>
                 <th style={{ padding: '12px 14px', fontWeight: 600 }}>Producto</th>
                 <th style={{ padding: '12px 14px', fontWeight: 600 }}>Categoría</th>
                 <th style={{ padding: '12px 14px', fontWeight: 600 }}>Precio</th>
@@ -432,7 +434,7 @@ export const InventarioTab = ({
             <tbody>
               {cargando ? (
                 <tr>
-                  <td colSpan="5" style={{ padding: '2.5rem', textAlign: 'center', color: '#c4b5fd' }}>
+                  <td colSpan="5" style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--accent-primary)' }}>
                     Consultando catálogo en la BD...
                   </td>
                 </tr>
@@ -446,7 +448,7 @@ export const InventarioTab = ({
                           <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#22c55e', fontWeight: 700 }}>
                             ¡Inventario en nivel óptimo!
                           </h4>
-                          <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.85rem', maxWidth: '420px', lineHeight: '1.4' }}>
+                          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '420px', lineHeight: '1.4' }}>
                             No hay productos que requieran reposición en este momento. Todos los artículos tienen existencias por encima de su stock mínimo.
                           </p>
                           <button
@@ -454,7 +456,7 @@ export const InventarioTab = ({
                             onClick={() => updateFiltroStock('todos')}
                             style={{
                               marginTop: '8px',
-                              background: '#8b5cf6',
+                              background: '#1e5bb8',
                               color: '#fff',
                               border: 'none',
                               padding: '8px 18px',
@@ -473,7 +475,7 @@ export const InventarioTab = ({
                           <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#22c55e', fontWeight: 700 }}>
                             ¡Ningún producto agotado!
                           </h4>
-                          <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.85rem', maxWidth: '420px', lineHeight: '1.4' }}>
+                          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '420px', lineHeight: '1.4' }}>
                             Todo el catálogo cuenta con disponibilidad en existencias.
                           </p>
                           <button
@@ -481,7 +483,7 @@ export const InventarioTab = ({
                             onClick={() => updateFiltroStock('todos')}
                             style={{
                               marginTop: '8px',
-                              background: '#8b5cf6',
+                              background: '#1e5bb8',
                               color: '#fff',
                               border: 'none',
                               padding: '8px 18px',
@@ -497,10 +499,10 @@ export const InventarioTab = ({
                       ) : busquedaProductos ? (
                         <>
                           <span style={{ fontSize: '2.4rem' }}>🔍</span>
-                          <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc', fontWeight: 700 }}>
+                          <h4 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)', fontWeight: 700 }}>
                             No se encontraron productos
                           </h4>
-                          <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.85rem' }}>
+                          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                             Ningún producto coincide con &ldquo;{busquedaProductos}&rdquo;
                           </p>
                           <button
@@ -508,8 +510,8 @@ export const InventarioTab = ({
                             onClick={() => setBusquedaProductos('')}
                             style={{
                               marginTop: '8px',
-                              background: '#1e273d',
-                              color: '#c4b5fd',
+                              background: 'var(--bg-surface-elevated)',
+                              color: 'var(--accent-primary)',
                               border: 'none',
                               padding: '8px 16px',
                               borderRadius: '10px',
@@ -522,7 +524,7 @@ export const InventarioTab = ({
                           </button>
                         </>
                       ) : (
-                        <div style={{ color: '#64748b' }}>
+                        <div style={{ color: 'var(--text-muted)' }}>
                           No hay productos registrados en la base de datos.
                         </div>
                       )}
@@ -539,19 +541,22 @@ export const InventarioTab = ({
                   return (
                     <tr
                       key={prod.id}
-                      style={{ background: idx % 2 === 0 ? 'transparent' : 'rgba(21, 28, 44, 0.4)' }}
+                      style={{
+                        background: idx % 2 === 0 ? 'var(--bg-surface)' : 'var(--bg-subtle)',
+                        borderBottom: '1px solid var(--border-subtle)',
+                      }}
                     >
                       <td style={{ padding: '12px 14px' }}>
-                        <div style={{ fontWeight: 700, color: '#f8fafc' }}>{prod.nombre}</div>
-                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{prod.nombre}</div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                           Cód: {prod.codigo_barras || prod.codigo || `ID-${prod.id}`}
                         </span>
                       </td>
                       <td style={{ padding: '12px 14px' }}>
                         <span
                           style={{
-                            background: 'rgba(139, 92, 246, 0.15)',
-                            color: '#c4b5fd',
+                            background: 'var(--accent-primary-subtle)',
+                            color: 'var(--accent-primary)',
                             padding: '3px 8px',
                             borderRadius: '6px',
                             fontSize: '0.75rem',
@@ -561,7 +566,7 @@ export const InventarioTab = ({
                           {prod.categoria || prod.categoria_nombre || 'General'}
                         </span>
                       </td>
-                      <td style={{ padding: '12px 14px', fontWeight: 800, color: '#22c55e' }}>
+                      <td style={{ padding: '12px 14px', fontWeight: 800, color: '#16a34a' }}>
                         ${(Number(prod.precio) || Number(prod.precio_venta) || 0).toLocaleString('es-CO')}
                       </td>
                       <td style={{ padding: '12px 14px' }}>
@@ -569,13 +574,14 @@ export const InventarioTab = ({
                           <span
                             style={{
                               background: esAgotado
-                                ? 'rgba(239, 68, 68, 0.2)'
+                                ? '#fee2e2'
                                 : esBajo
-                                ? 'rgba(245, 158, 11, 0.2)'
-                                : 'rgba(34, 197, 94, 0.2)',
-                              color: esAgotado ? '#f87171' : esBajo ? '#fbbf24' : '#4ade80',
+                                ? '#fef3c7'
+                                : '#dcfce7',
+                              color: esAgotado ? '#b91c1c' : esBajo ? '#b45309' : '#15803d',
+                              border: `1px solid ${esAgotado ? '#fecaca' : esBajo ? '#fde68a' : '#bbf7d0'}`,
                               padding: '3px 9px',
-                              borderRadius: '10px',
+                              borderRadius: '8px',
                               fontSize: '0.78rem',
                               fontWeight: 700,
                             }}
@@ -588,9 +594,9 @@ export const InventarioTab = ({
                               type="button"
                               onClick={() => handleAjusteRapidoStock(prod, 1)}
                               style={{
-                                background: '#1e273d',
-                                color: '#fff',
-                                border: 'none',
+                                background: 'var(--bg-subtle)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--border-input)',
                                 width: '24px',
                                 height: '24px',
                                 borderRadius: '6px',
@@ -604,9 +610,9 @@ export const InventarioTab = ({
                               type="button"
                               onClick={() => handleAjusteRapidoStock(prod, -1)}
                               style={{
-                                background: '#1e273d',
-                                color: '#fff',
-                                border: 'none',
+                                background: 'var(--bg-subtle)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--border-input)',
                                 width: '24px',
                                 height: '24px',
                                 borderRadius: '6px',
@@ -626,9 +632,9 @@ export const InventarioTab = ({
                               type="button"
                               onClick={() => handleAbrirEditarProducto(prod)}
                               style={{
-                                background: '#1e273d',
-                                color: '#c4b5fd',
-                                border: 'none',
+                                background: 'var(--bg-subtle)',
+                                color: 'var(--accent-primary)',
+                                border: '1px solid var(--border-input)',
                                 padding: '6px 12px',
                                 borderRadius: '6px',
                                 cursor: 'pointer',
@@ -644,9 +650,9 @@ export const InventarioTab = ({
                               type="button"
                               onClick={() => handleEliminarProducto(prod.id, prod.nombre)}
                               style={{
-                                background: 'rgba(239, 68, 68, 0.15)',
-                                color: '#f87171',
-                                border: 'none',
+                                background: 'var(--color-danger-subtle)',
+                                color: 'var(--color-danger)',
+                                border: '1px solid var(--color-danger-border)',
                                 padding: '6px 10px',
                                 borderRadius: '6px',
                                 cursor: 'pointer',
@@ -668,30 +674,98 @@ export const InventarioTab = ({
         </div>
       </div>
 
-      {/* Columna Derecha: Clima & Acceso Rápido POS */}
+      {/* Columna Derecha: Resumen de Stock & Acceso Rápido POS */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <WeatherWidget />
+        <div
+          style={{
+            background: 'var(--bg-surface, #ffffff)',
+            borderRadius: '16px',
+            padding: '1.4rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+            border: '1px solid var(--border-color, #e2e8f0)',
+            boxShadow: 'var(--card-shadow, 0 1px 3px rgba(0, 0, 0, 0.05))',
+          }}
+        >
+          <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary, #0f172a)', fontWeight: 800 }}>
+            Estado del Inventario
+          </h4>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: 'var(--bg-subtle, #f8fafc)',
+                border: '1px solid var(--border-color, #e2e8f0)',
+                padding: '10px 14px',
+                borderRadius: '10px',
+              }}
+            >
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary, #475569)', fontWeight: 600 }}>Total Productos</span>
+              <strong style={{ color: 'var(--accent-primary, #1e5bb8)', fontSize: '1rem', fontWeight: 800 }}>
+                {productos.length}
+              </strong>
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: 'var(--bg-subtle, #f8fafc)',
+                border: '1px solid var(--border-color, #e2e8f0)',
+                padding: '10px 14px',
+                borderRadius: '10px',
+              }}
+            >
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary, #475569)', fontWeight: 600 }}>Stock Bajo / Crítico</span>
+              <strong style={{ color: 'var(--color-danger, #ef4444)', fontSize: '1rem', fontWeight: 800 }}>
+                {productos.filter((p) => Number(p.stock) <= (Number(p.stock_minimo) || 5)).length}
+              </strong>
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: 'var(--bg-subtle, #f8fafc)',
+                border: '1px solid var(--border-color, #e2e8f0)',
+                padding: '10px 14px',
+                borderRadius: '10px',
+              }}
+            >
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary, #475569)', fontWeight: 600 }}>Categorías</span>
+              <strong style={{ color: 'var(--text-primary, #0f172a)', fontSize: '1rem', fontWeight: 800 }}>
+                {listaCategorias.length}
+              </strong>
+            </div>
+          </div>
+        </div>
 
         {isAdmin && (
           <div
             style={{
-              background: '#151c2c',
+              background: 'var(--bg-surface)',
               borderRadius: '18px',
               padding: '1.4rem',
               display: 'flex',
               flexDirection: 'column',
               gap: '0.85rem',
-              border: 'none',
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)',
+              border: '1px solid var(--border-color)',
+              boxShadow: 'var(--card-shadow)',
             }}
           >
-            <h4 style={{ margin: 0, fontSize: '1rem', color: '#f8fafc', fontWeight: 800 }}>
+            <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)', fontWeight: 800 }}>
               Acceso Rápido POS
             </h4>
             <button
               onClick={onAbrirPos}
               style={{
-                background: '#8b5cf6',
+                background: '#1e5bb8',
                 color: '#fff',
                 border: 'none',
                 padding: '11px 16px',
@@ -714,7 +788,7 @@ export const InventarioTab = ({
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(11, 15, 25, 0.8)',
+            backgroundColor: 'var(--bg-modal-overlay)',
             backdropFilter: 'blur(6px)',
             display: 'flex',
             alignItems: 'center',
@@ -725,14 +799,14 @@ export const InventarioTab = ({
         >
           <div
             style={{
-              backgroundColor: '#151c2c',
+              backgroundColor: 'var(--bg-surface)',
               border: 'none',
               borderRadius: '18px',
               padding: '1.75rem',
               width: '100%',
               maxWidth: '480px',
-              color: '#f8fafc',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)',
+              color: 'var(--text-primary)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.12)',
             }}
           >
             <div
@@ -751,7 +825,7 @@ export const InventarioTab = ({
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: '#94a3b8',
+                  color: 'var(--text-muted)',
                   cursor: 'pointer',
                   fontSize: '1rem',
                   fontWeight: 700,
@@ -762,7 +836,7 @@ export const InventarioTab = ({
             </div>
             <form onSubmit={handleGuardarProducto} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                   Nombre del Producto *
                 </label>
                 <input
@@ -772,11 +846,11 @@ export const InventarioTab = ({
                   required
                   style={{
                     width: '100%',
-                    background: '#0b0f19',
-                    border: 'none',
-                    color: '#fff',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-input)',
+                    color: 'var(--text-primary)',
                     padding: '10px 14px',
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     fontSize: '0.9rem',
                     outline: 'none',
                   }}
@@ -786,7 +860,7 @@ export const InventarioTab = ({
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                    <label style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600 }}>
+                    <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
                       Categoría *
                     </label>
                     <button
@@ -795,7 +869,7 @@ export const InventarioTab = ({
                       style={{
                         background: 'transparent',
                         border: 'none',
-                        color: '#c4b5fd',
+                        color: 'var(--accent-primary)',
                         fontSize: '0.74rem',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -818,11 +892,11 @@ export const InventarioTab = ({
                     }}
                     style={{
                       width: '100%',
-                      background: '#0b0f19',
-                      border: 'none',
-                      color: '#fff',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-input)',
+                      color: 'var(--text-primary)',
                       padding: '10px 14px',
-                      borderRadius: '10px',
+                      borderRadius: '8px',
                       fontSize: '0.9rem',
                       outline: 'none',
                     }}
@@ -835,7 +909,7 @@ export const InventarioTab = ({
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                     Cód. Barras
                   </label>
                   <input
@@ -844,11 +918,11 @@ export const InventarioTab = ({
                     onChange={(e) => setFormularioProducto({ ...formularioProducto, codigo_barras: e.target.value })}
                     style={{
                       width: '100%',
-                      background: '#0b0f19',
-                      border: 'none',
-                      color: '#fff',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-input)',
+                      color: 'var(--text-primary)',
                       padding: '10px 14px',
-                      borderRadius: '10px',
+                      borderRadius: '8px',
                       fontSize: '0.9rem',
                       outline: 'none',
                     }}
@@ -858,7 +932,7 @@ export const InventarioTab = ({
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                     Precio (COP) *
                   </label>
                   <input
@@ -869,18 +943,18 @@ export const InventarioTab = ({
                     min="1"
                     style={{
                       width: '100%',
-                      background: '#0b0f19',
-                      border: 'none',
-                      color: '#fff',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-input)',
+                      color: 'var(--text-primary)',
                       padding: '10px 14px',
-                      borderRadius: '10px',
+                      borderRadius: '8px',
                       fontSize: '0.9rem',
                       outline: 'none',
                     }}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                     Cantidad en Stock *
                   </label>
                   <input
@@ -891,11 +965,11 @@ export const InventarioTab = ({
                     min="0"
                     style={{
                       width: '100%',
-                      background: '#0b0f19',
-                      border: 'none',
-                      color: '#fff',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-input)',
+                      color: 'var(--text-primary)',
                       padding: '10px 14px',
-                      borderRadius: '10px',
+                      borderRadius: '8px',
                       fontSize: '0.9rem',
                       outline: 'none',
                     }}
@@ -908,11 +982,11 @@ export const InventarioTab = ({
                   type="button"
                   onClick={() => setModalAbierto(false)}
                   style={{
-                    background: '#1e273d',
-                    color: '#fff',
-                    border: 'none',
+                    background: 'var(--bg-subtle)',
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border-input)',
                     padding: '9px 16px',
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     cursor: 'pointer',
                     fontSize: '0.85rem',
                     fontWeight: 600,
@@ -924,11 +998,11 @@ export const InventarioTab = ({
                   type="submit"
                   disabled={guardandoProducto}
                   style={{
-                    background: '#8b5cf6',
+                    background: '#1e5bb8',
                     color: '#fff',
                     border: 'none',
                     padding: '9px 20px',
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     cursor: guardandoProducto ? 'not-allowed' : 'pointer',
                     fontWeight: 700,
                     fontSize: '0.85rem',
@@ -952,7 +1026,7 @@ export const InventarioTab = ({
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(11, 15, 25, 0.85)',
+            backgroundColor: 'var(--bg-modal-overlay)',
             backdropFilter: 'blur(6px)',
             display: 'flex',
             alignItems: 'center',
@@ -963,14 +1037,14 @@ export const InventarioTab = ({
         >
           <div
             style={{
-              backgroundColor: '#151c2c',
-              border: 'none',
-              borderRadius: '18px',
+              backgroundColor: 'var(--bg-surface)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '16px',
               padding: '1.75rem',
               width: '100%',
               maxWidth: '430px',
-              color: '#f8fafc',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)',
+              color: 'var(--text-primary)',
+              boxShadow: '0 20px 45px rgba(0, 0, 0, 0.12)',
             }}
           >
             <div
@@ -990,7 +1064,7 @@ export const InventarioTab = ({
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: '#94a3b8',
+                  color: 'var(--text-muted)',
                   cursor: 'pointer',
                   fontSize: '1rem',
                   fontWeight: 700,
@@ -1002,7 +1076,7 @@ export const InventarioTab = ({
 
             <form onSubmit={handleGuardarCategoria} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
               <div>
-                <label style={{ fontSize: '0.82rem', color: '#94a3b8', display: 'block', marginBottom: '6px', fontWeight: 600 }}>
+                <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px', fontWeight: 600 }}>
                   Nombre de la Categoría *
                 </label>
                 <input
@@ -1014,11 +1088,11 @@ export const InventarioTab = ({
                   autoFocus
                   style={{
                     width: '100%',
-                    background: '#0b0f19',
-                    border: 'none',
-                    color: '#fff',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-input)',
+                    color: 'var(--text-primary)',
                     padding: '11px 14px',
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     fontSize: '0.9rem',
                     outline: 'none',
                   }}
@@ -1027,7 +1101,7 @@ export const InventarioTab = ({
 
               {/* Categorías actuales en la Base de Datos */}
               <div>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, display: 'block', marginBottom: '8px' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '8px' }}>
                   Categorías en Base de Datos ({listaCategorias.length}):
                 </span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '110px', overflowY: 'auto' }}>
@@ -1035,8 +1109,8 @@ export const InventarioTab = ({
                     <span
                       key={c.id}
                       style={{
-                        background: 'rgba(139, 92, 246, 0.15)',
-                        color: '#c4b5fd',
+                        background: 'var(--accent-primary-subtle)',
+                        color: 'var(--accent-primary)',
                         padding: '4px 9px',
                         borderRadius: '6px',
                         fontSize: '0.75rem',
@@ -1054,11 +1128,11 @@ export const InventarioTab = ({
                   type="button"
                   onClick={() => setModalCategoriaAbierto(false)}
                   style={{
-                    background: '#1e273d',
-                    color: '#fff',
-                    border: 'none',
+                    background: 'var(--bg-subtle)',
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border-input)',
                     padding: '9px 16px',
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     cursor: 'pointer',
                     fontSize: '0.85rem',
                     fontWeight: 600,
@@ -1070,15 +1144,14 @@ export const InventarioTab = ({
                   type="submit"
                   disabled={guardandoCategoria}
                   style={{
-                    background: '#8b5cf6',
+                    background: '#1e5bb8',
                     color: '#fff',
                     border: 'none',
                     padding: '9px 20px',
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     cursor: guardandoCategoria ? 'not-allowed' : 'pointer',
                     fontWeight: 700,
                     fontSize: '0.85rem',
-                    boxShadow: '0 4px 14px rgba(139, 92, 246, 0.35)',
                   }}
                 >
                   {guardandoCategoria ? 'Guardando...' : 'Crear Categoría'}

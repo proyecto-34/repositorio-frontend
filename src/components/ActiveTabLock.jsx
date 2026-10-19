@@ -113,8 +113,8 @@ export const ActiveTabLock = ({ onLogout }) => {
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(11, 15, 25, 0.94)',
-        backdropFilter: 'blur(14px)',
+        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+        backdropFilter: 'blur(6px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -124,14 +124,14 @@ export const ActiveTabLock = ({ onLogout }) => {
     >
       <div
         style={{
-          backgroundColor: '#151c2c',
-          borderRadius: '24px',
+          backgroundColor: 'var(--bg-surface)',
+          borderRadius: '16px',
           padding: '2.5rem',
           maxWidth: '520px',
           width: '100%',
           textAlign: 'center',
-          boxShadow: '0 30px 80px rgba(0, 0, 0, 0.9)',
-          border: '1px solid rgba(139, 92, 246, 0.3)',
+          boxShadow: 'var(--card-shadow-elevated)',
+          border: '1px solid var(--border-color)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -145,12 +145,12 @@ export const ActiveTabLock = ({ onLogout }) => {
             width: '74px',
             height: '74px',
             borderRadius: '22px',
-            background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(139, 92, 246, 0.2))',
-            border: '1px solid rgba(239, 68, 68, 0.4)',
+            background: 'var(--accent-primary-subtle)',
+            border: '1px solid var(--accent-primary-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#f87171',
+            color: 'var(--accent-primary)',
           }}
         >
           <MonitorSmartphone size={38} />
@@ -161,9 +161,9 @@ export const ActiveTabLock = ({ onLogout }) => {
           <h2
             style={{
               margin: '0 0 8px 0',
-              fontSize: '1.5rem',
+              fontSize: '1.45rem',
               fontWeight: 800,
-              color: '#f8fafc',
+              color: 'var(--text-primary)',
               letterSpacing: '-0.3px',
             }}
           >
@@ -172,8 +172,8 @@ export const ActiveTabLock = ({ onLogout }) => {
           <p
             style={{
               margin: 0,
-              fontSize: '0.92rem',
-              color: '#94a3b8',
+              fontSize: '0.9rem',
+              color: 'var(--text-muted)',
               lineHeight: 1.5,
             }}
           >
@@ -185,18 +185,18 @@ export const ActiveTabLock = ({ onLogout }) => {
         {user && (
           <div
             style={{
-              background: '#0b0f19',
+              background: 'var(--bg-subtle)',
               padding: '8px 16px',
-              borderRadius: '10px',
+              borderRadius: '8px',
               fontSize: '0.82rem',
-              color: '#cbd5e1',
+              color: 'var(--text-secondary)',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              border: '1px solid rgba(255, 255, 255, 0.05)',
+              border: '1px solid var(--border-color)',
             }}
           >
-            <ShieldAlert size={15} color="#38bdf8" />
+            <ShieldAlert size={15} color="var(--accent-primary)" />
             <span>Cuenta activa: <strong>{user.nombre || user.email}</strong></span>
           </div>
         )}
@@ -215,11 +215,11 @@ export const ActiveTabLock = ({ onLogout }) => {
             type="button"
             onClick={handleUsarAqui}
             style={{
-              background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+              background: 'var(--accent-primary)',
               color: '#ffffff',
               border: 'none',
               padding: '13px 24px',
-              borderRadius: '12px',
+              borderRadius: '8px',
               fontSize: '1rem',
               fontWeight: 800,
               cursor: 'pointer',
@@ -227,11 +227,9 @@ export const ActiveTabLock = ({ onLogout }) => {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              boxShadow: '0 6px 20px rgba(34, 197, 94, 0.4)',
-              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+              boxShadow: 'var(--btn-shadow)',
+              transition: 'transform 0.15s ease, background 0.15s ease',
             }}
-            onMouseOver={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
-            onMouseOut={(e) => (e.currentTarget.style.transform = 'none')}
           >
             <ArrowRightLeft size={18} />
             Usar aquí
@@ -242,11 +240,11 @@ export const ActiveTabLock = ({ onLogout }) => {
               type="button"
               onClick={onLogout}
               style={{
-                background: 'transparent',
-                color: '#94a3b8',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
+                background: 'var(--bg-subtle)',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--border-input)',
                 padding: '11px 20px',
-                borderRadius: '12px',
+                borderRadius: '8px',
                 fontSize: '0.88rem',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -255,14 +253,6 @@ export const ActiveTabLock = ({ onLogout }) => {
                 justifyContent: 'center',
                 gap: '6px',
                 transition: 'all 0.15s ease',
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.borderColor = '#ef4444';
-                e.currentTarget.style.color = '#ef4444';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-                e.currentTarget.style.color = '#94a3b8';
               }}
             >
               <LogOut size={16} />

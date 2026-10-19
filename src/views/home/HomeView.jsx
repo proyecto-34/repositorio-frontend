@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ROLES_DB } from '../../constants/roles';
+import ThemeToggle from '../../components/ThemeToggle';
 import './HomeView.css';
 
 export const HomeView = () => {
@@ -113,6 +114,8 @@ export const HomeView = () => {
           <a href="#roles" className="nav-link">Roles RBAC</a>
           <a href="#arquitectura" className="nav-link">Arquitectura</a>
           
+          <ThemeToggle />
+
           {isAuthenticated ? (
             <button onClick={handleCtaClick} className="btn-header-cta">
               <span>Ir al Panel ({user?.nombre || 'Sesión Activa'})</span>

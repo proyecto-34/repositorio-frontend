@@ -39,11 +39,12 @@ export const ForbiddenView = () => {
       <div style={{
         maxWidth: '520px',
         width: '100%',
-        backgroundColor: '#151c2c',
+        backgroundColor: 'var(--bg-surface)',
+        border: '1px solid var(--border-color)',
         borderRadius: '20px',
         padding: '2.5rem',
         textAlign: 'center',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.45)',
+        boxShadow: 'var(--card-shadow)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -54,7 +55,7 @@ export const ForbiddenView = () => {
           width: '72px',
           height: '72px',
           borderRadius: '50%',
-          backgroundColor: 'rgba(239, 68, 68, 0.15)',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -78,7 +79,7 @@ export const ForbiddenView = () => {
             margin: '0.5rem 0 0.25rem 0',
             fontSize: '1.75rem',
             fontWeight: 800,
-            color: '#f8fafc',
+            color: 'var(--text-primary)',
             letterSpacing: '-0.5px'
           }}>
             Acceso No Autorizado
@@ -86,7 +87,7 @@ export const ForbiddenView = () => {
           <p style={{
             margin: 0,
             fontSize: '0.92rem',
-            color: '#94a3b8',
+            color: 'var(--text-muted)',
             lineHeight: 1.5
           }}>
             Tu cuenta actual no cuenta con los privilegios requeridos para ver este recurso o módulo del sistema.
@@ -97,7 +98,8 @@ export const ForbiddenView = () => {
         {user && (
           <div style={{
             width: '100%',
-            backgroundColor: '#0b0f19',
+            backgroundColor: 'var(--bg-subtle)',
+            border: '1px solid var(--border-color)',
             borderRadius: '12px',
             padding: '1rem',
             display: 'flex',
@@ -106,16 +108,16 @@ export const ForbiddenView = () => {
             boxSizing: 'border-box'
           }}>
             <div style={{ textAlign: 'left' }}>
-              <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block' }}>Usuario</span>
-              <strong style={{ fontSize: '0.88rem', color: '#e2e8f0' }}>{user.nombre || user.correo || 'Usuario'}</strong>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Usuario</span>
+              <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>{user.nombre || user.correo || 'Usuario'}</strong>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block' }}>Rol Activo</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Rol Activo</span>
               <span style={{
                 fontSize: '0.75rem',
                 fontWeight: 700,
-                color: roleInfo.color || '#c4b5fd',
-                backgroundColor: roleInfo.bg || 'rgba(139, 92, 246, 0.2)',
+                color: roleInfo.color || '#6366f1',
+                backgroundColor: roleInfo.bg || '#eef2ff',
                 padding: '3px 8px',
                 borderRadius: '6px',
                 display: 'inline-block'
@@ -138,7 +140,7 @@ export const ForbiddenView = () => {
             onClick={handleGoHome}
             style={{
               flex: 1,
-              backgroundColor: '#8b5cf6',
+              backgroundColor: '#1e5bb8',
               color: '#ffffff',
               border: 'none',
               padding: '12px 18px',
@@ -152,8 +154,8 @@ export const ForbiddenView = () => {
               gap: '6px',
               transition: 'background 0.2s ease'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#7c3aed'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#8b5cf6'}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#174993'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1e5bb8'}
           >
             <Home size={16} />
             Ir a mi Panel
@@ -163,9 +165,9 @@ export const ForbiddenView = () => {
             type="button"
             onClick={() => navigate(-1)}
             style={{
-              backgroundColor: '#1e273d',
-              color: '#cbd5e1',
-              border: 'none',
+              backgroundColor: 'var(--bg-surface-elevated)',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border-color)',
               padding: '12px 16px',
               borderRadius: '10px',
               fontWeight: 600,
@@ -177,8 +179,8 @@ export const ForbiddenView = () => {
               gap: '6px',
               transition: 'background 0.2s ease'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2d3748'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1e273d'}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e2e8f0'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
           >
             <ArrowLeft size={16} />
             Volver

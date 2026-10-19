@@ -7,6 +7,7 @@ import CajeroPosView from './views/dashboard/CajeroPosView';
 import AdminDashboardView from './views/dashboard/AdminDashboardView';
 import FacturaModal from './components/FacturaModal';
 import NotificationBell from './components/NotificationBell';
+import ThemeToggle from './components/ThemeToggle';
 import ActiveTabLock from './components/ActiveTabLock';
 import { useAuth } from './context/AuthContext';
 import { ROLES, ROLE_BADGES } from './constants/roles';
@@ -63,10 +64,14 @@ function App() {
             <strong className="app-navbar-brand-text">
               Tienda Comunitaria
             </strong>
+            <span className="app-navbar-brand-tag">POS Cloud</span>
           </div>
 
           {/* Acciones y Perfil */}
           <div className="app-navbar-actions">
+            {/* Alternador de Modo Claro / Modo Oscuro */}
+            <ThemeToggle />
+
             {/* Centro de Notificaciones de la BD (Solo Admin y Supervisor) */}
             {(activeRole === ROLES.ADMIN || activeRole === ROLES.SUPERVISOR) && (
               <NotificationBell />

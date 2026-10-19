@@ -1,9 +1,9 @@
 .motivational-card {
   margin-top: 1.5rem;
   padding: 1.1rem 1.25rem;
-  background: #0b0f19;
+  background: var(--bg-subtle, #f8fafc);
   border-radius: 12px;
-  border: none;
+  border: 1px solid var(--border-color, #e2e8f0);
   position: relative;
   transition: all 0.25s ease;
   text-align: left;
@@ -24,13 +24,13 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: #c4b5fd;
+  color: var(--accent-primary, #1e5bb8);
 }
 
 .refresh-quote-btn {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--text-muted, #64748b);
   cursor: pointer;
   padding: 0.2rem 0.5rem;
   border-radius: 6px;
@@ -40,8 +40,8 @@
 }
 
 .refresh-quote-btn:hover:not(:disabled) {
-  color: #ffffff;
-  background: rgba(139, 92, 246, 0.2);
+  color: var(--accent-primary, #1e5bb8);
+  background: var(--accent-primary-subtle, #eff6ff);
 }
 
 .refresh-quote-btn:disabled {
@@ -59,14 +59,14 @@
 .quote-text {
   font-size: 0.85rem;
   line-height: 1.45;
-  color: #e2e8f0;
+  color: var(--text-secondary, #334155);
   font-style: italic;
   margin: 0 0 0.35rem 0;
 }
 
 .quote-author {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--text-muted, #64748b);
   font-weight: 600;
   text-align: right;
   margin: 0;
@@ -80,7 +80,7 @@
 
 .skeleton-line {
   height: 12px;
-  background: rgba(30, 39, 61, 0.7);
+  background: var(--border-color, #e2e8f0);
   border-radius: 4px;
   animation: pulse 1.5s infinite ease-in-out;
 }

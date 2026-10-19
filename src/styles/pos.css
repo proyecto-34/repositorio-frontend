@@ -1,11 +1,11 @@
 /* ==========================================================================
-   PUNTO DE VENTA (POS) - ESTILOS DEDICADOS
+   PUNTO DE VENTA (POS) - ESTILOS CLAROS ESTILO CUENTI CLOUD POS
    ========================================================================== */
 
 .pos-container {
   display: grid;
   grid-template-columns: minmax(0, 1.9fr) minmax(360px, 1.1fr);
-  gap: 1.75rem;
+  gap: 1.5rem;
   max-width: 100%;
   width: 100%;
   margin: 0;
@@ -24,20 +24,21 @@
 .pos-catalog-section {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.15rem;
 }
 
 /* Cabecera del POS */
 .pos-header-card {
-  background: #151c2c;
-  border-radius: 16px;
-  padding: 1.4rem 1.6rem;
+  background-color: var(--bg-surface);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
 }
 
 .pos-header-title-row {
@@ -47,67 +48,70 @@
 }
 
 .pos-header-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background-color: #8b5cf6;
+  background-color: var(--accent-primary);
 }
 
 .pos-header-title {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 800;
-  letter-spacing: -0.4px;
-  color: #f8fafc;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
 }
 
 .pos-header-subtitle {
-  margin: 6px 0 0 0;
-  color: #94a3b8;
-  font-size: 0.85rem;
+  margin: 4px 0 0 0;
+  color: var(--text-muted);
+  font-size: 0.84rem;
 }
 
 .pos-header-subtitle strong {
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 .pos-turn-summary {
   display: flex;
   gap: 16px;
-  background: #0b0f19;
-  padding: 10px 18px;
-  border-radius: 12px;
+  background-color: var(--bg-subtle);
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
 }
 
 .pos-turn-stat-label {
-  font-size: 0.7rem;
-  color: #94a3b8;
+  font-size: 0.68rem;
+  color: var(--text-muted);
   display: block;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-weight: 700;
 }
 
 .pos-turn-stat-value-green {
-  color: #22c55e;
+  color: #16a34a;
   font-size: 1.1rem;
   font-weight: 800;
 }
 
 .pos-turn-stat-value-purple {
-  color: #8b5cf6;
+  color: var(--accent-primary);
   font-size: 1.1rem;
   font-weight: 800;
 }
 
 /* Barra de Búsqueda y Filtros de Categorías */
 .pos-search-card {
-  background: #151c2c;
-  padding: 1.25rem;
-  border-radius: 16px;
+  background-color: var(--bg-surface);
+  padding: 1.15rem 1.25rem;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  gap: 0.9rem;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
 }
 
 .pos-search-row {
@@ -119,39 +123,42 @@
   flex: 1;
   display: flex;
   align-items: center;
-  background: #0b0f19;
-  border-radius: 10px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
   padding: 0 14px;
 }
 
 .pos-search-input {
   background: transparent;
   border: none;
-  color: #f8fafc;
-  padding: 12px 0;
+  color: var(--text-primary);
+  padding: 10px 0;
   width: 100%;
   outline: none;
   font-size: 0.92rem;
+  font-weight: 500;
 }
 
 .pos-search-input::placeholder {
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .pos-btn-reload {
-  background: #1e273d;
-  color: #cbd5e1;
-  border: none;
+  background-color: var(--bg-surface-elevated);
+  color: var(--accent-primary);
+  border: 1px solid var(--border-input);
   padding: 0 18px;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.85rem;
-  font-weight: 600;
-  transition: background 0.2s ease;
+  font-weight: 700;
+  transition: all 0.2s ease;
 }
 
 .pos-btn-reload:hover:not(:disabled) {
-  background: #283552;
+  background-color: var(--accent-primary-subtle);
+  border-color: var(--accent-primary);
 }
 
 .pos-btn-reload:disabled {
@@ -167,29 +174,29 @@
 }
 
 .pos-category-pill {
-  border: none;
-  padding: 7px 16px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 700;
+  border: 1px solid var(--border-color);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s ease;
+  background-color: var(--bg-subtle);
+  color: var(--text-secondary);
 }
 
 .pos-category-pill.active {
-  background: #8b5cf6;
+  background: #1e5bb8;
   color: #ffffff;
-}
-
-.pos-category-pill:not(.active) {
-  background: #0b0f19;
-  color: #94a3b8;
+  border-color: #164692;
+  box-shadow: 0 2px 4px rgba(30, 91, 184, 0.2);
 }
 
 .pos-category-pill:not(.active):hover {
-  background: #1e273d;
-  color: #f8fafc;
+  background-color: var(--accent-primary-subtle);
+  color: var(--accent-primary);
+  border-color: var(--accent-primary-border);
 }
 
 /* Cuadrícula de Productos */
@@ -200,26 +207,29 @@
 }
 
 .pos-product-card {
-  background: #151c2c;
-  border-radius: 14px;
+  background-color: var(--bg-surface);
+  border-radius: 10px;
   padding: 1.1rem;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  transition: transform 0.15s ease, background 0.15s ease;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   cursor: pointer;
 }
 
 .pos-product-card:hover:not(.agotado) {
   transform: translateY(-2px);
-  background: #1e273d;
+  border-color: var(--accent-primary);
+  box-shadow: 0 4px 12px rgba(30, 91, 184, 0.1);
 }
 
 .pos-product-card.agotado {
-  background: rgba(21, 28, 44, 0.4);
-  opacity: 0.5;
+  background-color: var(--bg-subtle);
+  opacity: 0.55;
   cursor: not-allowed;
+  border-style: dashed;
 }
 
 .pos-product-card-top {
@@ -229,39 +239,44 @@
 }
 
 .pos-category-badge {
-  font-size: 0.72rem;
-  color: #c4b5fd;
-  background: rgba(139, 92, 246, 0.15);
-  padding: 3px 8px;
+  font-size: 0.7rem;
+  color: var(--accent-primary);
+  background-color: var(--accent-primary-subtle);
+  border: 1px solid #dbeafe;
+  padding: 2px 8px;
   border-radius: 6px;
-  font-weight: 600;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .pos-stock-badge {
   font-size: 0.72rem;
-  padding: 3px 8px;
+  padding: 2px 8px;
   border-radius: 10px;
   font-weight: 700;
 }
 
 .pos-stock-badge.agotado {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
 }
 
 .pos-stock-badge.bajo {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
 }
 
 .pos-stock-badge.normal {
-  background: rgba(34, 197, 94, 0.15);
-  color: #4ade80;
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
 }
 
 .pos-product-name {
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--text-primary);
   font-size: 0.95rem;
   line-height: 1.3;
   margin-top: 4px;
@@ -276,104 +291,120 @@
 }
 
 .pos-product-price {
-  color: #22c55e;
+  color: #16a34a;
   font-size: 1.05rem;
   font-weight: 800;
 }
 
 .pos-btn-add {
-  background: #8b5cf6;
-  color: #fff;
-  border-radius: 8px;
+  background-color: var(--accent-primary-subtle);
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-primary-border);
+  border-radius: 6px;
   padding: 4px 10px;
   font-size: 0.8rem;
   font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.pos-product-card:hover:not(.agotado) .pos-btn-add {
+  background: #1e5bb8;
+  color: #ffffff;
+  border-color: var(--accent-primary);
 }
 
 .pos-product-card.agotado .pos-btn-add {
-  background: #1e273d;
-  color: #64748b;
+  background-color: var(--bg-surface-elevated);
+  color: #94a3b8;
+  border-color: var(--border-color);
 }
 
 /* --------------------------------------------------------------------------
    Columna Derecha: Ticket Lateral de Venta
    -------------------------------------------------------------------------- */
 .pos-ticket-panel {
-  background: #151c2c;
-  border-radius: 16px;
-  padding: 1.4rem;
+  background-color: var(--bg-surface);
+  border-radius: 12px;
+  padding: 1.35rem;
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
   position: sticky;
-  top: 80px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  top: 75px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
 }
 
 .pos-ticket-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 8px;
 }
 
 .pos-ticket-title {
   margin: 0;
   font-size: 1.15rem;
-  color: #f8fafc;
+  color: var(--text-primary);
   font-weight: 800;
 }
 
 .pos-ticket-subtitle {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .pos-btn-vaciar {
-  background: rgba(239, 68, 68, 0.15);
-  border: none;
-  color: #f87171;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
   font-size: 0.75rem;
   cursor: pointer;
   padding: 4px 10px;
   border-radius: 6px;
-  font-weight: 600;
-  transition: background 0.15s ease;
+  font-weight: 700;
+  transition: all 0.15s ease;
 }
 
 .pos-btn-vaciar:hover {
-  background: rgba(239, 68, 68, 0.25);
+  background: #dc2626;
+  color: #ffffff;
 }
 
 /* Datos del Cliente */
 .pos-customer-card {
-  background: #0b0f19;
-  padding: 12px 14px;
-  border-radius: 12px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  background-color: var(--bg-subtle);
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .pos-field-label {
-  font-size: 0.7rem;
-  color: #94a3b8;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
   display: block;
   margin-bottom: 2px;
-  font-weight: 600;
-}
-
-.pos-field-input {
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 0.85rem;
-  width: 100%;
-  outline: none;
   font-weight: 700;
 }
 
-.pos-field-input.purple {
-  color: #c4b5fd;
+.pos-field-input {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-input);
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  width: 100%;
+  outline: none;
+  font-weight: 700;
+  padding: 7px 10px;
+  border-radius: 6px;
+}
+
+.pos-field-input:focus {
+  border-color: var(--accent-primary);
 }
 
 /* Lista de Items del Ticket */
@@ -389,16 +420,20 @@
 .pos-cart-empty {
   text-align: center;
   padding: 2.5rem 1rem;
-  color: #64748b;
+  color: #94a3b8;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  background-color: var(--bg-subtle);
 }
 
 .pos-cart-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #0b0f19;
+  background-color: var(--bg-subtle);
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
 }
 
 .pos-cart-item-info {
@@ -409,12 +444,12 @@
 .pos-cart-item-name {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 .pos-cart-item-price {
   font-size: 0.72rem;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .pos-cart-item-actions {
@@ -426,54 +461,44 @@
 .pos-qty-stepper {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: #151c2c;
+  gap: 3px;
+  background: #334155;
   border-radius: 6px;
-  padding: 3px;
+  padding: 2px;
 }
 
 .pos-btn-step {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: #ffffff;
   cursor: pointer;
-  padding: 2px 8px;
+  padding: 2px 7px;
   font-size: 0.85rem;
-  font-weight: 700;
-  transition: color 0.15s ease;
+  font-weight: 800;
+  transition: opacity 0.15s ease;
 }
 
 .pos-btn-step:hover {
-  color: #ffffff;
-}
-
-.pos-qty-display {
-  font-size: 0.82rem;
-  font-weight: 800;
-  color: #fff;
-  min-width: 18px;
-  text-align: center;
+  opacity: 0.75;
 }
 
 .pos-qty-input {
-  width: 48px;
-  background: #0b0f19;
-  border: 1px solid rgba(139, 92, 246, 0.35);
-  border-radius: 6px;
-  color: #ffffff;
+  width: 44px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  color: var(--text-primary);
   font-size: 0.88rem;
   font-weight: 800;
   text-align: center;
-  padding: 3px 2px;
+  padding: 2px 2px;
   outline: none;
   transition: all 0.2s ease;
   font-family: inherit;
 }
 
 .pos-qty-input:focus {
-  border-color: #8b5cf6;
-  background: #111827;
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25);
+  border-color: var(--accent-primary);
 }
 
 .pos-qty-input::-webkit-outer-spin-button,
@@ -487,7 +512,7 @@
 }
 
 .pos-cart-item-total {
-  color: #22c55e;
+  color: #16a34a;
   font-size: 0.88rem;
   min-width: 65px;
   text-align: right;
@@ -497,11 +522,11 @@
 .pos-btn-quitar {
   background: transparent;
   border: none;
-  color: #f87171;
+  color: #dc2626;
   cursor: pointer;
   padding: 2px 6px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .pos-btn-quitar:hover {
@@ -521,35 +546,36 @@
 }
 
 .pos-payment-btn {
-  border: none;
+  border: 1px solid var(--border-color);
   padding: 8px 10px;
   border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: all 0.15s ease;
+  background-color: var(--bg-subtle);
+  color: var(--text-secondary);
 }
 
 .pos-payment-btn.active {
-  background: #8b5cf6;
+  background: #1e5bb8;
   color: #ffffff;
-}
-
-.pos-payment-btn:not(.active) {
-  background: #0b0f19;
-  color: #94a3b8;
+  border-color: #164692;
+  box-shadow: 0 1px 3px rgba(30, 91, 184, 0.3);
 }
 
 .pos-payment-btn:not(.active):hover {
-  background: #1e273d;
-  color: #f8fafc;
+  background-color: var(--accent-primary-subtle);
+  color: var(--accent-primary);
+  border-color: var(--accent-primary-border);
 }
 
 /* Monto Recibido y Vueltas */
 .pos-cash-calculator {
-  background: #0b0f19;
-  padding: 12px;
-  border-radius: 10px;
+  background-color: var(--bg-subtle);
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
@@ -557,77 +583,88 @@
 }
 
 .pos-cash-input {
-  background: #151c2c;
-  border: none;
-  color: #fff;
-  padding: 8px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-input);
+  color: var(--text-primary);
+  padding: 7px 10px;
   border-radius: 6px;
   width: 100%;
   font-size: 0.88rem;
-  font-weight: 700;
+  font-weight: 800;
   outline: none;
   box-sizing: border-box;
 }
 
+.pos-cash-input:focus {
+  border-color: var(--accent-primary);
+}
+
 .pos-cash-change {
-  color: #22c55e;
+  color: #16a34a;
   font-size: 1.05rem;
   font-weight: 800;
 }
 
 /* Card de Totales */
 .pos-totals-card {
-  background: #0b0f19;
+  background-color: var(--bg-subtle);
   padding: 14px;
-  border-radius: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .pos-totals-row {
   display: flex;
   justify-content: space-between;
-  font-size: 0.82rem;
-  color: #94a3b8;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
 .pos-totals-row.grand-total {
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: var(--text-primary);
   margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
 }
 
 .pos-totals-row.grand-total .amount {
-  color: #22c55e;
+  color: #16a34a;
 }
 
 /* Botón Principal de Cobro */
 .pos-btn-checkout {
-  background: #8b5cf6;
-  color: #fff;
-  border: none;
-  padding: 14px;
-  border-radius: 12px;
+  background: #1e5bb8;
+  color: #ffffff;
+  border: 1px solid #164692;
+  padding: 13px;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: 800;
   font-size: 0.95rem;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 2px 8px rgba(30, 91, 184, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .pos-btn-checkout:hover:not(:disabled) {
-  background: #7c3aed;
+  background: #164692;
   transform: translateY(-1px);
 }
 
 .pos-btn-checkout:disabled {
-  background: #1e273d;
-  color: #64748b;
+  background: #e2e8f0;
+  color: #94a3b8;
+  border-color: var(--border-input);
   cursor: not-allowed;
   box-shadow: none;
   transform: none;
