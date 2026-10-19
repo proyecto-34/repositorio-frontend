@@ -307,205 +307,230 @@ export const ComprasTab = ({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
-      {/* Cabecera del Módulo */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', width: '100%' }}>
+      {/* Cabecera del Módulo con Barra de Filtros y Métricas Integradas */}
       <div
         style={{
           background: 'var(--bg-surface)',
-          borderRadius: '16px',
-          padding: '1.4rem 1.6rem',
+          borderRadius: '18px',
+          padding: '1.6rem 2rem',
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '1rem',
+          flexDirection: 'column',
+          gap: '1.4rem',
           boxShadow: 'var(--card-shadow)',
+          border: '1px solid var(--border-color)',
         }}
       >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
-            <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
-              Entradas de Mercancía & Compras a Proveedores
-            </h2>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '1.25rem',
+          }}
+        >
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#16a34a' }} />
+              <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
+                Entradas de Mercancía & Compras a Proveedores
+              </h2>
+            </div>
+            <p style={{ margin: '6px 0 0 0', color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+              {canManage
+                ? 'Registro de abastecimientos, incremento automático de existencias y control de costos de adquisición'
+                : 'Consulta de abastecimientos, facturas de compra y auditoría de costos de adquisición'}
+            </p>
           </div>
-          <p style={{ margin: '6px 0 0 0', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-            {canManage
-              ? 'Registra abastecimientos, actualiza el stock automáticamente y controla los costos de adquisición'
-              : 'Consulta de abastecimientos, historial de facturas de compras y control de costos de adquisición'}
-          </p>
+
+          {canManage && (
+            <Can do="create" on="compras">
+              <button
+                type="button"
+                onClick={() => handleAbrirNuevaCompra()}
+                style={{
+                  background: 'var(--accent-primary)',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '10px 22px',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  fontWeight: 800,
+                  fontSize: '0.88rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 3px 10px rgba(30, 91, 184, 0.25)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <PackagePlus size={18} />
+                + Registrar Entrada
+              </button>
+            </Can>
+          )}
         </div>
 
-        {canManage && (
-          <Can do="create" on="compras">
-            <button
-              type="button"
-              onClick={() => handleAbrirNuevaCompra()}
-              style={{
-                background: '#22c55e',
-                color: 'var(--text-primary)',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '10px',
-                cursor: 'pointer',
-                fontWeight: 800,
-                fontSize: '0.85rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 14px rgba(34, 197, 94, 0.35)',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <PackagePlus size={18} />
-              + Registrar Entrada
-            </button>
-          </Can>
-        )}
-      </div>
-
-      {/* Tarjetas de Métricas de Compras */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '1.25rem',
-        }}
-      >
+        {/* Resumen Compacto de Compras (En lugar de tarjetas gigantes amontonadas) */}
         <div
           style={{
-            background: 'var(--bg-surface)',
-            borderRadius: '14px',
-            padding: '1.25rem 1.4rem',
             display: 'flex',
-            flexDirection: 'column',
-            gap: '6px',
+            gap: '1rem',
+            flexWrap: 'wrap',
+            alignItems: 'center',
           }}
         >
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-            Total Invertido en Compras
-          </span>
-          <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#38bdf8', fontWeight: 800 }}>
-            ${totalInvertido.toLocaleString('es-CO')}
-          </h3>
-          <span style={{ fontSize: '0.75rem', color: '#7dd3fc' }}>Gasto acumulado en abastecimiento</span>
-        </div>
-
-        <div
-          style={{
-            background: 'var(--bg-surface)',
-            borderRadius: '14px',
-            padding: '1.25rem 1.4rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '6px',
-          }}
-        >
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-            Órdenes de Compra
-          </span>
-          <h3 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--accent-primary)', fontWeight: 800 }}>
-            {compras.length}
-          </h3>
-          <span style={{ fontSize: '0.75rem', color: 'var(--accent-primary)' }}>Facturas de compras procesadas</span>
-        </div>
-
-        <div
-          style={{
-            background: 'var(--bg-surface)',
-            borderRadius: '14px',
-            padding: '1.25rem 1.4rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '6px',
-          }}
-        >
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-            Unidades Ingresadas
-          </span>
-          <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#4ade80', fontWeight: 800 }}>
-            {totalUnidadesIngresadas.toLocaleString('es-CO')}
-          </h3>
-          <span style={{ fontSize: '0.75rem', color: '#86efac' }}>Productos sumados al inventario</span>
-        </div>
-      </div>
-
-      {/* Barra de Búsqueda */}
-      <div
-        style={{
-          background: 'var(--bg-surface)',
-          borderRadius: '14px',
-          padding: '1rem 1.25rem',
-          display: 'flex',
-          gap: '1rem',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, maxWidth: '500px', background: 'var(--bg-surface)', borderRadius: '8px', padding: '0 12px', border: '1px solid var(--border-input)' }}>
-          <Search size={18} color="#64748b" />
-          <input
-            type="text"
-            placeholder="Buscar por factura, proveedor, NIT o método de pago..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
+          <div
             style={{
-              width: '100%',
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-primary)',
-              padding: '9px 0',
-              fontSize: '0.88rem',
-              outline: 'none',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-color)',
+              padding: '8px 16px',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
             }}
-          />
+          >
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>Total Invertido:</span>
+            <strong style={{ color: 'var(--accent-primary)', fontSize: '1rem', fontWeight: 800 }}>
+              ${totalInvertido.toLocaleString('es-CO')}
+            </strong>
+          </div>
+
+          <div
+            style={{
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-color)',
+              padding: '8px 16px',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+            }}
+          >
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>Órdenes de Compra:</span>
+            <strong style={{ color: 'var(--text-primary)', fontSize: '1rem', fontWeight: 800 }}>
+              {compras.length}
+            </strong>
+          </div>
+
+          <div
+            style={{
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-color)',
+              padding: '8px 16px',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+            }}
+          >
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>Unidades Ingresadas:</span>
+            <strong style={{ color: '#16a34a', fontSize: '1rem', fontWeight: 800 }}>
+              {totalUnidadesIngresadas.toLocaleString('es-CO')}
+            </strong>
+          </div>
         </div>
 
-        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-          Mostrando <strong>{comprasFiltradas.length}</strong> compras
-        </span>
+        {/* Barra de Búsqueda Integrada */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '1.25rem',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            paddingTop: '0.75rem',
+            borderTop: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              flex: 1,
+              maxWidth: '520px',
+              background: 'var(--bg-subtle)',
+              borderRadius: '10px',
+              padding: '0 16px',
+              border: '1px solid var(--border-input)',
+            }}
+          >
+            <Search size={18} color="var(--text-muted)" />
+            <input
+              type="text"
+              placeholder="Buscar por factura, proveedor, contacto o método..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              style={{
+                width: '100%',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-primary)',
+                padding: '11px 0',
+                fontSize: '0.9rem',
+                outline: 'none',
+              }}
+            />
+          </div>
+
+          <div
+            style={{
+              fontSize: '0.85rem',
+              color: 'var(--text-secondary)',
+              background: 'var(--bg-subtle)',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              border: '1px solid var(--border-color)',
+            }}
+          >
+            Compras encontradas: <strong style={{ color: 'var(--accent-primary)' }}>{comprasFiltradas.length}</strong> de {compras.length}
+          </div>
+        </div>
       </div>
 
-      {/* Tabla de Historial de Compras */}
+      {/* Tabla de Historial de Compras Espaciosa */}
       <div
         style={{
           background: 'var(--bg-surface)',
-          borderRadius: '16px',
+          borderRadius: '18px',
           overflow: 'hidden',
           boxShadow: 'var(--card-shadow)',
+          border: '1px solid var(--border-color)',
         }}
       >
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem', textAlign: 'left' }}>
+          <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: '0.9rem', textAlign: 'left' }}>
             <thead>
-              <tr style={{ background: 'var(--bg-surface-elevated)', color: 'var(--text-muted)', borderBottom: '1px solid var(--border-color)' }}>
-                <th style={{ padding: '14px 16px', fontWeight: 700 }}>Comprobante / Factura</th>
-                <th style={{ padding: '14px 16px', fontWeight: 700 }}>Fecha y Hora</th>
-                <th style={{ padding: '14px 16px', fontWeight: 700 }}>Proveedor</th>
-                <th style={{ padding: '14px 16px', fontWeight: 700 }}>Método de Pago</th>
-                <th style={{ padding: '14px 16px', fontWeight: 700, textAlign: 'center' }}>Ítems</th>
-                <th style={{ padding: '14px 16px', fontWeight: 700, textAlign: 'right' }}>Total Compra</th>
-                <th style={{ padding: '14px 16px', fontWeight: 700, textAlign: 'center' }}>Estado</th>
-                <th style={{ padding: '14px 16px', fontWeight: 700, textAlign: 'center' }}>Acciones</th>
+              <tr style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)' }}>
+                <th style={{ padding: '15px 20px', fontWeight: 700 }}>Comprobante / Factura</th>
+                <th style={{ padding: '15px 20px', fontWeight: 700 }}>Fecha</th>
+                <th style={{ padding: '15px 20px', fontWeight: 700 }}>Proveedor</th>
+                <th style={{ padding: '15px 20px', fontWeight: 700 }}>Método de Pago</th>
+                <th style={{ padding: '15px 20px', fontWeight: 700, textAlign: 'center' }}>Ítems</th>
+                <th style={{ padding: '15px 20px', fontWeight: 700, textAlign: 'right' }}>Total Compra</th>
+                <th style={{ padding: '15px 20px', fontWeight: 700, textAlign: 'center' }}>Estado</th>
+                <th style={{ padding: '15px 20px', fontWeight: 700, textAlign: 'center' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {cargando ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  <td colSpan={8} style={{ padding: '3.5rem', textAlign: 'center', color: 'var(--accent-primary)', fontSize: '0.95rem' }}>
                     Cargando historial de compras...
                   </td>
                 </tr>
               ) : comprasFiltradas.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  <td colSpan={8} style={{ padding: '3.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                     No hay compras registradas en este período.
                   </td>
                 </tr>
               ) : (
                 comprasFiltradas.map((c, idx) => {
                   const provNombre = typeof c.proveedor === 'object' ? c.proveedor?.nombre : c.proveedor || 'Proveedor';
-                  const provNit = typeof c.proveedor === 'object' ? c.proveedor?.nit : '';
                   const itemsCount = (c.items || []).length;
                   const fechaStr = c.fecha ? new Date(c.fecha).toLocaleDateString('es-CO') : 'Reciente';
 
@@ -514,75 +539,76 @@ export const ComprasTab = ({
                       key={c.id}
                       style={{
                         background: idx % 2 === 0 ? 'var(--bg-surface)' : 'var(--bg-subtle)',
-                        borderBottom: '1px solid var(--border-subtle)',
+                        transition: 'background-color 0.15s ease',
                       }}
                     >
-                      <td style={{ padding: '14px 16px' }}>
+                      <td style={{ padding: '16px 20px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <FileText size={16} color="#1e5bb8" />
-                          <strong style={{ color: 'var(--text-primary)', fontFamily: 'monospace' }}>
+                          <FileText size={16} color="var(--accent-primary)" />
+                          <strong style={{ color: 'var(--text-primary)', fontFamily: 'monospace', fontSize: '0.92rem' }}>
                             {c.nro_factura || `COMPRA-${c.id}`}
                           </strong>
                         </div>
                       </td>
 
-                      <td style={{ padding: '14px 16px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      <td style={{ padding: '16px 20px', color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
                         {fechaStr}
                       </td>
 
-                      <td style={{ padding: '14px 16px' }}>
+                      <td style={{ padding: '16px 20px' }}>
                         <div>
-                          <strong style={{ color: 'var(--text-primary)', display: 'block' }}>{provNombre}</strong>
+                          <strong style={{ color: 'var(--text-primary)', display: 'block', fontSize: '0.92rem' }}>{provNombre}</strong>
                           {typeof c.proveedor === 'object' && c.proveedor?.contacto && (
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Tel: {c.proveedor.contacto}</span>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Tel: {c.proveedor.contacto}</span>
                           )}
                         </div>
                       </td>
 
-                      <td style={{ padding: '14px 16px' }}>
+                      <td style={{ padding: '16px 20px' }}>
                         <span
                           style={{
                             background: 'var(--bg-surface-elevated)',
-                            color: '#334155',
+                            color: 'var(--text-secondary)',
                             border: '1px solid var(--border-color)',
-                            padding: '3px 8px',
-                            borderRadius: '6px',
-                            fontSize: '0.78rem',
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
                           }}
                         >
                           {c.metodo_pago || 'Efectivo'}
                         </span>
                       </td>
 
-                      <td style={{ padding: '14px 16px', textAlign: 'center', color: 'var(--accent-primary)', fontWeight: 700 }}>
-                        {itemsCount} productos
+                      <td style={{ padding: '16px 20px', textAlign: 'center', color: 'var(--accent-primary)', fontWeight: 700 }}>
+                        {itemsCount} {itemsCount === 1 ? 'producto' : 'productos'}
                       </td>
 
-                      <td style={{ padding: '14px 16px', textAlign: 'right', color: '#16a34a', fontWeight: 800, fontSize: '0.95rem' }}>
+                      <td style={{ padding: '16px 20px', textAlign: 'right', color: '#16a34a', fontWeight: 800, fontSize: '0.96rem' }}>
                         ${Number(c.total || 0).toLocaleString('es-CO')}
                       </td>
 
-                      <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      <td style={{ padding: '16px 20px', textAlign: 'center' }}>
                         <span
                           style={{
                             background: 'var(--color-success-subtle)',
                             color: 'var(--color-success)',
                             border: '1px solid var(--color-success-border)',
                             padding: '4px 10px',
-                            borderRadius: '8px',
-                            fontSize: '0.75rem',
+                            borderRadius: '20px',
+                            fontSize: '0.76rem',
                             fontWeight: 700,
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
                           }}
                         >
-                          <CheckCircle2 size={12} />
+                          <CheckCircle2 size={13} />
                           {c.estado || 'Completada'}
                         </span>
                       </td>
 
-                      <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      <td style={{ padding: '16px 20px', textAlign: 'center' }}>
                         <button
                           type="button"
                           onClick={() => handleVerDetalle(c)}
@@ -590,15 +616,16 @@ export const ComprasTab = ({
                           style={{
                             background: 'var(--accent-primary-subtle)',
                             color: 'var(--accent-primary)',
-                            border: 'none',
-                            padding: '6px 12px',
-                            borderRadius: '8px',
+                            border: '1px solid var(--accent-primary-border)',
+                            padding: '7px 14px',
+                            borderRadius: '9px',
                             cursor: 'pointer',
-                            fontSize: '0.8rem',
-                            fontWeight: 600,
+                            fontSize: '0.82rem',
+                            fontWeight: 700,
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '5px',
+                            gap: '6px',
+                            transition: 'all 0.15s ease',
                           }}
                         >
                           <Eye size={14} /> Detalle

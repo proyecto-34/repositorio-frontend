@@ -13,6 +13,7 @@ export const InventarioTab = ({
   isSupervisor = false,
   filtroStock = 'todos',
   setFiltroStock,
+  busquedaGlobal = '',
 }) => {
   const [busquedaProductos, setBusquedaProductos] = useState('');
   const [filtroCategoria, setFiltroCategoria] = useState('Todas');
@@ -181,8 +182,9 @@ export const InventarioTab = ({
   ];
 
   const productosFiltrados = productos.filter((p) => {
-    const q = busquedaProductos.toLowerCase();
+    const q = (busquedaProductos || busquedaGlobal || '').toLowerCase().trim();
     const coincideTexto =
+      !q ||
       (p.nombre && p.nombre.toLowerCase().includes(q)) ||
       (p.codigo_barras && p.codigo_barras.toLowerCase().includes(q)) ||
       (p.codigo && p.codigo.toLowerCase().includes(q));
@@ -204,23 +206,17 @@ export const InventarioTab = ({
   });
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'minmax(0, 2.5fr) minmax(320px, 1fr)',
-        gap: '1.75rem',
-        alignItems: 'start',
-      }}
-    >
-      {/* Tabla de Productos */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
+      <div className="inventario-layout-grid">
+        {/* Columna Izquierda: Tabla de Productos y Filtros */}
       <div
         style={{
           background: 'var(--bg-surface)',
           borderRadius: '18px',
-          padding: '1.5rem',
+          padding: '1.6rem 2rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '1.25rem',
+          gap: '1.5rem',
           border: '1px solid var(--border-color)',
           boxShadow: 'var(--card-shadow)',
         }}
@@ -231,19 +227,19 @@ export const InventarioTab = ({
             justifyContent: 'space-between',
             alignItems: 'center',
             flexWrap: 'wrap',
-            gap: '10px',
+            gap: '1.25rem',
           }}
         >
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: 800 }}>
+            <h3 style={{ margin: 0, fontSize: '1.35rem', color: 'var(--text-primary)', fontWeight: 800, letterSpacing: '-0.3px' }}>
               Catálogo de Productos y Existencias
             </h3>
-            <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+            <p style={{ margin: '6px 0 0 0', color: 'var(--text-muted)', fontSize: '0.88rem' }}>
               Control de stock, precios y reposición ({productos.length} productos)
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             <button
               type="button"
               onClick={onRecargar}
@@ -251,7 +247,7 @@ export const InventarioTab = ({
               style={{
                 background: 'var(--bg-surface-elevated)',
                 color: 'var(--text-secondary)',
-                border: 'none',
+                border: '1px solid var(--border-color)',
                 padding: '8px 14px',
                 borderRadius: '10px',
                 cursor: cargando ? 'not-allowed' : 'pointer',
@@ -262,70 +258,83 @@ export const InventarioTab = ({
               {cargando ? 'Cargando...' : 'Recargar'}
             </button>
 
-            <Can do="create" on="inventario">
-              <button
-                type="button"
-                onClick={() => setModalCategoriaAbierto(true)}
-                style={{
-                  background: 'var(--bg-surface-elevated)',
-                  color: 'var(--accent-primary)',
-                  border: '1px solid var(--accent-primary-border)',
-                  padding: '8px 14px',
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                }}
-              >
-                + Nueva Categoría
-              </button>
+            {(isAdmin || isSupervisor) && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setModalCategoriaAbierto(true)}
+                  style={{
+                    background: 'var(--accent-primary-subtle)',
+                    color: 'var(--accent-primary)',
+                    border: '1px solid var(--accent-primary-border)',
+                    padding: '8px 14px',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    fontWeight: 700,
+                    fontSize: '0.84rem',
+                  }}
+                >
+                  + Nueva Categoría
+                </button>
 
-              <button
-                type="button"
-                onClick={handleAbrirCrearProducto}
-                style={{
-                  background: '#1e5bb8',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '8px 16px',
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  boxShadow: '0 4px 14px rgba(139, 92, 246, 0.35)',
-                }}
-              >
-                + Nuevo Producto
-              </button>
-            </Can>
+                <button
+                  type="button"
+                  onClick={handleAbrirCrearProducto}
+                  style={{
+                    background: 'var(--accent-primary)',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '8px 18px',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    fontWeight: 800,
+                    fontSize: '0.84rem',
+                    boxShadow: '0 3px 10px rgba(30, 91, 184, 0.25)',
+                  }}
+                >
+                  + Nuevo Producto
+                </button>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Filtros */}
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+        {/* Filtros con Espaciado Generoso */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '1rem',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            paddingTop: '0.75rem',
+            borderTop: '1px solid var(--border-subtle)',
+          }}
+        >
           <div
             style={{
               flex: 1,
-              minWidth: '220px',
-              background: 'var(--bg-surface)',
-              borderRadius: '8px',
-              padding: '0 14px',
+              minWidth: '260px',
+              background: 'var(--bg-subtle)',
+              borderRadius: '10px',
+              padding: '0 16px',
               border: '1px solid var(--border-input)',
+              display: 'flex',
+              alignItems: 'center',
             }}
           >
             <input
               type="text"
-              placeholder="Buscar producto por nombre o código..."
+              placeholder="Buscar producto por nombre o código de barras..."
               value={busquedaProductos}
               onChange={(e) => setBusquedaProductos(e.target.value)}
               style={{
                 background: 'transparent',
                 border: 'none',
                 color: 'var(--text-primary)',
-                padding: '10px 0',
+                padding: '11px 0',
                 width: '100%',
                 outline: 'none',
-                fontSize: '0.88rem',
+                fontSize: '0.9rem',
               }}
             />
           </div>
@@ -334,14 +343,15 @@ export const InventarioTab = ({
             value={filtroCategoria}
             onChange={(e) => setFiltroCategoria(e.target.value)}
             style={{
-              background: 'var(--bg-surface)',
+              background: 'var(--bg-subtle)',
               border: '1px solid var(--border-input)',
               color: 'var(--text-primary)',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '0.85rem',
+              padding: '11px 16px',
+              borderRadius: '10px',
+              fontSize: '0.88rem',
               fontWeight: 600,
               outline: 'none',
+              cursor: 'pointer',
             }}
           >
             {categoriasUnicas.map((cat) => (
@@ -355,14 +365,15 @@ export const InventarioTab = ({
             value={currentFiltroStock}
             onChange={(e) => updateFiltroStock(e.target.value)}
             style={{
-              background: currentFiltroStock !== 'todos' ? 'var(--color-warning-subtle)' : 'var(--bg-surface)',
+              background: currentFiltroStock !== 'todos' ? 'var(--color-warning-subtle)' : 'var(--bg-subtle)',
               border: currentFiltroStock !== 'todos' ? '1px solid var(--color-warning)' : '1px solid var(--border-input)',
               color: currentFiltroStock !== 'todos' ? 'var(--color-warning)' : 'var(--text-primary)',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '0.85rem',
+              padding: '11px 16px',
+              borderRadius: '10px',
+              fontSize: '0.88rem',
               fontWeight: currentFiltroStock !== 'todos' ? 700 : 600,
               outline: 'none',
+              cursor: 'pointer',
             }}
           >
             <option value="todos">Todos los niveles</option>
@@ -419,36 +430,36 @@ export const InventarioTab = ({
           </div>
         )}
 
-        {/* Tabla de Productos */}
-        <div style={{ borderRadius: '12px', overflowX: 'auto', background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+        {/* Tabla de Productos Espaciosa */}
+        <div style={{ borderRadius: '14px', overflowX: 'auto', background: 'var(--bg-surface)', border: '1px solid var(--border-color)', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)' }}>
+          <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: '0.9rem' }}>
             <thead>
-              <tr style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)', textAlign: 'left', borderBottom: '1px solid var(--border-color)' }}>
-                <th style={{ padding: '12px 14px', fontWeight: 600 }}>Producto</th>
-                <th style={{ padding: '12px 14px', fontWeight: 600 }}>Categoría</th>
-                <th style={{ padding: '12px 14px', fontWeight: 600 }}>Precio</th>
-                <th style={{ padding: '12px 14px', fontWeight: 600 }}>Stock</th>
-                <th style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 600 }}>Acciones</th>
+              <tr style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)', textAlign: 'left' }}>
+                <th style={{ padding: '15px 20px', fontWeight: 700 }}>Producto</th>
+                <th style={{ padding: '15px 20px', fontWeight: 700 }}>Categoría</th>
+                <th style={{ padding: '15px 20px', fontWeight: 700 }}>Precio Unitario</th>
+                <th style={{ padding: '15px 20px', fontWeight: 700 }}>Existencias</th>
+                <th style={{ padding: '15px 20px', textAlign: 'right', fontWeight: 700 }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {cargando ? (
                 <tr>
-                  <td colSpan="5" style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--accent-primary)' }}>
+                  <td colSpan="5" style={{ padding: '3.5rem', textAlign: 'center', color: 'var(--accent-primary)', fontSize: '0.95rem' }}>
                     Consultando catálogo en la BD...
                   </td>
                 </tr>
               ) : productosFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan="5" style={{ padding: '3rem 1.5rem', textAlign: 'center' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                  <td colSpan="5" style={{ padding: '3.5rem 1.5rem', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                       {currentFiltroStock === 'bajo' ? (
                         <>
                           <span style={{ fontSize: '2.4rem' }}>🛡️</span>
-                          <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#22c55e', fontWeight: 700 }}>
+                          <h4 style={{ margin: 0, fontSize: '1.15rem', color: '#22c55e', fontWeight: 700 }}>
                             ¡Inventario en nivel óptimo!
                           </h4>
-                          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '420px', lineHeight: '1.4' }}>
+                          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.88rem', maxWidth: '420px', lineHeight: '1.4' }}>
                             No hay productos que requieran reposición en este momento. Todos los artículos tienen existencias por encima de su stock mínimo.
                           </p>
                           <button
@@ -456,10 +467,10 @@ export const InventarioTab = ({
                             onClick={() => updateFiltroStock('todos')}
                             style={{
                               marginTop: '8px',
-                              background: '#1e5bb8',
+                              background: 'var(--accent-primary)',
                               color: '#fff',
                               border: 'none',
-                              padding: '8px 18px',
+                              padding: '10px 20px',
                               borderRadius: '10px',
                               cursor: 'pointer',
                               fontWeight: 700,
@@ -472,10 +483,10 @@ export const InventarioTab = ({
                       ) : currentFiltroStock === 'agotado' ? (
                         <>
                           <span style={{ fontSize: '2.4rem' }}>✅</span>
-                          <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#22c55e', fontWeight: 700 }}>
+                          <h4 style={{ margin: 0, fontSize: '1.15rem', color: '#22c55e', fontWeight: 700 }}>
                             ¡Ningún producto agotado!
                           </h4>
-                          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '420px', lineHeight: '1.4' }}>
+                          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.88rem', maxWidth: '420px', lineHeight: '1.4' }}>
                             Todo el catálogo cuenta con disponibilidad en existencias.
                           </p>
                           <button
@@ -483,10 +494,10 @@ export const InventarioTab = ({
                             onClick={() => updateFiltroStock('todos')}
                             style={{
                               marginTop: '8px',
-                              background: '#1e5bb8',
+                              background: 'var(--accent-primary)',
                               color: '#fff',
                               border: 'none',
-                              padding: '8px 18px',
+                              padding: '10px 20px',
                               borderRadius: '10px',
                               cursor: 'pointer',
                               fontWeight: 700,
@@ -499,10 +510,10 @@ export const InventarioTab = ({
                       ) : busquedaProductos ? (
                         <>
                           <span style={{ fontSize: '2.4rem' }}>🔍</span>
-                          <h4 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)', fontWeight: 700 }}>
+                          <h4 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--text-primary)', fontWeight: 700 }}>
                             No se encontraron productos
                           </h4>
-                          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.88rem' }}>
                             Ningún producto coincide con &ldquo;{busquedaProductos}&rdquo;
                           </p>
                           <button
@@ -512,8 +523,8 @@ export const InventarioTab = ({
                               marginTop: '8px',
                               background: 'var(--bg-surface-elevated)',
                               color: 'var(--accent-primary)',
-                              border: 'none',
-                              padding: '8px 16px',
+                              border: '1px solid var(--border-color)',
+                              padding: '9px 18px',
                               borderRadius: '10px',
                               cursor: 'pointer',
                               fontWeight: 600,
@@ -524,7 +535,7 @@ export const InventarioTab = ({
                           </button>
                         </>
                       ) : (
-                        <div style={{ color: 'var(--text-muted)' }}>
+                        <div style={{ color: 'var(--text-muted)', padding: '2rem' }}>
                           No hay productos registrados en la base de datos.
                         </div>
                       )}
@@ -543,34 +554,36 @@ export const InventarioTab = ({
                       key={prod.id}
                       style={{
                         background: idx % 2 === 0 ? 'var(--bg-surface)' : 'var(--bg-subtle)',
-                        borderBottom: '1px solid var(--border-subtle)',
+                        transition: 'background-color 0.15s ease',
                       }}
                     >
-                      <td style={{ padding: '12px 14px' }}>
-                        <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{prod.nombre}</div>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      <td style={{ padding: '16px 20px' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.94rem' }}>{prod.nombre}</div>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px', display: 'inline-block' }}>
                           Cód: {prod.codigo_barras || prod.codigo || `ID-${prod.id}`}
                         </span>
                       </td>
-                      <td style={{ padding: '12px 14px' }}>
+                      <td style={{ padding: '16px 20px' }}>
                         <span
                           style={{
                             background: 'var(--accent-primary-subtle)',
                             color: 'var(--accent-primary)',
-                            padding: '3px 8px',
-                            borderRadius: '6px',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            fontSize: '0.76rem',
+                            fontWeight: 700,
+                            letterSpacing: '0.2px',
+                            border: '1px solid var(--accent-primary-border)',
                           }}
                         >
                           {prod.categoria || prod.categoria_nombre || 'General'}
                         </span>
                       </td>
-                      <td style={{ padding: '12px 14px', fontWeight: 800, color: '#16a34a' }}>
+                      <td style={{ padding: '16px 20px', fontWeight: 800, color: '#16a34a', fontSize: '0.95rem' }}>
                         ${(Number(prod.precio) || Number(prod.precio_venta) || 0).toLocaleString('es-CO')}
                       </td>
-                      <td style={{ padding: '12px 14px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <td style={{ padding: '16px 20px' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
                           <span
                             style={{
                               background: esAgotado
@@ -580,9 +593,9 @@ export const InventarioTab = ({
                                 : '#dcfce7',
                               color: esAgotado ? '#b91c1c' : esBajo ? '#b45309' : '#15803d',
                               border: `1px solid ${esAgotado ? '#fecaca' : esBajo ? '#fde68a' : '#bbf7d0'}`,
-                              padding: '3px 9px',
-                              borderRadius: '8px',
-                              fontSize: '0.78rem',
+                              padding: '4px 11px',
+                              borderRadius: '20px',
+                              fontSize: '0.8rem',
                               fontWeight: 700,
                             }}
                           >
@@ -590,56 +603,68 @@ export const InventarioTab = ({
                           </span>
 
                           <Can do="edit" on="inventario">
-                            <button
-                              type="button"
-                              onClick={() => handleAjusteRapidoStock(prod, 1)}
-                              style={{
-                                background: 'var(--bg-subtle)',
-                                color: 'var(--text-primary)',
-                                border: '1px solid var(--border-input)',
-                                width: '24px',
-                                height: '24px',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontWeight: 800,
-                              }}
-                            >
-                              +
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleAjusteRapidoStock(prod, -1)}
-                              style={{
-                                background: 'var(--bg-subtle)',
-                                color: 'var(--text-primary)',
-                                border: '1px solid var(--border-input)',
-                                width: '24px',
-                                height: '24px',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontWeight: 800,
-                              }}
-                            >
-                              -
-                            </button>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', background: 'var(--bg-subtle)', borderRadius: '8px', border: '1px solid var(--border-input)', overflow: 'hidden' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleAjusteRapidoStock(prod, -1)}
+                                title="Restar 1 unidad"
+                                style={{
+                                  background: 'transparent',
+                                  color: 'var(--text-primary)',
+                                  border: 'none',
+                                  width: '28px',
+                                  height: '28px',
+                                  cursor: 'pointer',
+                                  fontWeight: 800,
+                                  fontSize: '0.9rem',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                -
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleAjusteRapidoStock(prod, 1)}
+                                title="Sumar 1 unidad"
+                                style={{
+                                  background: 'transparent',
+                                  color: 'var(--text-primary)',
+                                  border: 'none',
+                                  borderLeft: '1px solid var(--border-input)',
+                                  width: '28px',
+                                  height: '28px',
+                                  cursor: 'pointer',
+                                  fontWeight: 800,
+                                  fontSize: '0.9rem',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                +
+                              </button>
+                            </div>
                           </Can>
                         </div>
                       </td>
-                      <td style={{ padding: '12px 14px', textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', gap: '6px' }}>
+                      <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', gap: '8px', alignItems: 'center' }}>
                           <Can do="edit" on="inventario">
                             <button
                               type="button"
                               onClick={() => handleAbrirEditarProducto(prod)}
                               style={{
-                                background: 'var(--bg-subtle)',
+                                background: 'var(--accent-primary-subtle)',
                                 color: 'var(--accent-primary)',
-                                border: '1px solid var(--border-input)',
-                                padding: '6px 12px',
-                                borderRadius: '6px',
+                                border: '1px solid var(--accent-primary-border)',
+                                padding: '7px 14px',
+                                borderRadius: '9px',
                                 cursor: 'pointer',
-                                fontSize: '0.78rem',
-                                fontWeight: 600,
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                transition: 'all 0.15s ease',
                               }}
                             >
                               Editar
@@ -653,11 +678,12 @@ export const InventarioTab = ({
                                 background: 'var(--color-danger-subtle)',
                                 color: 'var(--color-danger)',
                                 border: '1px solid var(--color-danger-border)',
-                                padding: '6px 10px',
-                                borderRadius: '6px',
+                                padding: '7px 12px',
+                                borderRadius: '9px',
                                 cursor: 'pointer',
-                                fontSize: '0.78rem',
-                                fontWeight: 600,
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                transition: 'all 0.15s ease',
                               }}
                             >
                               Eliminar
@@ -674,21 +700,21 @@ export const InventarioTab = ({
         </div>
       </div>
 
-      {/* Columna Derecha: Resumen de Stock & Acceso Rápido POS */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* Columna Derecha: Estado del Inventario & Acceso Rápido POS (según diseño de referencia) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         <div
           style={{
-            background: 'var(--bg-surface, #ffffff)',
+            background: 'var(--bg-surface)',
             borderRadius: '16px',
-            padding: '1.4rem',
+            padding: '1.5rem',
             display: 'flex',
             flexDirection: 'column',
-            gap: '1rem',
-            border: '1px solid var(--border-color, #e2e8f0)',
-            boxShadow: 'var(--card-shadow, 0 1px 3px rgba(0, 0, 0, 0.05))',
+            gap: '1.1rem',
+            border: '1px solid var(--border-color)',
+            boxShadow: 'var(--card-shadow)',
           }}
         >
-          <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary, #0f172a)', fontWeight: 800 }}>
+          <h4 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-primary)', fontWeight: 800 }}>
             Estado del Inventario
           </h4>
 
@@ -698,14 +724,14 @@ export const InventarioTab = ({
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: 'var(--bg-subtle, #f8fafc)',
-                border: '1px solid var(--border-color, #e2e8f0)',
-                padding: '10px 14px',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-color)',
+                padding: '11px 16px',
                 borderRadius: '10px',
               }}
             >
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary, #475569)', fontWeight: 600 }}>Total Productos</span>
-              <strong style={{ color: 'var(--accent-primary, #1e5bb8)', fontSize: '1rem', fontWeight: 800 }}>
+              <span style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Total Productos</span>
+              <strong style={{ color: 'var(--accent-primary)', fontSize: '1.05rem', fontWeight: 800 }}>
                 {productos.length}
               </strong>
             </div>
@@ -715,14 +741,14 @@ export const InventarioTab = ({
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: 'var(--bg-subtle, #f8fafc)',
-                border: '1px solid var(--border-color, #e2e8f0)',
-                padding: '10px 14px',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-color)',
+                padding: '11px 16px',
                 borderRadius: '10px',
               }}
             >
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary, #475569)', fontWeight: 600 }}>Stock Bajo / Crítico</span>
-              <strong style={{ color: 'var(--color-danger, #ef4444)', fontSize: '1rem', fontWeight: 800 }}>
+              <span style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Stock Bajo / Crítico</span>
+              <strong style={{ color: 'var(--color-danger)', fontSize: '1.05rem', fontWeight: 800 }}>
                 {productos.filter((p) => Number(p.stock) <= (Number(p.stock_minimo) || 5)).length}
               </strong>
             </div>
@@ -732,55 +758,62 @@ export const InventarioTab = ({
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: 'var(--bg-subtle, #f8fafc)',
-                border: '1px solid var(--border-color, #e2e8f0)',
-                padding: '10px 14px',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-color)',
+                padding: '11px 16px',
                 borderRadius: '10px',
               }}
             >
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary, #475569)', fontWeight: 600 }}>Categorías</span>
-              <strong style={{ color: 'var(--text-primary, #0f172a)', fontSize: '1rem', fontWeight: 800 }}>
+              <span style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Categorías</span>
+              <strong style={{ color: 'var(--text-primary)', fontSize: '1.05rem', fontWeight: 800 }}>
                 {listaCategorias.length}
               </strong>
             </div>
           </div>
         </div>
 
-        {isAdmin && (
+        {!isSupervisor && (
           <div
             style={{
               background: 'var(--bg-surface)',
-              borderRadius: '18px',
-              padding: '1.4rem',
+              borderRadius: '16px',
+              padding: '1.5rem',
               display: 'flex',
               flexDirection: 'column',
-              gap: '0.85rem',
+              gap: '1rem',
               border: '1px solid var(--border-color)',
               boxShadow: 'var(--card-shadow)',
             }}
           >
-            <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)', fontWeight: 800 }}>
+            <h4 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-primary)', fontWeight: 800 }}>
               Acceso Rápido POS
             </h4>
             <button
+              type="button"
               onClick={onAbrirPos}
               style={{
-                background: '#1e5bb8',
-                color: '#fff',
+                background: 'var(--accent-primary)',
+                color: '#ffffff',
                 border: 'none',
-                padding: '11px 16px',
+                padding: '13px 18px',
                 borderRadius: '10px',
                 cursor: 'pointer',
-                fontWeight: 700,
-                fontSize: '0.88rem',
-                boxShadow: '0 4px 14px rgba(139, 92, 246, 0.35)',
+                fontWeight: 800,
+                fontSize: '0.9rem',
+                boxShadow: '0 4px 14px rgba(30, 91, 184, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.2s ease',
               }}
             >
-              Abrir Terminal Cajero POS
+              🛒 Abrir Terminal Cajero POS
             </button>
           </div>
         )}
       </div>
+    </div>
 
       {/* MODAL UNIFICADO: Crear / Editar Producto */}
       {modalAbierto && (

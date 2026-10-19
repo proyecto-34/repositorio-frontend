@@ -1,4 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Users,
+  DollarSign,
+  History,
+  Search,
+  Lock,
+  Menu,
+  ChevronLeft,
+  ChevronRight,
+  User as UserIcon,
+} from 'lucide-react';
+import NotificationBell from '../../components/NotificationBell';
+import ThemeToggle from '../../components/ThemeToggle';
+import FontSizeToggle from '../../components/FontSizeToggle';
 import { usuariosService } from '../../services/usuariosService';
 import { productosService } from '../../services/productosService';
 import { facturacionService } from '../../services/facturacionService';
@@ -17,7 +34,7 @@ import UsuariosTab from './admin/UsuariosTab';
 import AuditoriaTab from './admin/AuditoriaTab';
 import '../../styles/admin-dashboard.css';
 
-export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
+export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos, onLogout }) => {
   const {
     activeRole,
     canManageUsers,
@@ -31,7 +48,13 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     isAdmin,
     isContador,
     isSupervisor,
+    logout,
   } = useAuth();
+
+  // Estados de interfaz: Sidebar desplegable y búsqueda global
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [busquedaGlobal, setBusquedaGlobal] = useState('');
 
   // Pestaña inicial según rol
   const [tabActiva, setTabActiva] = useState(() => {
@@ -216,157 +239,277 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos }) => {
     contadores: usuarios.filter((u) => normalizarRol(u.id_rol ?? u.rol?.id ?? u.rol) === ROLES.CONTADOR).length,
   };
 
+  const handleNavClick = (tabKey) => {
+    setTabActiva(tabKey);
+    setMobileSidebarOpen(false);
+  };
+
+  const menuItems = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: LayoutDashboard,
+      visible: true,
+      onClick: () => handleNavClick('inventario'),
+      active: tabActiva === 'inventario' && filtroStockInventario === 'todos',
+    },
+    {
+      id: 'inventario',
+      label: 'Inventario & Productos',
+      icon: Package,
+      visible: canManageInventory || canViewInventory,
+      onClick: () => handleNavClick('inventario'),
+      active: tabActiva === 'inventario',
+    },
+    {
+      id: 'compras',
+      label: 'Entradas & Compras',
+      icon: ShoppingCart,
+      visible: canManagePurchases || canViewPurchases,
+      onClick: () => handleNavClick('compras'),
+      active: tabActiva === 'compras',
+    },
+    {
+      id: 'proveedores',
+      label: 'Proveedores',
+      icon: Users,
+      visible: canManageSuppliers || canViewSuppliers,
+      onClick: () => handleNavClick('proveedores'),
+      active: tabActiva === 'proveedores',
+    },
+    {
+      id: 'reportes',
+      label: 'Finanzas',
+      icon: DollarSign,
+      visible: canViewReports,
+      onClick: () => handleNavClick('reportes'),
+      active: tabActiva === 'reportes',
+    },
+    {
+      id: 'usuarios',
+      label: 'Usuarios & Roles',
+      icon: Users,
+      visible: canManageUsers,
+      onClick: () => handleNavClick('usuarios'),
+      active: tabActiva === 'usuarios',
+    },
+    {
+      id: 'auditoria',
+      label: 'Historial',
+      icon: History,
+      visible: isAdmin,
+      onClick: () => handleNavClick('auditoria'),
+      active: tabActiva === 'auditoria',
+    },
+  ];
+
   return (
-    <div className="admin-dashboard-container">
-      {/* Tarjetas de Métricas Globales */}
-      <DashboardKpis
-        tabActiva={tabActiva}
-        setTabActiva={setTabActiva}
-        filtroStock={filtroStockInventario}
-        onSeleccionarFiltroStock={(filtro) => {
-          setFiltroStockInventario(filtro);
-          setTabActiva('inventario');
-        }}
-        canViewReports={canViewReports}
-        canManageInventory={canManageInventory}
-        canViewInventory={canViewInventory}
-        canManageSuppliers={canManageSuppliers}
-        canViewSuppliers={canViewSuppliers}
-        canManageUsers={canManageUsers}
-        totalVentasBrutas={totalVentasBrutas}
-        ventasCount={ventas.length}
-        totalProductos={totalProductos}
-        cargandoProductos={cargandoProductos}
-        valorTotalInventario={valorTotalInventario}
-        productosBajoStock={productosBajoStock}
-        proveedoresCount={proveedores.length}
-        proveedoresActivosCount={proveedores.length}
-        cargandoProveedores={cargandoProveedores}
-        usuariosCount={usuarios.length}
-        cargandoUsuarios={cargandoUsuarios}
-        rolesCounts={rolesCounts}
-      />
+    <div className={`admin-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''} ${mobileSidebarOpen ? 'mobile-open' : ''}`}>
+      {/* Telón de fondo móvil */}
+      {mobileSidebarOpen && (
+        <div
+          className="admin-sidebar-backdrop"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
 
-      {/* Selector de Pestañas */}
-      <div className="admin-tabs-bar">
-        {(canManageInventory || canViewInventory) && (
+      {/* Menú Desplegable Lateral Izquierdo */}
+      <aside className="admin-sidebar">
+        <div className="admin-sidebar-header">
+          <div className="admin-sidebar-brand">
+            <span className="admin-brand-dot" />
+            <span className="admin-brand-title">Tienda Comunitaria</span>
+          </div>
           <button
             type="button"
-            onClick={() => setTabActiva('inventario')}
-            className={`admin-tab-btn ${tabActiva === 'inventario' ? 'active purple' : ''}`}
+            className="admin-sidebar-toggle-btn"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            title={sidebarCollapsed ? 'Expandir menú' : 'Plegar menú'}
+            aria-label="Plegar o desplegar menú"
           >
-            Inventario & Productos
+            {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </button>
-        )}
+        </div>
 
-        {(canManagePurchases || canViewPurchases) && (
-          <button
-            type="button"
-            onClick={() => setTabActiva('compras')}
-            className={`admin-tab-btn ${tabActiva === 'compras' ? 'active green' : ''}`}
-          >
-            Entradas & Compras
-          </button>
-        )}
+        <nav className="admin-sidebar-nav">
+          {menuItems
+            .filter((item) => item.visible)
+            .map((item) => {
+              const IconComp = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={item.onClick}
+                  className={`admin-sidebar-item ${item.active ? 'active' : ''}`}
+                  title={sidebarCollapsed ? item.label : undefined}
+                >
+                  <span className="admin-sidebar-icon">
+                    <IconComp size={18} />
+                  </span>
+                  <span className="admin-sidebar-label">{item.label}</span>
+                </button>
+              );
+            })}
+        </nav>
+      </aside>
 
-        {(canManageSuppliers || canViewSuppliers) && (
-          <button
-            type="button"
-            onClick={() => setTabActiva('proveedores')}
-            className={`admin-tab-btn ${tabActiva === 'proveedores' ? 'active blue' : ''}`}
-          >
-            Proveedores
-          </button>
-        )}
+      {/* Contenedor Principal (Barra Superior + Métricas + Módulo Activo) */}
+      <div className="admin-main-wrapper">
+        {/* Barra Superior */}
+        <header className="admin-top-bar">
+          <div className="admin-top-bar-left">
+            <button
+              type="button"
+              className="admin-sidebar-toggle-btn admin-mobile-menu-trigger"
+              onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+              title="Abrir menú"
+              aria-label="Abrir menú lateral"
+            >
+              <Menu size={20} />
+            </button>
 
-        {canViewReports && (
-          <button
-            type="button"
-            onClick={() => setTabActiva('reportes')}
-            className={`admin-tab-btn ${tabActiva === 'reportes' ? 'active purple' : ''}`}
-          >
-            Reportes Financieros & Balance
-          </button>
-        )}
+            <span className="admin-pos-badge">POS CLOUD</span>
 
-        {canManageUsers && (
-          <button
-            type="button"
-            onClick={() => setTabActiva('usuarios')}
-            className={`admin-tab-btn ${tabActiva === 'usuarios' ? 'active purple' : ''}`}
-          >
-            Usuarios y Roles
-          </button>
-        )}
+            <div className="admin-global-search-box">
+              <Search size={16} className="admin-global-search-icon" />
+              <input
+                type="text"
+                placeholder="Búsqueda global..."
+                value={busquedaGlobal}
+                onChange={(e) => setBusquedaGlobal(e.target.value)}
+              />
+            </div>
+          </div>
 
-        {isAdmin && (
-          <button
-            type="button"
-            onClick={() => setTabActiva('auditoria')}
-            className={`admin-tab-btn ${tabActiva === 'auditoria' ? 'active blue' : ''}`}
-          >
-            Auditoría del Sistema
-          </button>
-        )}
+          <div className="admin-top-bar-right">
+            <div className="admin-utilities-strip">
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('tc_lock_screen'))}
+                className="admin-btn-lock"
+                title="Bloquear pantalla ahora (Seguridad de Caja)"
+                aria-label="Bloquear pantalla"
+              >
+                <Lock size={15} />
+              </button>
+
+              <FontSizeToggle />
+              <ThemeToggle />
+
+              {(activeRole === ROLES.ADMIN || activeRole === ROLES.SUPERVISOR) && (
+                <NotificationBell />
+              )}
+            </div>
+
+            <div className="admin-user-pill">
+              <UserIcon size={14} style={{ color: 'var(--text-muted)' }} />
+              <span>{user?.nombre || user?.email?.split('@')[0] || 'David'}</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={onLogout || logout}
+              className="admin-btn-logout"
+            >
+              Salir
+            </button>
+          </div>
+        </header>
+
+        {/* Cuerpo del Dashboard con Métricas y Módulo Activo */}
+        <main className="admin-body-content">
+          {/* Tarjetas de Métricas Globales (KPIs) */}
+          <DashboardKpis
+            tabActiva={tabActiva}
+            setTabActiva={setTabActiva}
+            filtroStock={filtroStockInventario}
+            onSeleccionarFiltroStock={(filtro) => {
+              setFiltroStockInventario(filtro);
+              setTabActiva('inventario');
+            }}
+            canViewReports={canViewReports}
+            canManageInventory={canManageInventory}
+            canViewInventory={canViewInventory}
+            canManageSuppliers={canManageSuppliers}
+            canViewSuppliers={canViewSuppliers}
+            canManageUsers={canManageUsers}
+            totalVentasBrutas={totalVentasBrutas}
+            ventasCount={ventas.length}
+            totalProductos={totalProductos}
+            cargandoProductos={cargandoProductos}
+            valorTotalInventario={valorTotalInventario}
+            productosBajoStock={productosBajoStock}
+            proveedoresCount={proveedores.length}
+            proveedoresActivosCount={proveedores.length}
+            cargandoProveedores={cargandoProveedores}
+            usuariosCount={usuarios.length}
+            cargandoUsuarios={cargandoUsuarios}
+            rolesCounts={rolesCounts}
+          />
+
+          {/* SIN DOBLE BOTÓN: La navegación se realiza únicamente desde el menú lateral izquierdo */}
+
+          {/* Contenido Modular según Menú Activo */}
+          {tabActiva === 'inventario' && (canManageInventory || canViewInventory) && (
+            <InventarioTab
+              productos={productos}
+              cargando={cargandoProductos}
+              onRecargar={cargarProductos}
+              onAbrirPos={onAbrirPos}
+              isAdmin={isAdmin}
+              isSupervisor={isSupervisor}
+              filtroStock={filtroStockInventario}
+              setFiltroStock={setFiltroStockInventario}
+              busquedaGlobal={busquedaGlobal}
+            />
+          )}
+
+          {tabActiva === 'compras' && (canManagePurchases || canViewPurchases) && (
+            <ComprasTab
+              compras={compras}
+              proveedores={proveedores}
+              productos={productos}
+              cargando={cargandoCompras}
+              onRecargar={cargarCompras}
+              onRecargarProductos={cargarProductos}
+              onActualizarStock={handleActualizarStockDesdeCompra}
+              canManage={canManagePurchases}
+              proveedorInicial={proveedorParaNuevaCompra}
+            />
+          )}
+
+          {tabActiva === 'proveedores' && (canManageSuppliers || canViewSuppliers) && (
+            <ProveedoresTab
+              proveedores={proveedores}
+              cargando={cargandoProveedores}
+              onRecargar={cargarProveedores}
+              onAbrirNuevaCompraConProveedor={handleAbrirCompraConProveedor}
+              canManage={canManageSuppliers}
+            />
+          )}
+
+          {tabActiva === 'reportes' && canViewReports && (
+            <ReportesTab
+              ventas={ventas}
+              cargando={cargandoVentas}
+              onRecargar={cargarVentas}
+            />
+          )}
+
+          {tabActiva === 'usuarios' && canManageUsers && (
+            <UsuariosTab
+              usuarios={usuarios}
+              cargando={cargandoUsuarios}
+              onRecargar={cargarUsuarios}
+            />
+          )}
+
+          {tabActiva === 'auditoria' && isAdmin && (
+            <AuditoriaTab />
+          )}
+        </main>
       </div>
-
-      {/* Contenido Modular según Pestaña Activa */}
-      {tabActiva === 'inventario' && (canManageInventory || canViewInventory) && (
-        <InventarioTab
-          productos={productos}
-          cargando={cargandoProductos}
-          onRecargar={cargarProductos}
-          onAbrirPos={onAbrirPos}
-          isAdmin={isAdmin}
-          isSupervisor={isSupervisor}
-          filtroStock={filtroStockInventario}
-          setFiltroStock={setFiltroStockInventario}
-        />
-      )}
-
-      {tabActiva === 'compras' && (canManagePurchases || canViewPurchases) && (
-        <ComprasTab
-          compras={compras}
-          proveedores={proveedores}
-          productos={productos}
-          cargando={cargandoCompras}
-          onRecargar={cargarCompras}
-          onRecargarProductos={cargarProductos}
-          onActualizarStock={handleActualizarStockDesdeCompra}
-          canManage={canManagePurchases}
-          proveedorInicial={proveedorParaNuevaCompra}
-        />
-      )}
-
-      {tabActiva === 'proveedores' && (canManageSuppliers || canViewSuppliers) && (
-        <ProveedoresTab
-          proveedores={proveedores}
-          cargando={cargandoProveedores}
-          onRecargar={cargarProveedores}
-          onAbrirNuevaCompraConProveedor={handleAbrirCompraConProveedor}
-          canManage={canManageSuppliers}
-        />
-      )}
-
-      {tabActiva === 'reportes' && canViewReports && (
-        <ReportesTab
-          ventas={ventas}
-          cargando={cargandoVentas}
-          onRecargar={cargarVentas}
-        />
-      )}
-
-      {tabActiva === 'usuarios' && canManageUsers && (
-        <UsuariosTab
-          usuarios={usuarios}
-          cargando={cargandoUsuarios}
-          onRecargar={cargarUsuarios}
-        />
-      )}
-
-      {tabActiva === 'auditoria' && isAdmin && (
-        <AuditoriaTab />
-      )}
     </div>
   );
 };
