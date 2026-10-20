@@ -9,11 +9,11 @@ const STORAGE_LOCK_KEY = 'tienda_auto_lock_seconds';
 const STORAGE_IS_LOCKED = 'tienda_session_locked';
 
 export const TIEMPOS_INACTIVIDAD = [
-  { valor: 15, label: '15 seg (Demo en Vivo)' },
-  { valor: 30, label: '30 seg (Demo Rápido)' },
   { valor: 60, label: '1 minuto' },
   { valor: 300, label: '5 minutos (Recomendado)' },
   { valor: 600, label: '10 minutos' },
+  { valor: 900, label: '15 minutos' },
+  { valor: 1800, label: '30 minutos' },
   { valor: 0, label: 'Desactivado' },
 ];
 
@@ -25,7 +25,13 @@ export const AutoLockGuard = ({ onLogout }) => {
 
   const [tiempoSegundos, setTiempoSegundos] = useState(() => {
     const guardado = localStorage.getItem(STORAGE_LOCK_KEY);
-    return guardado !== null ? Number(guardado) : 300; // 5 minutos por defecto
+    const num = guardado !== null ? Number(guardado) : 300; // 5 minutos por defecto
+    const tiempoValido = TIEMPOS_INACTIVIDAD.some((t) => t.valor === num);
+    if (!tiempoValido) {
+      localStorage.setItem(STORAGE_LOCK_KEY, '300');
+      return 300;
+    }
+    return num;
   });
 
   const [password, setPassword] = useState('');
@@ -103,7 +109,9 @@ export const AutoLockGuard = ({ onLogout }) => {
       if (correo) {
         await authService.login({
           email: correo,
+          correo: correo,
           password: password.trim(),
+          contraseña: password.trim(),
         });
       }
 
@@ -116,14 +124,6 @@ export const AutoLockGuard = ({ onLogout }) => {
     } finally {
       setValidando(false);
     }
-  };
-
-  // Desbloqueo rápido para demostración en clase (por si no recuerdan la clave en vivo)
-  const handleDesbloqueoDemo = () => {
-    setIsLocked(false);
-    localStorage.removeItem(STORAGE_IS_LOCKED);
-    setPassword('');
-    toast.success('Sesión desbloqueada (Modo Demostración)');
   };
 
   // Si no está bloqueado o no está autenticado, no renderiza overlay
@@ -177,23 +177,6 @@ export const AutoLockGuard = ({ onLogout }) => {
             <Unlock size={18} />
             <span>{validando ? 'Comprobando...' : 'Desbloquear Sesión'}</span>
           </button>
-
-          <button
-            type="button"
-            onClick={handleDesbloqueoDemo}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-muted)',
-              fontSize: '0.74rem',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              marginTop: '2px',
-            }}
-            title="Desbloquear inmediatamente para pruebas"
-          >
-            Desbloqueo rápido (Demostración)
-          </button>
         </form>
 
         <div className="auto-lock-footer-row">
@@ -216,7 +199,7 @@ export const AutoLockGuard = ({ onLogout }) => {
               value={tiempoSegundos}
               onChange={(e) => cambiarTiempo(Number(e.target.value))}
               className="auto-lock-select-time"
-              title="Cambiar tiempo de inactividad para demostración"
+              title="Cambiar tiempo de inactividad"
             >
               {TIEMPOS_INACTIVIDAD.map((t) => (
                 <option key={t.valor} value={t.valor}>

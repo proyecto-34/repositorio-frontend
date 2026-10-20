@@ -162,26 +162,6 @@ export const HomeView = () => {
             <span>Explorar Módulos</span>
           </a>
         </div>
-
-        {/* Mini stats comerciales orientados al negocio */}
-        <div className="hero-stats-grid">
-          <div className="stat-card">
-            <div className="stat-number">⚡ POS</div>
-            <div className="stat-label">Ventas Ágiles en Caja</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number">100%</div>
-            <div className="stat-label">Stock en Tiempo Real</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number">PDF</div>
-            <div className="stat-label">Facturas y Comprobantes</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number">Multi-Rol</div>
-            <div className="stat-label">Caja y Administración</div>
-          </div>
-        </div>
       </section>
 
       {/* Sección: Módulos del Sistema */}

@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { productosService } from '../../../services/productosService';
 import categoriasService, { CATEGORIAS_DEFAULT } from '../../../services/categoriasService';
 import Can from '../../../components/Can';
+import useConfirm from '../../../hooks/useConfirm';
 
 export const InventarioTab = ({
   productos = [],
@@ -13,8 +14,8 @@ export const InventarioTab = ({
   isSupervisor = false,
   filtroStock = 'todos',
   setFiltroStock,
-  busquedaGlobal = '',
 }) => {
+  const { confirm, ConfirmDialog } = useConfirm();
   const [busquedaProductos, setBusquedaProductos] = useState('');
   const [filtroCategoria, setFiltroCategoria] = useState('Todas');
   const [filtroStockLocal, setFiltroStockLocal] = useState('todos');
@@ -162,7 +163,14 @@ export const InventarioTab = ({
   };
 
   const handleEliminarProducto = async (id, nombre) => {
-    if (!window.confirm(`¿Estás seguro de eliminar "${nombre}" del catálogo?`)) return;
+    const ok = await confirm({
+      title: 'Eliminar Producto',
+      message: `¿Estás seguro de que deseas eliminar "${nombre}" del catálogo? Esta acción no se puede deshacer.`,
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar',
+      variant: 'danger',
+    });
+    if (!ok) return;
     try {
       await productosService.eliminarProducto(id);
       toast.success(`Producto "${nombre}" eliminado`);
@@ -182,7 +190,7 @@ export const InventarioTab = ({
   ];
 
   const productosFiltrados = productos.filter((p) => {
-    const q = (busquedaProductos || busquedaGlobal || '').toLowerCase().trim();
+    const q = busquedaProductos.toLowerCase().trim();
     const coincideTexto =
       !q ||
       (p.nombre && p.nombre.toLowerCase().includes(q)) ||
@@ -1194,6 +1202,9 @@ export const InventarioTab = ({
           </div>
         </div>
       )}
+
+      {/* Modal de confirmación moderno */}
+      <ConfirmDialog />
     </div>
   );
 };

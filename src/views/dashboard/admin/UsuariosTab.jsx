@@ -3,12 +3,14 @@ import { toast } from 'sonner';
 import { usuariosService } from '../../../services/usuariosService';
 import { ROLES_DB, obtenerInfoRol } from '../../../constants/roles';
 import Can from '../../../components/Can';
+import useConfirm from '../../../hooks/useConfirm';
 
 export const UsuariosTab = ({
   usuarios = [],
   cargando = false,
   onRecargar,
 }) => {
+  const { confirm, ConfirmDialog } = useConfirm();
   const [busquedaUsuarios, setBusquedaUsuarios] = useState('');
   const [modalAbierto, setModalAbierto] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState(null);
@@ -80,7 +82,15 @@ export const UsuariosTab = ({
   };
 
   const handleEliminar = async (id, nombre) => {
-    if (!window.confirm(`¿Estás seguro de eliminar o desactivar al usuario "${nombre}"?`)) return;
+    const ok = await confirm({
+      title: 'Eliminar Usuario',
+      message: `¿Estás seguro de eliminar o desactivar al usuario "${nombre}"?`,
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar',
+      variant: 'danger',
+    });
+    if (!ok) return;
+
     try {
       await usuariosService.eliminarUsuario(id);
       toast.success(`Usuario "${nombre}" eliminado`);
@@ -547,6 +557,9 @@ export const UsuariosTab = ({
           </div>
         </div>
       )}
+
+      {/* Diálogo Moderno de Confirmación */}
+      <ConfirmDialog />
     </div>
   );
 };
