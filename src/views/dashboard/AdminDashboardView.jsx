@@ -6,7 +6,6 @@ import {
   Users,
   DollarSign,
   History,
-  Search,
   Lock,
   Menu,
   ChevronLeft,
@@ -51,10 +50,9 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos, onLogout }
     logout,
   } = useAuth();
 
-  // Estados de interfaz: Sidebar desplegable y búsqueda global
+  // Estados de interfaz: Sidebar desplegable
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [busquedaGlobal, setBusquedaGlobal] = useState('');
 
   // Pestaña inicial según rol
   const [tabActiva, setTabActiva] = useState(() => {
@@ -370,16 +368,6 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos, onLogout }
             </button>
 
             <span className="admin-pos-badge">POS CLOUD</span>
-
-            <div className="admin-global-search-box">
-              <Search size={16} className="admin-global-search-icon" />
-              <input
-                type="text"
-                placeholder="Búsqueda global..."
-                value={busquedaGlobal}
-                onChange={(e) => setBusquedaGlobal(e.target.value)}
-              />
-            </div>
           </div>
 
           <div className="admin-top-bar-right">
@@ -461,7 +449,6 @@ export const AdminDashboardView = ({ user, onOpenFactura, onAbrirPos, onLogout }
               isSupervisor={isSupervisor}
               filtroStock={filtroStockInventario}
               setFiltroStock={setFiltroStockInventario}
-              busquedaGlobal={busquedaGlobal}
             />
           )}
 

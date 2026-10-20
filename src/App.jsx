@@ -10,6 +10,7 @@ import FontSizeToggle from './components/FontSizeToggle';
 import ActiveTabLock from './components/ActiveTabLock';
 import AutoLockGuard from './components/AutoLockGuard';
 import { useAuth } from './context/AuthContext';
+import { useTheme } from './context/ThemeContext';
 import { ROLES, ROLE_BADGES } from './constants/roles';
 import ProtectedRoute from './routes/ProtectedRoute';
 import './styles/navbar.css';
@@ -50,6 +51,7 @@ function App() {
     activeRole, 
     logout, 
   } = useAuth();
+  const { theme } = useTheme();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -75,7 +77,20 @@ function App() {
       <AutoLockGuard onLogout={handleLogout} />
 
       {/* Notificaciones globales en la esquina inferior */}
-      <Toaster position="bottom-right" richColors closeButton />
+      <Toaster
+        position="bottom-right"
+        theme={theme === 'dark' ? 'dark' : 'light'}
+        richColors
+        closeButton
+        toastOptions={{
+          style: {
+            borderRadius: '14px',
+            fontSize: '0.88rem',
+            fontWeight: '600',
+            boxShadow: '0 12px 30px rgba(0, 0, 0, 0.18)',
+          },
+        }}
+      />
 
       {/* Modal de Facturación Rápida (Cargado diferido) */}
       <Suspense fallback={null}>

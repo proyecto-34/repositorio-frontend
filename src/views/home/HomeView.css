@@ -303,48 +303,6 @@
   transform: translateY(-2px);
 }
 
-/* Stats en el Hero */
-.hero-stats-grid {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.25rem;
-  width: 100%;
-}
-
-.stat-card {
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 1.5rem 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(8px);
-  transition: transform 0.25s ease, border-color 0.25s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(139, 92, 246, 0.4);
-}
-
-.stat-number {
-  font-size: 2rem;
-  font-weight: 900;
-  color: var(--accent-primary);
-  margin-bottom: 0.35rem;
-  letter-spacing: -0.5px;
-}
-
-.stat-label {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  font-weight: 600;
-  text-align: center;
-}
 
 /* =========================================================
    Secciones Generales

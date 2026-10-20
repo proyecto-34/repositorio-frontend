@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { Plus, Edit2, Trash2, Search, Truck, Phone, MapPin, Building2 } from 'lucide-react';
 import proveedoresService from '../../../services/proveedoresService';
 import Can from '../../../components/Can';
+import useConfirm from '../../../hooks/useConfirm';
 
 export const ProveedoresTab = ({
   proveedores = [],
@@ -11,6 +12,7 @@ export const ProveedoresTab = ({
   onAbrirNuevaCompraConProveedor,
   canManage = true,
 }) => {
+  const { confirm, ConfirmDialog } = useConfirm();
   const [busqueda, setBusqueda] = useState('');
   const [modalNuevo, setModalNuevo] = useState(false);
   const [modalEditar, setModalEditar] = useState(false);
@@ -93,7 +95,14 @@ export const ProveedoresTab = ({
   };
 
   const handleEliminar = async (id, nombre) => {
-    if (!window.confirm(`¿Estás seguro de eliminar el proveedor "${nombre}"?`)) return;
+    const ok = await confirm({
+      title: 'Eliminar Proveedor',
+      message: `¿Estás seguro de que deseas eliminar el proveedor "${nombre}"?`,
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar',
+      variant: 'danger',
+    });
+    if (!ok) return;
 
     try {
       await proveedoresService.eliminarProveedor(id);
@@ -587,6 +596,9 @@ export const ProveedoresTab = ({
           </div>
         </div>
       )}
+
+      {/* Modal de confirmación moderno */}
+      <ConfirmDialog />
     </div>
   );
 };
